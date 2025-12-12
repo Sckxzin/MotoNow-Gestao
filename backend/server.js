@@ -6,7 +6,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-/* ------------------------ CONEXÃO COM MySQL (FreeSQLDatabase) ------------------------ */
+// ⚠️ CONFIGURAÇÃO FIXA DO FREESQLDATABASE
 const db = mysql.createConnection({
   host: "sql5.freesqldatabase.com",
   user: "sql5811685",
@@ -15,20 +15,13 @@ const db = mysql.createConnection({
   port: 3306
 });
 
+// TESTAR CONEXÃO
 db.connect(err => {
   if (err) {
     console.error("Erro ao conectar ao MySQL:", err);
   } else {
-    console.log("Conectado ao MySQL (FreeSQLDatabase)!");
+    console.log("✅ Conectado ao MySQL FreeSQLDatabase!");
   }
-});
-
-/* ------------------------ TESTE DE BANCO ------------------------ */
-app.get("/test-db", (req, res) => {
-  db.query("SELECT 1 + 1 AS result", (err, result) => {
-    if (err) return res.status(500).json(err);
-    res.send("DB OK: " + result[0].result);
-  });
 });
 
 /* ------------------------ LOGIN ------------------------ */
@@ -111,8 +104,8 @@ app.post("/vendas", (req, res) => {
 
         const sqlVenda = `
           INSERT INTO vendas 
-          (peca_id, nome_cliente, telefone, cpf, quantidade, preco_unitario, total, filial, data_venda)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())
+          (peca_id, nome_cliente, telefone, cpf, quantidade, preco_unitario, total, filial)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         `;
 
         db.query(
@@ -204,5 +197,5 @@ app.get("/motos", (req, res) => {
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, "0.0.0.0", () => {
-  console.log("Servidor rodando na porta " + PORT);
+  console.log("🚀 Servidor rodando na porta " + PORT);
 });
