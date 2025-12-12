@@ -1,0 +1,60 @@
+.login-container {
+  width: 100%;
+  height: 100vh;
+  background: #b50000; /* Vermelho Shineray */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.login-card {
+  background: #fff;
+  width: 350px;
+  padding: 35px;
+  border-radius: 12px;
+  box-shadow: 0 0 18px rgba(0,0,0,0.25);
+  text-align: center;
+}
+
+.login-logo {
+  width: 120px;
+  margin-bottom: 15px;
+}
+
+.login-title {
+  margin-bottom: 20px;
+  font-size: 22px;
+  font-weight: bold;
+  color: #b50000;
+}
+
+.login-input {
+  width: 100%;
+  padding: 12px;
+  margin-top: 10px;
+  border: 2px solid #b50000;
+  border-radius: 6px;
+  font-size: 16px;
+}
+
+.login-input:focus {
+  outline: none;
+  border-color: #000;
+}
+
+.login-btn {
+  width: 100%;
+  margin-top: 20px;
+  padding: 12px;
+  background: #b50000;
+  border: none;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 18px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.login-btn:hover {
+  background: #880000;
+}

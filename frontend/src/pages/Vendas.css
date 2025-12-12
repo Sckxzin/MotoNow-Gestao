@@ -1,0 +1,48 @@
+.vendas-container {
+  padding: 30px;
+  font-family: Arial, sans-serif;
+}
+
+.titulo-vendas {
+  margin-bottom: 20px;
+  font-size: 26px;
+  font-weight: bold;
+}
+
+.tabela-vendas {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.tabela-vendas th {
+  background: #111;
+  color: white;
+  padding: 12px;
+  text-align: left;
+}
+
+.tabela-vendas td {
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+}
+
+.tabela-vendas tr:hover {
+  background: #f3f3f3;
+}
+
+.btn-imprimir {
+  background: red;
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.btn-imprimir:hover {
+  background: #b30000;
+}

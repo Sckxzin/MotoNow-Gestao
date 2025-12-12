@@ -1,0 +1,77 @@
+.nf-container {
+  width: 800px;
+  margin: auto;
+  padding: 30px;
+  font-family: "Times New Roman", serif;
+  color: #222;
+}
+
+.nf-header {
+  text-align: center;
+  margin-bottom: 25px;
+}
+
+.nf-line {
+  width: 100%;
+  height: 2px;
+  background: #000;
+  margin: 10px 0;
+}
+
+.nf-identificacao {
+  font-size: 14px;
+  font-style: italic;
+  margin-top: 5px;
+}
+
+.nf-logos img {
+  height: 60px;
+  margin: 0 10px;
+}
+
+.nf-title {
+  font-size: 20px;
+  margin-top: 15px;
+  font-weight: bold;
+}
+
+.nf-text {
+  margin-top: 5px;
+  font-size: 15px;
+  line-height: 22px;
+}
+
+.nf-section {
+  margin-top: 25px;
+  font-size: 18px;
+  border-bottom: 2px solid #000;
+  padding-bottom: 4px;
+}
+
+.nf-box {
+  padding: 12px;
+  border: 1px solid #000;
+  margin-top: 10px;
+  background: #f9f9f9;
+}
+
+.nf-print {
+  margin-top: 25px;
+  padding: 10px 20px;
+  font-size: 18px;
+  background: #b50000;
+  color: white;
+  border: none;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.nf-print:hover {
+  background: #8a0000;
+}
+
+@media print {
+  .nf-print {
+    display: none;
+  }
+}
