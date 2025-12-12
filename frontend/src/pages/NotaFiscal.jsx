@@ -47,24 +47,24 @@ export default function NotaFiscal() {
       {/* CLIENTE */}
       <h3 className="nf-section">DADOS DO CLIENTE</h3>
       <div className="nf-box">
-        <p><b>Nome:</b> {venda.nome_cliente}</p>
-        <p><b>CPF:</b> {venda.cpf}</p>
-        <p><b>Telefone:</b> {venda.telefone}</p>
+        <p><b>Nome:</b> {venda.nome_cliente || "—"}</p>
+        <p><b>CPF:</b> {venda.cpf || "—"}</p>
+        <p><b>Telefone:</b> {venda.telefone || "—"}</p>
       </div>
 
       {/* PEÇA */}
       <h3 className="nf-section">PEÇA VENDIDA</h3>
       <div className="nf-box">
-        <p><b>Descrição:</b> {venda.peca}</p>
-        <p><b>Código:</b> {venda.codigo}</p>
-        <p><b>Quantidade:</b> {venda.quantidade}</p>
+        <p><b>Descrição:</b> {venda.peca || "—"}</p>
+        <p><b>Código:</b> {venda.codigo || "—"}</p>
+        <p><b>Quantidade:</b> {venda.quantidade || 0}</p>
       </div>
 
       {/* VALORES */}
       <h3 className="nf-section">VALORES</h3>
       <div className="nf-box">
-        <p><b>Preço Unitário:</b> R$ {venda.preco_unitario}</p>
-        <p><b>Total:</b> <b>R$ {venda.total}</b></p>
+        <p><b>Preço Unitário:</b> R$ {venda.preco_unitario || 0}</p>
+        <p><b>Total:</b> <b>R$ {venda.total || 0}</b></p>
       </div>
 
       <button className="nf-print" onClick={() => window.print()}>
