@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../api"; // 🔥 usando o axios com baseURL do Railway
 import "./Home.css";
 
 export default function Home() {
@@ -10,8 +10,6 @@ export default function Home() {
   const [pecas, setPecas] = useState([]);
   const [motos, setMotos] = useState([]);
   const [busca, setBusca] = useState("");
-
-  const API = "http://192.168.1.24:5000"; // 🔥 IP QUE FUNCIONA NA REDE
 
   useEffect(() => {
     const data = JSON.parse(localStorage.getItem("user"));
@@ -23,20 +21,27 @@ export default function Home() {
     setUser(data);
 
     // 🔥 Carregar peças
-    axios
-      .get(`${API}/pecas`, {
+    api
+      .get("/pecas", {
         params: { role: data.role, filial: data.filial }
       })
       .then((res) => setPecas(res.data))
-      .catch(() => alert("Erro ao carregar peças!"));
+      .catch((err) => {
+        console.error(err);
+        alert("Erro ao carregar peças!");
+      });
 
     // 🔥 Carregar motos
-    axios
-      .get(`${API}/motos`, {
+    api
+      .get("/motos", {
         params: { role: data.role, filial: data.filial }
       })
       .then((res) => setMotos(res.data))
-      .catch(() => alert("Erro ao carregar motos!"));
+      .catch((err) => {
+        console.error(err);
+        alert("Erro ao carregar motos!");
+      });
+      
   }, [nav]);
 
   function sair() {
@@ -165,16 +170,12 @@ export default function Home() {
                       <td>{m.cor}</td>
                       <td>{m.chassi}</td>
                       <td>{m.filial}</td>
-                      <td>{m.status}</td>
+                      <td>{m.status || "—"}</td>
                       <td>
-                        {m.status !== "Vendida" && (
-                          <button className="action-btn" onClick={() => nav(`/vender-moto/${m.id}`)}>
-                            Vender
-                          </button>
-                        )}
                         <button className="action-btn" onClick={() => nav(`/revisao-moto/${m.id}`)}>
                           Revisão
                         </button>
+
                         {user.role === "Diretoria" && (
                           <button className="action-btn" onClick={() => nav(`/transferir-moto/${m.id}`)}>
                             Transferir
@@ -194,7 +195,6 @@ export default function Home() {
           <h3 className="section-title">🛠 Revisões — Em Breve</h3>
         )}
       </div>
-
     </div>
   ) : null;
 }
