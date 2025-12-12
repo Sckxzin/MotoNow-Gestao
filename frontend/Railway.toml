@@ -1,0 +1,5 @@
+[build]
+builder = "nodejs"
+
+[start]
+cmd = "npm run serve"
