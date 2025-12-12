@@ -6,21 +6,29 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Conexão com MySQL do Railway
+/* ------------------------ CONEXÃO COM MySQL (FreeSQLDatabase) ------------------------ */
 const db = mysql.createConnection({
-  host: process.env.MYSQLHOST,
-  user: process.env.MYSQLUSER,
-  password: process.env.MYSQLPASSWORD,
-  database: process.env.MYSQLDATABASE,
-  port: process.env.MYSQLPORT,
-  ssl: {
-    rejectUnauthorized: false
-  }
+  host: "sql5.freesqldatabase.com",
+  user: "sql5811685",
+  password: "AMBiJinAHg",
+  database: "sql5811685",
+  port: 3306
 });
 
 db.connect(err => {
-  if (err) console.error("Erro ao conectar ao MySQL:", err);
-  else console.log("Conectado ao MySQL!");
+  if (err) {
+    console.error("Erro ao conectar ao MySQL:", err);
+  } else {
+    console.log("Conectado ao MySQL (FreeSQLDatabase)!");
+  }
+});
+
+/* ------------------------ TESTE DE BANCO ------------------------ */
+app.get("/test-db", (req, res) => {
+  db.query("SELECT 1 + 1 AS result", (err, result) => {
+    if (err) return res.status(500).json(err);
+    res.send("DB OK: " + result[0].result);
+  });
 });
 
 /* ------------------------ LOGIN ------------------------ */
@@ -103,8 +111,8 @@ app.post("/vendas", (req, res) => {
 
         const sqlVenda = `
           INSERT INTO vendas 
-          (peca_id, nome_cliente, telefone, cpf, quantidade, preco_unitario, total, filial)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+          (peca_id, nome_cliente, telefone, cpf, quantidade, preco_unitario, total, filial, data_venda)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())
         `;
 
         db.query(
