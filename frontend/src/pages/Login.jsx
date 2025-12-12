@@ -1,6 +1,6 @@
 import { useState } from "react";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import api from "../api"; // 🔥 usando sua API do Railway
 import "./Login.css";
 
 export default function Login() {
@@ -10,15 +10,12 @@ export default function Login() {
 
   async function handleLogin() {
     try {
-
-      // 🔥 IP FIXO PARA FUNCIONAR NO CELULAR E EM QUALQUER PC DA REDE
-      const API = "http://192.168.1.24:5000/login";
-
-      const res = await axios.post(API, {
+      const res = await api.post("/login", {
         username,
         password
       });
 
+      // 🔥 Salvar usuário logado
       localStorage.setItem("user", JSON.stringify(res.data));
 
       nav("/home");
@@ -31,7 +28,6 @@ export default function Login() {
 
   return (
     <div className="login-container">
-
       <div className="login-card">
         <img src="/logo-shineray.png" alt="Shineray" className="login-logo" />
 
@@ -57,7 +53,6 @@ export default function Login() {
           Entrar
         </button>
       </div>
-
     </div>
   );
 }
