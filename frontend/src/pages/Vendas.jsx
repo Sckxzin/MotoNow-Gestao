@@ -1,7 +1,7 @@
 // src/pages/Vendas.jsx
 import { useEffect, useState } from "react";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import api from "../api"; // 🔥 usando a API correta (Railway)
 import "./Vendas.css";
 
 export default function Vendas() {
@@ -12,8 +12,8 @@ export default function Vendas() {
   useEffect(() => {
     if (!user) return;
 
-    axios
-      .get("http://localhost:5000/vendas", {
+    api
+      .get("/vendas", {
         params: {
           role: user.role,
           filial: user.filial
@@ -23,14 +23,23 @@ export default function Vendas() {
       .catch(() => alert("Erro ao carregar vendas!"));
   }, [user.role, user.filial]);
 
-  function imprimir(vendaId) {
-    axios
-      .get(`http://localhost:5000/vendas/${vendaId}`)
-      .then(res => {
-        localStorage.setItem("notaFiscal", JSON.stringify(res.data));
-        nav("/nota");
-      })
-      .catch(() => alert("Erro ao carregar venda para impressão."));
+  function imprimir(venda) {
+    // 🔥 Como seu backend NÃO tem GET /vendas/:id
+    // salvamos a venda diretamente
+    localStorage.setItem("notaFiscal", JSON.stringify({
+      nome_cliente: venda.nome_cliente,
+      telefone: venda.telefone,
+      cpf: venda.cpf,
+      quantidade: venda.quantidade,
+      preco_unitario: venda.preco_unitario,
+      total: venda.total,
+      peca: venda.nome_peca,
+      codigo: venda.codigo_peca,
+      filial: venda.filial,
+      data: venda.data_venda || venda.data
+    }));
+
+    nav("/nota");
   }
 
   return (
@@ -64,7 +73,7 @@ export default function Vendas() {
             <tr key={v.id}>
               <td>{v.id}</td>
               <td>{v.nome_cliente}</td>
-              <td>{v.peca || v.peca_id}</td>
+              <td>{v.nome_peca}</td>
               <td>{v.quantidade}</td>
               <td>R$ {Number(v.total).toFixed(2)}</td>
               <td>{v.filial}</td>
@@ -75,14 +84,16 @@ export default function Vendas() {
                   ? new Date(v.data).toLocaleString()
                   : ""}
               </td>
+
               <td>
                 <button
                   className="btn-imprimir"
-                  onClick={() => imprimir(v.id)}
+                  onClick={() => imprimir(v)}
                 >
                   Imprimir Nota
                 </button>
               </td>
+
             </tr>
           ))}
         </tbody>
