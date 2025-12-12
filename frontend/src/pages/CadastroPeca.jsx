@@ -1,6 +1,6 @@
 import { useState } from "react";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import api from "../api"; // 🔥 usando sua API correta
 
 export default function CadastroPeca() {
   const nav = useNavigate();
@@ -14,13 +14,7 @@ export default function CadastroPeca() {
 
   const user = JSON.parse(localStorage.getItem("user"));
 
-  const modelosDisponiveis = [
-    "Jet 125",
-    "Phoenix 50",
-    "Shi 175 EFI",
-    "JEF 150"
-    
-  ];
+  const modelosDisponiveis = ["Jet 125", "Phoenix 50", "Shi 175 EFI", "JEF 150"];
 
   const filiais = [
     "Escada",
@@ -29,36 +23,34 @@ export default function CadastroPeca() {
     "Ribeirão",
     "Catende",
     "Xexeu",
-    "São Jose",
-    "Catende"
+    "São Jose"
   ];
 
   async function salvar() {
-    if (!categoria) return alert("Selecione a categoria!");
-    if (categoria === "Moto" && !modeloMoto) return alert("Selecione o modelo da moto!");
-
-    // Diretoria escolhe filial
-    const filialDefinida = user.role === "Diretoria" ? filialEscolhida : user.filial;
+    if (!nome || !codigo || quantidade <= 0) {
+      return alert("Preencha nome, código e quantidade!");
+    }
 
     if (user.role === "Diretoria" && !filialEscolhida) {
       return alert("Selecione a filial!");
     }
 
+    // Filial correta
+    const filialFinal = user.role === "Diretoria" ? filialEscolhida : user.filial;
+
     try {
-      await axios.post("http://localhost:5000/pecas", {
+      await api.post("/pecas", {
         nome,
         codigo,
         quantidade,
-        filial_atual: filialDefinida,
-        categoria,
-        modelo_moto: categoria === "Moto" ? modeloMoto : null
+        filial_atual: filialFinal
       });
 
       alert("Peça cadastrada com sucesso!");
       nav("/home");
     } catch (err) {
-      alert("Erro ao cadastrar peça!");
       console.error(err);
+      alert("Erro ao cadastrar peça!");
     }
   }
 
@@ -66,19 +58,23 @@ export default function CadastroPeca() {
     <div style={{ padding: 30 }}>
       <h2>Cadastro de Peça</h2>
 
-      <input placeholder="Nome"
+      <input
+        placeholder="Nome"
         onChange={e => setNome(e.target.value)}
       /><br /><br />
 
-      <input placeholder="Código"
+      <input
+        placeholder="Código"
         onChange={e => setCodigo(e.target.value)}
       /><br /><br />
 
-      <input type="number" placeholder="Quantidade"
+      <input
+        type="number"
+        placeholder="Quantidade"
         onChange={e => setQuantidade(Number(e.target.value))}
       /><br /><br />
 
-      {/* CATEGORIA */}
+      {/* CATEGORIA — só visual, não enviado ao backend */}
       <label><b>Categoria:</b></label><br />
       <select value={categoria} onChange={e => setCategoria(e.target.value)}>
         <option value="">Selecione...</option>
@@ -92,7 +88,6 @@ export default function CadastroPeca() {
 
       <br /><br />
 
-      {/* MODELO DA MOTO — só aparece se categoria = Moto */}
       {categoria === "Moto" && (
         <>
           <label><b>Modelo da Moto:</b></label><br />
@@ -106,11 +101,14 @@ export default function CadastroPeca() {
         </>
       )}
 
-      {/* FILIAL — somente diretoria vê */}
+      {/* FILIAL — somente diretoria visualiza */}
       {user.role === "Diretoria" && (
         <>
           <label><b>Filial:</b></label><br />
-          <select value={filialEscolhida} onChange={e => setFilialEscolhida(e.target.value)}>
+          <select
+            value={filialEscolhida}
+            onChange={e => setFilialEscolhida(e.target.value)}
+          >
             <option value="">Selecione a filial...</option>
             {filiais.map(f => (
               <option key={f} value={f}>{f}</option>
