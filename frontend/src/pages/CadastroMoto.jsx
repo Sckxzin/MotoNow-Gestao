@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../api"; // 🔥 usa sua API com URL do Railway
 
 export default function CadastroMoto() {
   const nav = useNavigate();
@@ -12,8 +12,10 @@ export default function CadastroMoto() {
   const [cor, setCor] = useState("");
   const [chassi, setChassi] = useState("");
 
-  // Diretoria escolhe a filial — outras usam automático
-  const [filial, setFilial] = useState(user.role === "Diretoria" ? "" : user.filial);
+  // Diretoria escolhe a filial — outros já vêm com a filial automática
+  const [filial, setFilial] = useState(
+    user.role === "Diretoria" ? "" : user.filial
+  );
 
   async function cadastrarMoto() {
     if (!modelo || !ano || !cor || !chassi || !filial) {
@@ -22,7 +24,7 @@ export default function CadastroMoto() {
     }
 
     try {
-      await axios.post("http://localhost:5000/motos", {
+      await api.post("/motos", {
         modelo,
         ano,
         cor,
@@ -67,7 +69,7 @@ export default function CadastroMoto() {
         onChange={(e) => setChassi(e.target.value)}
       /><br /><br />
 
-      {/* Diretoria escolhe a filial */}
+      {/* Diretoria pode escolher filial */}
       {user.role === "Diretoria" ? (
         <>
           <label>Filial:</label><br />
