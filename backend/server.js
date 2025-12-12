@@ -6,14 +6,13 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Conexão com MySQL
 const db = mysql.createConnection({
-  host: process.env.MYSQLHOST,
-  user: process.env.MYSQLUSER,
-  password: process.env.MYSQLPASSWORD,
-  database: process.env.MYSQLDATABASE,
-  port: process.env.MYSQLPORT
+  host: 'localhost',
+  user: 'root',
+  password: '',
+  database: 'motonow'
 });
-
 
 db.connect(err => {
   if (err) console.error("Erro ao conectar ao MySQL:", err);
@@ -216,7 +215,3 @@ app.get("/motos", (req, res) => {
 });
 
 
-/* ------------------------ INICIAR SERVIDOR ------------------------ */
-app.listen(5000, "0.0.0.0", () => {
-  console.log("API rodando em http://0.0.0.0:5000");
-});
