@@ -6,19 +6,22 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Conexão com MySQL
+// Conexão com MySQL do Railway
 const db = mysql.createConnection({
-  host: 'localhost',
-  user: 'root',
-  password: '',
-  database: 'motonow'
+  host: process.env.MYSQLHOST,
+  user: process.env.MYSQLUSER,
+  password: process.env.MYSQLPASSWORD,
+  database: process.env.MYSQLDATABASE,
+  port: process.env.MYSQLPORT,
+  ssl: {
+    rejectUnauthorized: true
+  }
 });
 
 db.connect(err => {
   if (err) console.error("Erro ao conectar ao MySQL:", err);
   else console.log("Conectado ao MySQL!");
 });
-
 
 /* ------------------------ LOGIN ------------------------ */
 app.post("/login", (req, res) => {
@@ -43,10 +46,7 @@ app.post("/login", (req, res) => {
   );
 });
 
-
 /* ------------------------ PEÇAS ------------------------ */
-
-// Listar peças com filtro de filial
 app.get("/pecas", (req, res) => {
   const { role, filial } = req.query;
 
@@ -64,7 +64,6 @@ app.get("/pecas", (req, res) => {
   });
 });
 
-// Cadastrar peça
 app.post("/pecas", (req, res) => {
   const { nome, codigo, quantidade, filial_atual } = req.body;
 
@@ -78,13 +77,10 @@ app.post("/pecas", (req, res) => {
   );
 });
 
-
 /* ------------------------ VENDAS ------------------------ */
-
 app.post("/vendas", (req, res) => {
   const { peca_id, nome_cliente, telefone, cpf, quantidade, preco_unitario, filial } = req.body;
 
-  // Verificar peça
   db.query("SELECT * FROM pecas WHERE id = ?", [peca_id], (err, result) => {
     if (err) return res.status(500).json({ error: err });
     if (result.length === 0)
@@ -97,7 +93,6 @@ app.post("/vendas", (req, res) => {
 
     const novaQtd = peca.quantidade - quantidade;
 
-    // Atualizar estoque
     db.query(
       "UPDATE pecas SET quantidade = ? WHERE id = ?",
       [novaQtd, peca_id],
@@ -106,7 +101,6 @@ app.post("/vendas", (req, res) => {
 
         const total = quantidade * preco_unitario;
 
-        // Registrar venda
         const sqlVenda = `
           INSERT INTO vendas 
           (peca_id, nome_cliente, telefone, cpf, quantidade, preco_unitario, total, filial)
@@ -142,8 +136,6 @@ app.post("/vendas", (req, res) => {
   });
 });
 
-
-// Listar vendas
 app.get("/vendas", (req, res) => {
   const { role, filial } = req.query;
 
@@ -169,21 +161,7 @@ app.get("/vendas", (req, res) => {
   });
 });
 
-
-// Buscar venda por ID
-app.get("/vendas/:id", (req, res) => {
-  db.query("SELECT * OF vendas WHERE id = ?", [req.params.id], (err, result) => {
-    if (err) return res.status(500).json({ error: err });
-    if (!result.length)
-      return res.status(404).json({ message: "Venda não encontrada" });
-
-    res.json(result[0]);
-  });
-});
-
-
 /* ------------------------ MOTOS ------------------------ */
-
 app.post("/motos", (req, res) => {
   const { modelo, ano, cor, chassi, filial } = req.body;
 
@@ -214,4 +192,9 @@ app.get("/motos", (req, res) => {
   });
 });
 
+/* ------------------------ SERVIDOR ------------------------ */
+const PORT = process.env.PORT || 5000;
 
+app.listen(PORT, "0.0.0.0", () => {
+  console.log("Servidor rodando na porta " + PORT);
+});
