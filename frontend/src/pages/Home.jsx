@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import api from "../api"; // 🔥 usando o axios com baseURL do Railway
+import api from "../api"; 
 import "./Home.css";
 
 export default function Home() {
@@ -22,9 +22,7 @@ export default function Home() {
 
     // 🔥 Carregar peças
     api
-      .get("/pecas", {
-        params: { role: data.role, filial: data.filial }
-      })
+      .get("/pecas", { params: { role: data.role, filial: data.filial } })
       .then((res) => setPecas(res.data))
       .catch((err) => {
         console.error(err);
@@ -33,15 +31,13 @@ export default function Home() {
 
     // 🔥 Carregar motos
     api
-      .get("/motos", {
-        params: { role: data.role, filial: data.filial }
-      })
+      .get("/motos", { params: { role: data.role, filial: data.filial } })
       .then((res) => setMotos(res.data))
       .catch((err) => {
         console.error(err);
         alert("Erro ao carregar motos!");
       });
-      
+
   }, [nav]);
 
   function sair() {
@@ -62,30 +58,36 @@ export default function Home() {
       <div className="home-header">
         <img src="/logo-shineray.png" alt="Shineray MotoNow" className="logo-mini" />
         <h2>MotoNow • Gestão — {user.filial}</h2>
-
-        {/* BOTÃO DO CARRINHO */}
-        <button className="add-btn" onClick={() => nav("/carrinho")}>
-          🛒 Carrinho
-        </button>
-
         <button className="btn-sair" onClick={sair}>Sair</button>
       </div>
 
       {/* TABS */}
       <div className="tabs">
-        <button className={`tab-btn ${tab === "pecas" ? "active" : ""}`} onClick={() => setTab("pecas")}>
+        <button
+          className={`tab-btn ${tab === "pecas" ? "active" : ""}`}
+          onClick={() => setTab("pecas")}
+        >
           📦 Peças
         </button>
 
-        <button className={`tab-btn ${tab === "motos" ? "active" : ""}`} onClick={() => setTab("motos")}>
+        <button
+          className={`tab-btn ${tab === "motos" ? "active" : ""}`}
+          onClick={() => setTab("motos")}
+        >
           🏍 Motos
         </button>
 
-        <button className={`tab-btn ${tab === "vendas" ? "active" : ""}`} onClick={() => nav("/vendas")}>
+        <button
+          className={`tab-btn ${tab === "vendas" ? "active" : ""}`}
+          onClick={() => nav("/vendas")}
+        >
           🧾 Vendas
         </button>
 
-        <button className={`tab-btn ${tab === "revisoes" ? "active" : ""}`} onClick={() => setTab("revisoes")}>
+        <button
+          className={`tab-btn ${tab === "revisoes" ? "active" : ""}`}
+          onClick={() => setTab("revisoes")}
+        >
           🛠 Revisões
         </button>
       </div>
@@ -131,9 +133,11 @@ export default function Home() {
                       <td>{p.quantidade}</td>
                       <td>{p.filial_atual}</td>
                       <td>
-                        {/* BOTÃO PARA ADICIONAR AO CARRINHO */}
-                        <button className="action-btn" onClick={() => nav(`/add-carrinho/${p.id}`)}>
-                          ➕ Carrinho
+                        <button
+                          className="action-btn"
+                          onClick={() => nav(`/vender/${p.id}`)}
+                        >
+                          Vender / Dar Baixa
                         </button>
                       </td>
                     </tr>
@@ -179,12 +183,18 @@ export default function Home() {
                       <td>{m.filial}</td>
                       <td>{m.status || "—"}</td>
                       <td>
-                        <button className="action-btn" onClick={() => nav(`/revisao-moto/${m.id}`)}>
+                        <button
+                          className="action-btn"
+                          onClick={() => nav(`/revisao-moto/${m.id}`)}
+                        >
                           Revisão
                         </button>
 
                         {user.role === "Diretoria" && (
-                          <button className="action-btn" onClick={() => nav(`/transferir-moto/${m.id}`)}>
+                          <button
+                            className="action-btn"
+                            onClick={() => nav(`/transferir-moto/${m.id}`)}
+                          >
                             Transferir
                           </button>
                         )}
