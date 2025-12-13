@@ -62,6 +62,12 @@ export default function Home() {
       <div className="home-header">
         <img src="/logo-shineray.png" alt="Shineray MotoNow" className="logo-mini" />
         <h2>MotoNow • Gestão — {user.filial}</h2>
+
+        {/* BOTÃO DO CARRINHO */}
+        <button className="add-btn" onClick={() => nav("/carrinho")}>
+          🛒 Carrinho
+        </button>
+
         <button className="btn-sair" onClick={sair}>Sair</button>
       </div>
 
@@ -125,8 +131,9 @@ export default function Home() {
                       <td>{p.quantidade}</td>
                       <td>{p.filial_atual}</td>
                       <td>
-                        <button className="action-btn" onClick={() => nav(`/vender/${p.id}`)}>
-                          Vender / Dar Baixa
+                        {/* BOTÃO PARA ADICIONAR AO CARRINHO */}
+                        <button className="action-btn" onClick={() => nav(`/add-carrinho/${p.id}`)}>
+                          ➕ Carrinho
                         </button>
                       </td>
                     </tr>
