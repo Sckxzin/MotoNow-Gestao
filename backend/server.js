@@ -164,6 +164,81 @@ app.get("/vendas", (req, res) => {
   });
 });
 
+/* ------------------------ VENDA COM CARRINHO ------------------------ */
+app.post("/venda-multipla", (req, res) => {
+  const { cliente, filial, itens } = req.body;
+
+  if (!itens || itens.length === 0) {
+    return res.status(400).json({ message: "Carrinho vazio!" });
+  }
+
+  // Total geral da venda
+  const totalVenda = itens.reduce(
+    (sum, item) => sum + (item.preco_unitario * item.quantidade),
+    0
+  );
+
+  // 1️⃣ Registrar a venda principal
+  db.query(
+    "INSERT INTO vendas_multi (nome_cliente, telefone, cpf, total, filial) VALUES (?, ?, ?, ?, ?)",
+    [cliente.nome, cliente.telefone, cliente.cpf, totalVenda, filial],
+    (err, vendaRes) => {
+      if (err) return res.status(500).json(err);
+
+      const vendaId = vendaRes.insertId;
+
+      // 2️⃣ Para cada item → inserir + atualizar estoque
+      itens.forEach(item => {
+        // Inserir item na tabela
+        db.query(
+          `INSERT INTO venda_itens 
+          (venda_id, peca_id, nome_peca, codigo_peca, quantidade, preco_unitario, subtotal)
+          SELECT ?, p.id, p.nome, p.codigo, ?, ?, (? * ?) 
+          FROM pecas p WHERE p.id = ?`,
+          [
+            vendaId,
+            item.quantidade,
+            item.preco_unitario,
+            item.quantidade,
+            item.preco_unitario,
+            item.quantidade,
+            item.peca_id
+          ]
+        );
+
+        // Atualizar estoque
+        db.query(
+          "UPDATE pecas SET quantidade = quantidade - ? WHERE id = ?",
+          [item.quantidade, item.peca_id]
+        );
+      });
+
+      return res.json({
+        message: "Venda realizada com sucesso!",
+        venda_id: vendaId,
+        total: totalVenda
+      });
+    }
+  );
+});
+app.get("/venda-multipla/:id", (req, res) => {
+  const { id } = req.params;
+
+  db.query("SELECT * FROM vendas_multi WHERE id = ?", [id], (err, vendaRes) => {
+    if (err) return res.status(500).json(err);
+
+    db.query("SELECT * FROM venda_itens WHERE venda_id = ?", [id], (err, itensRes) => {
+      if (err) return res.status(500).json(err);
+
+      res.json({
+        venda: vendaRes[0],
+        itens: itensRes
+      });
+    });
+  });
+});
+
+
 /* ------------------------ MOTOS ------------------------ */
 app.post("/motos", (req, res) => {
   const { modelo, ano, cor, chassi, filial } = req.body;
