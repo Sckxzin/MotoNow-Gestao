@@ -1,7 +1,7 @@
 // src/pages/Vendas.jsx
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import api from "../api"; // 🔥 usando a API correta (Railway)
+import api from "../api"; // 🔥 usando API correta
 import "./Vendas.css";
 
 export default function Vendas() {
@@ -21,11 +21,10 @@ export default function Vendas() {
       })
       .then(res => setVendas(res.data))
       .catch(() => alert("Erro ao carregar vendas!"));
-  }, [user.role, user.filial]);
+
+  }, [user]); // 🔥 CORREÇÃO QUE REMOVE O ERRO NO RAILWAY
 
   function imprimir(venda) {
-    // 🔥 Como seu backend NÃO tem GET /vendas/:id
-    // salvamos a venda diretamente
     localStorage.setItem("notaFiscal", JSON.stringify({
       nome_cliente: venda.nome_cliente,
       telefone: venda.telefone,
