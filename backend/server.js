@@ -237,57 +237,58 @@ app.get("/moto/:id", (req, res) => {
 
 /* ------------------------ VENDER MOTO ------------------------ */
 app.post("/vender-moto", (req, res) => {
-  const { moto_id, nome_cliente, telefone, cpf, filial } = req.body;
+  const { moto_id, nome_cliente, telefone, cpf, filial, gasolina, valor, capacete_brinde, chegada } = req.body;
 
   db.query("SELECT * FROM motos WHERE id = ?", [moto_id], (err, result) => {
     if (err) return res.status(500).json(err);
     if (result.length === 0) return res.status(404).json({ message: "Moto não encontrada." });
 
     const moto = result[0];
-
     if (moto.status === "VENDIDA")
       return res.status(400).json({ message: "Essa moto já foi vendida." });
 
+    // Registrar venda
     db.query(
-      `INSERT INTO vendas_motos (moto_id, nome_cliente, telefone, cpf, filial)
-       VALUES (?, ?, ?, ?, ?)`,
-      [moto_id, nome_cliente, telefone, cpf, filial],
+      `INSERT INTO vendas_motos 
+       (moto_id, nome_cliente, telefone, cpf, filial, gasolina, valor, capacete_brinde, chegada)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [moto_id, nome_cliente, telefone, cpf, filial, gasolina, valor, capacete_brinde, chegada],
       (err, vendaRes) => {
         if (err) return res.status(500).json(err);
 
         const vendaId = vendaRes.insertId;
 
-        // dar baixa automática no capacete
-        db.query(
-          `UPDATE pecas 
-           SET quantidade = quantidade - 1 
-           WHERE filial_atual = ? AND nome LIKE '%capacete%' 
-           LIMIT 1`,
-          [filial]
-        );
+        // Baixa automática no capacete se for brinde
+        if (capacete_brinde === "SIM") {
+          db.query(
+            `UPDATE pecas 
+             SET quantidade = quantidade - 1 
+             WHERE filial_atual = ? AND nome LIKE '%capacete%' 
+             LIMIT 1`,
+            [filial]
+          );
 
-        db.query(
-          `INSERT INTO vendas_motos_itens
-           (venda_id, descricao, quantidade, preco_unitario, subtotal)
-           VALUES (?, 'Capacete (brinde)', 1, 0, 0)`,
-          [vendaId]
-        );
+          db.query(
+            `INSERT INTO vendas_motos_itens
+             (venda_id, descricao, quantidade, preco_unitario, subtotal)
+             VALUES (?, 'Capacete (brinde)', 1, 0, 0)`,
+            [vendaId]
+          );
+        }
 
-        db.query(
-          "UPDATE motos SET status = 'VENDIDA' WHERE id = ?",
-          [moto_id]
-        );
+        // Atualizar status da moto
+        db.query("UPDATE motos SET status = 'VENDIDA' WHERE id = ?", [moto_id]);
 
         res.json({
-          message: "Moto vendida com sucesso!",
+          message: "Venda registrada com sucesso!",
           venda_id: vendaId,
-          moto: moto.modelo,
-          capacete: "1 unidade baixada automaticamente"
+          capacete: capacete_brinde === "SIM" ? "Baixa realizada" : "Sem brinde"
         });
       }
     );
   });
 });
+
 
 /* ------------------------ SERVIDOR ------------------------ */
 const PORT = process.env.PORT || 5000;
