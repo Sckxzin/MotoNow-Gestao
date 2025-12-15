@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api";
@@ -11,44 +12,9 @@ export default function Home() {
   const [motos, setMotos] = useState([]);
   const [busca, setBusca] = useState("");
 
-  // 🔥 Venda de moto (modal)
-  const [vendaMoto, setVendaMoto] = useState(null);
-  const [cliente, setCliente] = useState({ nome: "", telefone: "", cpf: "" });
-
-  function abrirVenda(moto) {
-    setVendaMoto(moto);
-  }
-
-  async function confirmarVenda() {
-    try {
-      const res = await api.post("/vender-moto", {
-        moto_id: vendaMoto.id,
-        nome_cliente: cliente.nome,
-        telefone: cliente.telefone,
-        cpf: cliente.cpf,
-        filial: user.filial
-      });
-
-      alert("Moto vendida com sucesso!");
-
-      setVendaMoto(null);
-
-      // recarregar lista de motos
-      const atualiza = await api.get("/motos", {
-        params: { role: user.role, filial: user.filial }
-      });
-
-      setMotos(atualiza.data);
-
-    } catch (err) {
-      console.error(err);
-      alert("Erro ao vender moto!");
-    }
-  }
-
-  // Carregar dados
   useEffect(() => {
     const data = JSON.parse(localStorage.getItem("user"));
+
     if (!data) {
       nav("/");
       return;
@@ -56,16 +22,27 @@ export default function Home() {
 
     setUser(data);
 
+    // 🔥 Carregar peças
     api
-      .get("/pecas", { params: { role: data.role, filial: data.filial } })
-      .then((res) => setPecas(res.data))
-      .catch(() => alert("Erro ao carregar peças!"));
+      .get("/pecas", {
+        params: { role: data.role, filial: data.filial },
+      })
+      .then((response) => setPecas(response.data))
+      .catch((err) => {
+        console.error(err);
+        alert("Erro ao carregar peças!");
+      });
 
+    // 🔥 Carregar motos
     api
-      .get("/motos", { params: { role: data.role, filial: data.filial } })
-      .then((res) => setMotos(res.data))
-      .catch(() => alert("Erro ao carregar motos!"));
-
+      .get("/motos", {
+        params: { role: data.role, filial: data.filial },
+      })
+      .then((response) => setMotos(response.data))
+      .catch((err) => {
+        console.error(err);
+        alert("Erro ao carregar motos!");
+      });
   }, [nav]);
 
   function sair() {
@@ -82,12 +59,17 @@ export default function Home() {
 
   return user ? (
     <div className="home-container">
-
       {/* HEADER */}
       <div className="home-header">
-        <img src="/logo-shineray.png" alt="Shineray MotoNow" className="logo-mini" />
+        <img
+          src="/logo-shineray.png"
+          alt="Shineray MotoNow"
+          className="logo-mini"
+        />
         <h2>MotoNow • Gestão — {user.filial}</h2>
-        <button className="btn-sair" onClick={sair}>Sair</button>
+        <button className="btn-sair" onClick={sair}>
+          Sair
+        </button>
       </div>
 
       {/* TABS */}
@@ -123,7 +105,6 @@ export default function Home() {
 
       {/* CONTEÚDO */}
       <div>
-
         {/* PEÇAS */}
         {tab === "pecas" && (
           <>
@@ -138,7 +119,10 @@ export default function Home() {
             />
 
             {user.role === "Diretoria" && (
-              <button className="add-btn" onClick={() => nav("/cadastro-peca")}>
+              <button
+                className="add-btn"
+                onClick={() => nav("/cadastro-peca")}
+              >
                 ➕ Adicionar Peça
               </button>
             )}
@@ -183,7 +167,10 @@ export default function Home() {
             <h3 className="section-title">🏍 Estoque de Motos</h3>
 
             {user.role === "Diretoria" && (
-              <button className="add-btn" onClick={() => nav("/cadastro-moto")}>
+              <button
+                className="add-btn"
+                onClick={() => nav("/cadastro-moto")}
+              >
                 ➕ Cadastrar Moto
               </button>
             )}
@@ -212,17 +199,6 @@ export default function Home() {
                       <td>{m.filial}</td>
                       <td>{m.status || "—"}</td>
                       <td>
-
-                        {/* 🔥 Botão de vender moto */}
-                        {m.status !== "VENDIDA" && (
-                          <button
-                            className="action-btn"
-                            onClick={() => abrirVenda(m)}
-                          >
-                            Vender
-                          </button>
-                        )}
-
                         <button
                           className="action-btn"
                           onClick={() => nav(`/revisao-moto/${m.id}`)}
@@ -252,49 +228,6 @@ export default function Home() {
           <h3 className="section-title">🛠 Revisões — Em Breve</h3>
         )}
       </div>
-
-      {/* 🔥 MODAL DE VENDA DE MOTO */}
-      {vendaMoto && (
-        <div className="modal-overlay">
-          <div className="modal-box">
-            <h2>Vender Moto — {vendaMoto.modelo}</h2>
-            <p><b>Chassi:</b> {vendaMoto.chassi}</p>
-            <p><b>Cor:</b> {vendaMoto.cor}</p>
-
-            <input
-              type="text"
-              placeholder="Nome do cliente"
-              value={cliente.nome}
-              onChange={(e) => setCliente({ ...cliente, nome: e.target.value })}
-            />
-
-            <input
-              type="text"
-              placeholder="Telefone"
-              value={cliente.telefone}
-              onChange={(e) => setCliente({ ...cliente, telefone: e.target.value })}
-            />
-
-            <input
-              type="text"
-              placeholder="CPF"
-              value={cliente.cpf}
-              onChange={(e) => setCliente({ ...cliente, cpf: e.target.value })}
-            />
-
-            <div className="modal-buttons">
-              <button className="btn-cancelar" onClick={() => setVendaMoto(null)}>
-                Cancelar
-              </button>
-
-              <button className="btn-confirmar" onClick={confirmarVenda}>
-                Confirmar Venda
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
     </div>
   ) : null;
 }
