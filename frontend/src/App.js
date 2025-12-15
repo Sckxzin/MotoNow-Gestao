@@ -9,6 +9,7 @@ import NotaFiscal from "./pages/NotaFiscal";
 import Vendas from "./pages/Vendas"; // <-- IMPORTAÇÃO CORRETA
 import CadastroMoto from "./pages/CadastroMoto";
 import VenderMoto from "./pages/VenderMoto";
+import Revisao from "./pages/Revisao";
 
 
 export default function App() {
@@ -23,6 +24,8 @@ export default function App() {
         <Route path="/vendas" element={<Vendas />} />
         <Route path="/cadastro-moto" element={<CadastroMoto />} />
   <Route path="/vender-moto/:id" element={<VenderMoto />} />
+  <Route path="/revisao" element={<Revisao />} />
+
       </Routes>
     </BrowserRouter>
   );
