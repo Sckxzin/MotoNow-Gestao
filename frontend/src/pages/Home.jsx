@@ -10,8 +10,24 @@ export default function Home() {
   const [tab, setTab] = useState("pecas");
   const [pecas, setPecas] = useState([]);
   const [motos, setMotos] = useState([]);
-  const [filialFiltro, setFilialFiltro] = useState("TODAS");
   const [busca, setBusca] = useState("");
+
+  const [filialFiltro, setFilialFiltro] = useState("TODAS");
+
+  // 🔍 Função para detectar modelo baseado no nome da peça
+  function detectarModelo(nome) {
+    nome = nome.toUpperCase();
+
+    if (nome.includes("JET")) return "JET";
+    if (nome.includes("SHI") || nome.includes("SH ")) return "SH";
+    if (nome.includes("PHOENIX") || nome.includes("PHX")) return "PHOENIX";
+    if (nome.includes("PT")) return "PT";
+    if (nome.includes("50")) return "50cc";
+    if (nome.includes("125")) return "125cc";
+    if (nome.includes("150")) return "150cc";
+
+    return "—";
+  }
 
   useEffect(() => {
     const data = JSON.parse(localStorage.getItem("user"));
@@ -29,7 +45,10 @@ export default function Home() {
         params: { role: data.role, filial: data.filial },
       })
       .then((response) => setPecas(response.data))
-      .catch(() => alert("Erro ao carregar peças!"));
+      .catch((err) => {
+        console.error(err);
+        alert("Erro ao carregar peças!");
+      });
 
     // 🔥 Carregar motos
     api
@@ -37,7 +56,10 @@ export default function Home() {
         params: { role: data.role, filial: data.filial },
       })
       .then((response) => setMotos(response.data))
-      .catch(() => alert("Erro ao carregar motos!"));
+      .catch((err) => {
+        console.error(err);
+        alert("Erro ao carregar motos!");
+      });
   }, [nav]);
 
   function sair() {
@@ -52,7 +74,7 @@ export default function Home() {
       p.codigo.toLowerCase().includes(busca.toLowerCase())
   );
 
-  // 🔍 FILTRO DE MOTOS
+  // 🔍 FILTRO DE MOTOS POR FILIAL
   const motosFiltradas = motos.filter((m) =>
     filialFiltro === "TODAS" ? true : m.filial === filialFiltro
   );
@@ -61,11 +83,7 @@ export default function Home() {
     <div className="home-container">
       {/* HEADER */}
       <div className="home-header">
-        <img
-          src="/logo-shineray.png"
-          alt="Shineray MotoNow"
-          className="logo-mini"
-        />
+        <img src="/logo-shineray.png" alt="Shineray MotoNow" className="logo-mini" />
         <h2>MotoNow • Gestão — {user.filial}</h2>
         <button className="btn-sair" onClick={sair}>
           Sair
@@ -97,7 +115,7 @@ export default function Home() {
 
         <button
           className={`tab-btn ${tab === "revisoes" ? "active" : ""}`}
-          onClick={() => setTab("revisoes")}
+          onClick={() => nav("/revisao")}
         >
           🛠 Revisões
         </button>
@@ -129,24 +147,24 @@ export default function Home() {
                 <thead>
                   <tr>
                     <th>Nome</th>
+                    <th>Modelo</th> {/* NOVA COLUNA */}
                     <th>Código</th>
                     <th>Quantidade</th>
                     <th>Filial</th>
                     <th>Ação</th>
                   </tr>
                 </thead>
+
                 <tbody>
                   {pecasFiltradas.map((p) => (
                     <tr key={p.id}>
                       <td>{p.nome}</td>
+                      <td>{detectarModelo(p.nome)}</td>
                       <td>{p.codigo}</td>
                       <td>{p.quantidade}</td>
                       <td>{p.filial_atual}</td>
                       <td>
-                        <button
-                          className="action-btn"
-                          onClick={() => nav(`/vender/${p.id}`)}
-                        >
+                        <button className="action-btn" onClick={() => nav(`/vender/${p.id}`)}>
                           Vender / Dar Baixa
                         </button>
                       </td>
@@ -163,28 +181,28 @@ export default function Home() {
           <>
             <h3 className="section-title">🏍 Estoque de Motos</h3>
 
-            {/* FILTRO */}
-            <div className="filtro-motos">
+            {/* CONTADOR */}
+            <p className="contador-motos">
+              🔢 Total de motos cadastradas: <strong>{motos.length}</strong>
+            </p>
+
+            {/* FILTRO DE FILIAL */}
+            <div className="filtro-area">
               <label>Filtrar por filial:</label>
               <select
                 value={filialFiltro}
                 onChange={(e) => setFilialFiltro(e.target.value)}
+                className="select-filtro"
               >
                 <option value="TODAS">Todas</option>
-                <option value="CATENDE">Catende</option>
-                <option value="SÃO JOSÉ">São José</option>
-                <option value="XEXÉU">Xexéu</option>
-                <option value="ESCADA">Escada</option>
-                <option value="RIBEIRÃO">Ribeirão</option>
-                <option value="IPOJUCA">Ipojuca</option>
+                <option value="Matriz">Matriz</option>
+                <option value="Escada">Escada</option>
+                <option value="Ipojuca">Ipojuca</option>
+                <option value="Ribeirão">Ribeirão</option>
+                <option value="Catende">Catende</option>
+                <option value="São José">São José</option>
               </select>
             </div>
-
-            {/* CONTADOR */}
-            <p className="contador-motos">
-              🔢 Total de motos filtradas:{" "}
-              <strong>{motosFiltradas.length}</strong>
-            </p>
 
             {user.role === "Diretoria" && (
               <button className="add-btn" onClick={() => nav("/cadastro-moto")}>
@@ -244,15 +262,14 @@ export default function Home() {
                     </tr>
                   ))}
                 </tbody>
+
               </table>
             </div>
           </>
         )}
 
         {/* REVISÕES */}
-        {tab === "revisoes" && (
-          <h3 className="section-title">🛠 Revisões — Em Breve</h3>
-        )}
+        {tab === "revisoes" && <h3 className="section-title">🛠 Revisões — Em Breve</h3>}
       </div>
     </div>
   ) : null;
