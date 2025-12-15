@@ -4,31 +4,20 @@ import { useNavigate } from "react-router-dom";
 import api from "../api";
 import "./Home.css";
 
-/* -----------------------------------------
-   FUNÇÃO PARA IDENTIFICAR O MODELO DA MOTOCICLETA
------------------------------------------ */
-function detectarModelo(nome, codigo) {
-  const n = nome?.toUpperCase() || "";
-  const c = codigo?.toUpperCase() || "";
+// 🔥 Identificar modelo automaticamente
+function identificarModelo(codigo) {
+  if (!codigo) return "—";
 
-  // 🔥 1 — Todas as peças da linha JET
-  if (c.startsWith("RDIV")) return "JET";
+  const c = codigo.toUpperCase();
 
-  // 🔥 2 — Peças da SHI
-  if (c.startsWith("W175SHI") || c.includes("SHI")) return "SHI";
+  if (c.startsWith("W175SHI")) return "SHI";
+  if (c.startsWith("RDIV") || c.includes("JET")) return "JET";
 
-  // 🔥 3 — Phoenix
-  if (c.includes("PHX") || c.includes("PHOENIX")) return "PHOENIX";
-
-  // 🔥 4 — PT
-  if (c.startsWith("PT") || c.includes("PTS")) return "PT";
-
-  // 🔥 5 — Itens genéricos
-  if (n.includes("ÓLEO") || n.includes("OLEO")) return "GENÉRICO";
-  if (n.includes("CAPACETE")) return "GENÉRICO";
-
-  return "—";
+  return "OUTROS";
 }
+
+// 🔥 Importar tela de Revisão
+import Revisao from "./Revisao";
 
 export default function Home() {
   const nav = useNavigate();
@@ -36,12 +25,10 @@ export default function Home() {
   const [tab, setTab] = useState("pecas");
   const [pecas, setPecas] = useState([]);
   const [motos, setMotos] = useState([]);
-  const [filialFiltro, setFilialFiltro] = useState("TODAS");
   const [busca, setBusca] = useState("");
 
-  /* -----------------------------------------
-     CARREGAR DADOS AO ENTRAR
-  ----------------------------------------- */
+  const [filialFiltro, setFilialFiltro] = useState("TODAS");
+
   useEffect(() => {
     const data = JSON.parse(localStorage.getItem("user"));
 
@@ -58,10 +45,7 @@ export default function Home() {
         params: { role: data.role, filial: data.filial },
       })
       .then((response) => setPecas(response.data))
-      .catch((err) => {
-        console.error(err);
-        alert("Erro ao carregar peças!");
-      });
+      .catch(() => alert("Erro ao carregar peças!"));
 
     // 🔥 Carregar motos
     api
@@ -69,10 +53,7 @@ export default function Home() {
         params: { role: data.role, filial: data.filial },
       })
       .then((response) => setMotos(response.data))
-      .catch((err) => {
-        console.error(err);
-        alert("Erro ao carregar motos!");
-      });
+      .catch(() => alert("Erro ao carregar motos!"));
   }, [nav]);
 
   function sair() {
@@ -80,18 +61,14 @@ export default function Home() {
     nav("/");
   }
 
-  /* -----------------------------------------
-     🔍 FILTRO DE PEÇAS
-  ----------------------------------------- */
+  // 🔍 FILTRO DE PEÇAS
   const pecasFiltradas = pecas.filter(
     (p) =>
       p.nome.toLowerCase().includes(busca.toLowerCase()) ||
       p.codigo.toLowerCase().includes(busca.toLowerCase())
   );
 
-  /* -----------------------------------------
-     🔍 FILTRO DE MOTOS POR FILIAL
-  ----------------------------------------- */
+  // 🔍 FILTRO DE MOTOS
   const motosFiltradas = motos.filter((m) =>
     filialFiltro === "TODAS" ? true : m.filial === filialFiltro
   );
@@ -100,51 +77,33 @@ export default function Home() {
     <div className="home-container">
       {/* HEADER */}
       <div className="home-header">
-        <img
-          src="/logo-shineray.png"
-          alt="Shineray MotoNow"
-          className="logo-mini"
-        />
+        <img src="/logo-shineray.png" alt="Shineray MotoNow" className="logo-mini" />
         <h2>MotoNow • Gestão — {user.filial}</h2>
-        <button className="btn-sair" onClick={sair}>
-          Sair
-        </button>
+        <button className="btn-sair" onClick={sair}>Sair</button>
       </div>
 
       {/* TABS */}
       <div className="tabs">
-        <button
-          className={`tab-btn ${tab === "pecas" ? "active" : ""}`}
-          onClick={() => setTab("pecas")}
-        >
+        <button className={`tab-btn ${tab === "pecas" ? "active" : ""}`} onClick={() => setTab("pecas")}>
           📦 Peças
         </button>
 
-        <button
-          className={`tab-btn ${tab === "motos" ? "active" : ""}`}
-          onClick={() => setTab("motos")}
-        >
+        <button className={`tab-btn ${tab === "motos" ? "active" : ""}`} onClick={() => setTab("motos")}>
           🏍 Motos
         </button>
 
-        <button
-          className={`tab-btn ${tab === "vendas" ? "active" : ""}`}
-          onClick={() => nav("/vendas")}
-        >
+        <button className={`tab-btn ${tab === "vendas" ? "active" : ""}`} onClick={() => nav("/vendas")}>
           🧾 Vendas
         </button>
 
-        <button
-          className={`tab-btn ${tab === "revisoes" ? "active" : ""}`}
-          onClick={() => setTab("revisoes")}
-        >
+        <button className={`tab-btn ${tab === "revisoes" ? "active" : ""}`} onClick={() => setTab("revisoes")}>
           🛠 Revisões
         </button>
       </div>
 
       {/* CONTEÚDO */}
       <div>
-        {/* --------------------------- PEÇAS --------------------------- */}
+        {/* ==================== PEÇAS ==================== */}
         {tab === "pecas" && (
           <>
             <h3 className="section-title">📦 Estoque de Peças</h3>
@@ -158,10 +117,7 @@ export default function Home() {
             />
 
             {user.role === "Diretoria" && (
-              <button
-                className="add-btn"
-                onClick={() => nav("/cadastro-peca")}
-              >
+              <button className="add-btn" onClick={() => nav("/cadastro-peca")}>
                 ➕ Adicionar Peça
               </button>
             )}
@@ -171,8 +127,8 @@ export default function Home() {
                 <thead>
                   <tr>
                     <th>Nome</th>
-                    <th>Código</th>
                     <th>Modelo</th>
+                    <th>Código</th>
                     <th>Quantidade</th>
                     <th>Filial</th>
                     <th>Ação</th>
@@ -182,15 +138,12 @@ export default function Home() {
                   {pecasFiltradas.map((p) => (
                     <tr key={p.id}>
                       <td>{p.nome}</td>
+                      <td>{identificarModelo(p.codigo)}</td>
                       <td>{p.codigo}</td>
-                      <td>{detectarModelo(p.nome, p.codigo)}</td>
                       <td>{p.quantidade}</td>
                       <td>{p.filial_atual}</td>
                       <td>
-                        <button
-                          className="action-btn"
-                          onClick={() => nav(`/vender/${p.id}`)}
-                        >
+                        <button className="action-btn" onClick={() => nav(`/vender/${p.id}`)}>
                           Vender / Dar Baixa
                         </button>
                       </td>
@@ -202,36 +155,34 @@ export default function Home() {
           </>
         )}
 
-        {/* --------------------------- MOTOS --------------------------- */}
+        {/* ==================== MOTOS ==================== */}
         {tab === "motos" && (
           <>
             <h3 className="section-title">🏍 Estoque de Motos</h3>
 
-            {/* 🔢 CONTADOR DE MOTOS */}
+            {/* 🔢 CONTADOR */}
             <p className="contador-motos">
-              🔢 Total de motos cadastradas: <strong>{motos.length}</strong>
+              🔢 Total de motos cadastradas: <strong>{motosFiltradas.length}</strong>
             </p>
 
-            {/* FILTRO DE FILIAL PARA MOTOS */}
+            {/* 🔍 FILTRO POR FILIAL */}
             <select
-              className="input-busca"
+              className="select-filial"
               value={filialFiltro}
               onChange={(e) => setFilialFiltro(e.target.value)}
             >
               <option value="TODAS">Todas as Filiais</option>
-              <option value="CATENDE">CATENDE</option>
-              <option value="SÃO JOSÉ">SÃO JOSÉ</option>
-              <option value="ESCADA">ESCADA</option>
-              <option value="RIBEIRÃO">RIBEIRÃO</option>
-              <option value="IPOJUCA">IPOJUCA</option>
-              <option value="XEXEU">XEXÉU</option>
+              <option value="Matriz">Matriz</option>
+              <option value="Ipojuca">Ipojuca</option>
+              <option value="Escada">Escada</option>
+              <option value="Ribeirão">Ribeirão</option>
+              <option value="Catende">Catende</option>
+              <option value="São José">São José</option>
+              <option value="Xexéu">Xexéu</option>
             </select>
 
             {user.role === "Diretoria" && (
-              <button
-                className="add-btn"
-                onClick={() => nav("/cadastro-moto")}
-              >
+              <button className="add-btn" onClick={() => nav("/cadastro-moto")}>
                 ➕ Cadastrar Moto
               </button>
             )}
@@ -260,26 +211,17 @@ export default function Home() {
                       <td>{m.filial}</td>
                       <td>{m.status || "—"}</td>
                       <td>
-                        <button
-                          className="action-btn"
-                          onClick={() => nav(`/revisao-moto/${m.id}`)}
-                        >
+                        <button className="action-btn" onClick={() => nav(`/revisao-moto/${m.id}`)}>
                           Revisão
                         </button>
 
                         {user.role === "Diretoria" && (
                           <>
-                            <button
-                              className="action-btn"
-                              onClick={() => nav(`/transferir-moto/${m.id}`)}
-                            >
+                            <button className="action-btn" onClick={() => nav(`/transferir-moto/${m.id}`)}>
                               Transferir
                             </button>
 
-                            <button
-                              className="action-btn"
-                              onClick={() => nav(`/vender-moto/${m.id}`)}
-                            >
+                            <button className="action-btn" onClick={() => nav(`/vender-moto/${m.id}`)}>
                               Vender
                             </button>
                           </>
@@ -293,10 +235,8 @@ export default function Home() {
           </>
         )}
 
-        {/* --------------------------- REVISÕES --------------------------- */}
-        {tab === "revisoes" && (
-          <h3 className="section-title">🛠 Revisões — Em Breve</h3>
-        )}
+        {/* ==================== REVISÕES ==================== */}
+        {tab === "revisoes" && <Revisao user={user} />}
       </div>
     </div>
   ) : null;
