@@ -1,45 +1,37 @@
-.vender-container {
+.vender-moto-container {
+  max-width: 450px;
+  margin: 30px auto;
   padding: 20px;
-  width: 100%;
-  max-width: 500px;
-  margin: auto;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
 }
 
-.moto-info {
-  background: #f0f0f0;
-  padding: 15px;
-  border-radius: 8px;
-  margin-bottom: 20px;
-  line-height: 1.6;
+.moto-info p {
+  margin: 5px 0;
 }
 
 .input {
   width: 100%;
   padding: 12px;
   margin: 10px 0;
-  border-radius: 6px;
-  border: 1px solid #aaa;
-}
-
-.btn-vender {
-  background: #0a7a0a;
-  color: white;
-  padding: 12px;
-  width: 100%;
-  border: none;
-  margin-top: 10px;
-  border-radius: 6px;
-  cursor: pointer;
+  border-radius: 8px;
+  border: 1px solid #ccc;
   font-size: 16px;
 }
 
-.btn-voltar {
-  background: #444;
-  color: white;
-  padding: 10px;
+.btn-vender {
   width: 100%;
+  padding: 14px;
+  background: #d30000;
+  color: white;
   border: none;
-  margin-top: 10px;
-  border-radius: 6px;
+  border-radius: 10px;
+  font-size: 18px;
   cursor: pointer;
+  margin-top: 10px;
+}
+
+.btn-vender:hover {
+  background: #a40000;
 }
