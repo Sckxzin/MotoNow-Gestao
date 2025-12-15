@@ -270,6 +270,63 @@ app.get("/motos", (req, res) => {
   });
 });
 
+app.post("/vender-moto", (req, res) => {
+  const { moto_id, nome_cliente, telefone, cpf, filial } = req.body;
+
+  // 1️⃣ Buscar moto
+  db.query("SELECT * FROM motos WHERE id = ?", [moto_id], (err, result) => {
+    if (err) return res.status(500).json(err);
+    if (result.length === 0) return res.status(404).json({ message: "Moto não encontrada." });
+
+    const moto = result[0];
+    if (moto.status === "VENDIDA")
+      return res.status(400).json({ message: "Essa moto já foi vendida." });
+
+    // 2️⃣ Registrar venda da moto
+    db.query(
+      `INSERT INTO vendas_motos (moto_id, nome_cliente, telefone, cpf, filial)
+       VALUES (?, ?, ?, ?, ?)`,
+      [moto_id, nome_cliente, telefone, cpf, filial],
+      (err, vendaRes) => {
+        if (err) return res.status(500).json(err);
+
+        const vendaId = vendaRes.insertId;
+
+        // 3️⃣ Dar baixa no capacete da filial
+        db.query(
+          `UPDATE pecas 
+           SET quantidade = quantidade - 1 
+           WHERE filial_atual = ? AND nome LIKE '%capacete%' 
+           LIMIT 1`,
+          [filial]
+        );
+
+        // 4️⃣ Registrar item capacete na venda
+        db.query(
+          `INSERT INTO vendas_motos_itens
+           (venda_id, descricao, quantidade, preco_unitario, subtotal)
+           VALUES (?, 'Capacete (brinde)', 1, 0, 0)`,
+          [vendaId]
+        );
+
+        // 5️⃣ Atualizar status da moto
+        db.query(
+          "UPDATE motos SET status = 'VENDIDA' WHERE id = ?",
+          [moto_id]
+        );
+
+        return res.json({
+          message: "Moto vendida com sucesso!",
+          venda_id: vendaId,
+          moto: moto.modelo,
+          capacete: "1 unidade baixada automaticamente"
+        });
+      }
+    );
+  });
+});
+
+
 /* ------------------------ SERVIDOR ------------------------ */
 const PORT = process.env.PORT || 5000;
 
