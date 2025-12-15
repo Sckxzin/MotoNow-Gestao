@@ -288,6 +288,60 @@ app.post("/vender-moto", (req, res) => {
     );
   });
 });
+app.post("/revisao", (req, res) => {
+  const { nome_cliente, telefone, cpf, descricao, valor, trocar_oleo, filial } = req.body;
+
+  // Registrar revisão
+  db.query(
+    `INSERT INTO revisoes 
+      (nome_cliente, telefone, cpf, descricao, valor, trocar_oleo, filial)
+     VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    [nome_cliente, telefone, cpf, descricao, valor, trocar_oleo, filial],
+    (err, result) => {
+      if (err) return res.status(500).json(err);
+
+      // Se não trocar óleo → finalizar
+      if (trocar_oleo !== "SIM") {
+        return res.json({ message: "Revisão registrada com sucesso!" });
+      }
+
+      // 🔥 Se precisar trocar óleo → baixa automática
+      db.query(
+        `UPDATE pecas 
+         SET quantidade = quantidade - 1
+         WHERE nome = 'Óleo' AND filial_atual = ?
+         LIMIT 1`,
+        [filial],
+        (err2) => {
+          if (err2) return res.status(500).json(err2);
+
+          return res.json({
+            message: "Revisão registrada e 1 óleo removido do estoque!"
+          });
+        }
+      );
+    }
+  );
+});
+app.get("/revisoes", (req, res) => {
+  const { role, filial } = req.query;
+
+  let sql = "SELECT * FROM revisoes";
+  let params = [];
+
+  if (role !== "Diretoria") {
+    sql += " WHERE filial = ?";
+    params = [filial];
+  }
+
+  sql += " ORDER BY data_revisao DESC";
+
+  db.query(sql, params, (err, result) => {
+    if (err) return res.status(500).json(err);
+    res.json(result);
+  });
+});
+
 
 
 /* ------------------------ SERVIDOR ------------------------ */
