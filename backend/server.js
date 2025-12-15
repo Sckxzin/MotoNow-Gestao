@@ -80,7 +80,7 @@ app.post("/pecas", (req, res) => {
   );
 });
 
-/* ------------------------ VENDAS ------------------------ */
+/* ------------------------ VENDAS SIMPLES ------------------------ */
 app.post("/vendas", (req, res) => {
   const { peca_id, nome_cliente, telefone, cpf, quantidade, preco_unitario, filial } = req.body;
 
@@ -96,44 +96,22 @@ app.post("/vendas", (req, res) => {
 
     const novaQtd = peca.quantidade - quantidade;
 
+    db.query("UPDATE pecas SET quantidade = ? WHERE id = ?", [novaQtd, peca_id]);
+
+    const total = quantidade * preco_unitario;
+
     db.query(
-      "UPDATE pecas SET quantidade = ? WHERE id = ?",
-      [novaQtd, peca_id],
-      err => {
+      `INSERT INTO vendas 
+        (peca_id, nome_cliente, telefone, cpf, quantidade, preco_unitario, total, filial)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [peca_id, nome_cliente, telefone, cpf, quantidade, preco_unitario, total, filial],
+      (err, vendaRes) => {
         if (err) return res.status(500).json({ error: err });
 
-        const total = quantidade * preco_unitario;
-
-        const sqlVenda = `
-          INSERT INTO vendas 
-          (peca_id, nome_cliente, telefone, cpf, quantidade, preco_unitario, total, filial)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        `;
-
-        db.query(
-          sqlVenda,
-          [peca_id, nome_cliente, telefone, cpf, quantidade, preco_unitario, total, filial],
-          (err, vendaRes) => {
-            if (err) return res.status(500).json({ error: err });
-
-            res.json({
-              message: "Venda registrada com sucesso!",
-              venda: {
-                id: vendaRes.insertId,
-                nome_cliente,
-                telefone,
-                cpf,
-                peca: peca.nome,
-                codigo: peca.codigo,
-                quantidade,
-                preco_unitario,
-                total,
-                filial,
-                data: new Date()
-              }
-            });
-          }
-        );
+        res.json({
+          message: "Venda registrada com sucesso!",
+          venda: vendaRes.insertId
+        });
       }
     );
   });
@@ -143,9 +121,7 @@ app.get("/vendas", (req, res) => {
   const { role, filial } = req.query;
 
   let sql = `
-      SELECT v.*, 
-             p.nome AS nome_peca,
-             p.codigo AS codigo_peca
+      SELECT v.*, p.nome AS nome_peca, p.codigo AS codigo_peca
       FROM vendas v
       JOIN pecas p ON v.peca_id = p.id
   `;
@@ -168,17 +144,14 @@ app.get("/vendas", (req, res) => {
 app.post("/venda-multipla", (req, res) => {
   const { cliente, filial, itens } = req.body;
 
-  if (!itens || itens.length === 0) {
+  if (!itens || itens.length === 0)
     return res.status(400).json({ message: "Carrinho vazio!" });
-  }
 
-  // Total geral da venda
   const totalVenda = itens.reduce(
     (sum, item) => sum + (item.preco_unitario * item.quantidade),
     0
   );
 
-  // 1️⃣ Registrar a venda principal
   db.query(
     "INSERT INTO vendas_multi (nome_cliente, telefone, cpf, total, filial) VALUES (?, ?, ?, ?, ?)",
     [cliente.nome, cliente.telefone, cliente.cpf, totalVenda, filial],
@@ -187,14 +160,12 @@ app.post("/venda-multipla", (req, res) => {
 
       const vendaId = vendaRes.insertId;
 
-      // 2️⃣ Para cada item → inserir + atualizar estoque
       itens.forEach(item => {
-        // Inserir item na tabela
         db.query(
           `INSERT INTO venda_itens 
-          (venda_id, peca_id, nome_peca, codigo_peca, quantidade, preco_unitario, subtotal)
-          SELECT ?, p.id, p.nome, p.codigo, ?, ?, (? * ?) 
-          FROM pecas p WHERE p.id = ?`,
+           (venda_id, peca_id, nome_peca, codigo_peca, quantidade, preco_unitario, subtotal)
+           SELECT ?, p.id, p.nome, p.codigo, ?, ?, (? * ?) 
+           FROM pecas p WHERE p.id = ?`,
           [
             vendaId,
             item.quantidade,
@@ -206,14 +177,13 @@ app.post("/venda-multipla", (req, res) => {
           ]
         );
 
-        // Atualizar estoque
         db.query(
           "UPDATE pecas SET quantidade = quantidade - ? WHERE id = ?",
           [item.quantidade, item.peca_id]
         );
       });
 
-      return res.json({
+      res.json({
         message: "Venda realizada com sucesso!",
         venda_id: vendaId,
         total: totalVenda
@@ -221,23 +191,6 @@ app.post("/venda-multipla", (req, res) => {
     }
   );
 });
-app.get("/venda-multipla/:id", (req, res) => {
-  const { id } = req.params;
-
-  db.query("SELECT * FROM vendas_multi WHERE id = ?", [id], (err, vendaRes) => {
-    if (err) return res.status(500).json(err);
-
-    db.query("SELECT * FROM venda_itens WHERE venda_id = ?", [id], (err, itensRes) => {
-      if (err) return res.status(500).json(err);
-
-      res.json({
-        venda: vendaRes[0],
-        itens: itensRes
-      });
-    });
-  });
-});
-
 
 /* ------------------------ MOTOS ------------------------ */
 app.post("/motos", (req, res) => {
@@ -270,19 +223,31 @@ app.get("/motos", (req, res) => {
   });
 });
 
+/* ------------------------ BUSCAR MOTO POR ID ------------------------ */
+app.get("/moto/:id", (req, res) => {
+  const { id } = req.params;
+
+  db.query("SELECT * FROM motos WHERE id = ?", [id], (err, result) => {
+    if (err) return res.status(500).json(err);
+    if (result.length === 0) return res.status(404).json({ message: "Moto não encontrada" });
+
+    res.json(result[0]);
+  });
+});
+
+/* ------------------------ VENDER MOTO ------------------------ */
 app.post("/vender-moto", (req, res) => {
   const { moto_id, nome_cliente, telefone, cpf, filial } = req.body;
 
-  // 1️⃣ Buscar moto
   db.query("SELECT * FROM motos WHERE id = ?", [moto_id], (err, result) => {
     if (err) return res.status(500).json(err);
     if (result.length === 0) return res.status(404).json({ message: "Moto não encontrada." });
 
     const moto = result[0];
+
     if (moto.status === "VENDIDA")
       return res.status(400).json({ message: "Essa moto já foi vendida." });
 
-    // 2️⃣ Registrar venda da moto
     db.query(
       `INSERT INTO vendas_motos (moto_id, nome_cliente, telefone, cpf, filial)
        VALUES (?, ?, ?, ?, ?)`,
@@ -292,7 +257,7 @@ app.post("/vender-moto", (req, res) => {
 
         const vendaId = vendaRes.insertId;
 
-        // 3️⃣ Dar baixa no capacete da filial
+        // dar baixa automática no capacete
         db.query(
           `UPDATE pecas 
            SET quantidade = quantidade - 1 
@@ -301,7 +266,6 @@ app.post("/vender-moto", (req, res) => {
           [filial]
         );
 
-        // 4️⃣ Registrar item capacete na venda
         db.query(
           `INSERT INTO vendas_motos_itens
            (venda_id, descricao, quantidade, preco_unitario, subtotal)
@@ -309,13 +273,12 @@ app.post("/vender-moto", (req, res) => {
           [vendaId]
         );
 
-        // 5️⃣ Atualizar status da moto
         db.query(
           "UPDATE motos SET status = 'VENDIDA' WHERE id = ?",
           [moto_id]
         );
 
-        return res.json({
+        res.json({
           message: "Moto vendida com sucesso!",
           venda_id: vendaId,
           moto: moto.modelo,
@@ -325,7 +288,6 @@ app.post("/vender-moto", (req, res) => {
     );
   });
 });
-
 
 /* ------------------------ SERVIDOR ------------------------ */
 const PORT = process.env.PORT || 5000;
