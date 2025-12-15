@@ -8,6 +8,7 @@ import VendaPeca from "./pages/VendaPeca";
 import NotaFiscal from "./pages/NotaFiscal";
 import Vendas from "./pages/Vendas"; // <-- IMPORTAÇÃO CORRETA
 import CadastroMoto from "./pages/CadastroMoto";
+import VenderMoto from "./pages/VenderMoto";
 
 
 export default function App() {
@@ -21,6 +22,7 @@ export default function App() {
         <Route path="/nota" element={<NotaFiscal />} />
         <Route path="/vendas" element={<Vendas />} />
         <Route path="/cadastro-moto" element={<CadastroMoto />} />
+  <Route path="/vender-moto/:id" element={<VenderMoto />} />
       </Routes>
     </BrowserRouter>
   );
