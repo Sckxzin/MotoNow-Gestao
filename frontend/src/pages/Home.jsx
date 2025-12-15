@@ -206,6 +206,15 @@ export default function Home() {
                           Revisão
                         </button>
 
+                        {/* NOVO BOTÃO VENDER */}
+                        <button
+                          className="action-btn"
+                          style={{ backgroundColor: "#0a7a0a" }}
+                          onClick={() => nav(`/vender-moto/${m.id}`)}
+                        >
+                          Vender
+                        </button>
+
                         {user.role === "Diretoria" && (
                           <button
                             className="action-btn"
