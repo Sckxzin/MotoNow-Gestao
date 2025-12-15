@@ -8,20 +8,24 @@ export default function VenderMoto() {
   const nav = useNavigate();
 
   const [moto, setMoto] = useState(null);
-  const [cliente, setCliente] = useState({
-    nome: "",
-    telefone: "",
-    cpf: "",
-  });
+  const [loading, setLoading] = useState(true);
 
-  const [gasolina, setGasolina] = useState("");
+  // Campos do formulário
   const [valor, setValor] = useState("");
-  const [capacete, setCapacete] = useState("SIM");
-  const [chegada, setChegada] = useState("");
+  const [gasolina, setGasolina] = useState("");
+  const [capaceteBrinde, setCapaceteBrinde] = useState("NÃO");
+  const [chegada, setChegada] = useState("WHATSAPP");
+  const [nomeCliente, setNomeCliente] = useState("");
+  const [telefone, setTelefone] = useState("");
+  const [cpf, setCpf] = useState("");
 
   useEffect(() => {
-    api.get(`/moto/${id}`)
-      .then(res => setMoto(res.data))
+    api
+      .get(`/moto/${id}`)
+      .then((res) => {
+        setMoto(res.data);
+        setLoading(false);
+      })
       .catch(() => {
         alert("Moto não encontrada!");
         nav("/home");
@@ -29,87 +33,117 @@ export default function VenderMoto() {
   }, [id, nav]);
 
   function finalizarVenda() {
-    if (!cliente.nome || !cliente.telefone || !cliente.cpf) {
-      alert("Preencha todos os dados do cliente.");
-      return;
+    if (!valor || !nomeCliente || !telefone || !cpf) {
+      return alert("Preencha todos os campos obrigatórios!");
     }
 
-    api.post("/vender-moto", {
-      moto_id: id,
-      nome_cliente: cliente.nome,
-      telefone: cliente.telefone,
-      cpf: cliente.cpf,
-      filial: moto.filial,
-      gasolina,
-      valor,
-      capacete_brinde: capacete,
-      chegada
-    })
-    .then(() => {
-      alert("Venda registrada com sucesso!");
-      nav("/home");
-    })
-    .catch(err => {
-      console.error(err);
-      alert("Erro ao registrar venda.");
-    });
+    api
+      .post("/vender-moto", {
+        moto_id: id,
+        nome_cliente: nomeCliente,
+        telefone,
+        cpf,
+        filial: moto.filial,
+        gasolina,
+        valor,
+        capacete_brinde: capaceteBrinde,
+        chegada,
+      })
+      .then((res) => {
+        alert("Venda registrada com sucesso!");
+        nav("/home");
+      })
+      .catch((err) => {
+        console.error(err);
+        alert("Erro ao registrar venda!");
+      });
   }
 
-  if (!moto) return <h3>Carregando dados da moto...</h3>;
+  if (loading) return <h3>Carregando dados da moto...</h3>;
 
   return (
-    <div className="venda-moto-container">
-      <div className="venda-card">
+    <div className="vender-container">
+      <div className="card-venda">
 
         <h2>Venda de Moto</h2>
 
-        <p><b>Modelo:</b> {moto.modelo}</p>
-        <p><b>Cor:</b> {moto.cor}</p>
-        <p><b>Chassi:</b> {moto.chassi}</p>
-        <p><b>Filial:</b> {moto.filial}</p>
+        <p><strong>Modelo:</strong> {moto.modelo}</p>
+        <p><strong>Cor:</strong> {moto.cor}</p>
+        <p><strong>Chassi:</strong> {moto.chassi}</p>
+        <p><strong>Filial:</strong> {moto.filial}</p>
 
-        <h3>Detalhes da Venda</h3>
+        <h3>Dados da Venda</h3>
 
-        <input placeholder="Litros / Gasolina" 
-               value={gasolina} 
-               onChange={(e) => setGasolina(e.target.value)} />
+        {/* VALOR */}
+        <input
+          type="number"
+          className="input"
+          placeholder="Valor da Moto (R$)"
+          value={valor}
+          onChange={(e) => setValor(e.target.value)}
+        />
 
-        <input placeholder="Valor da moto (R$)" 
-               type="number"
-               value={valor} 
-               onChange={(e) => setValor(e.target.value)} />
+        {/* GASOLINA */}
+        <input
+          type="number"
+          className="input"
+          placeholder="Valor de gasolina (R$)"
+          value={gasolina}
+          onChange={(e) => setGasolina(e.target.value)}
+        />
 
-        <select value={capacete} onChange={(e) => setCapacete(e.target.value)}>
-          <option value="SIM">Capacete de Brinde: SIM</option>
-          <option value="NÃO">Capacete de Brinde: NÃO</option>
+        {/* CAPACETE BRINDE */}
+        <select
+          className="input"
+          value={capaceteBrinde}
+          onChange={(e) => setCapaceteBrinde(e.target.value)}
+        >
+          <option value="SIM">Capacete de brinde: SIM</option>
+          <option value="NÃO">Capacete de brinde: NÃO</option>
         </select>
 
-        <select value={chegada} onChange={(e) => setChegada(e.target.value)}>
-          <option value="">Como chegou na loja?</option>
-          <option value="TRANSPORTADORA">Transportadora</option>
-          <option value="CARRETA">Carreta</option>
-          <option value="ENVIO INTERNO">Envio interno</option>
-          <option value="OUTRO">Outro</option>
+        {/* COMO CHEGOU */}
+        <select
+          className="input"
+          value={chegada}
+          onChange={(e) => setChegada(e.target.value)}
+        >
+          <option value="WHATSAPP">Como chegou: WhatsApp</option>
+          <option value="PESSOALMENTE">Como chegou: Pessoalmente</option>
+          <option value="TENDA">Como chegou: Tenda</option>
+          <option value="INDICACAO">Como chegou: Indicação</option>
+          <option value="OUTRO">Como chegou: Outro</option>
         </select>
 
         <h3>Dados do Cliente</h3>
 
-        <input placeholder="Nome do cliente"
-               value={cliente.nome}
-               onChange={(e) => setCliente({ ...cliente, nome: e.target.value })} />
+        <input
+          type="text"
+          className="input"
+          placeholder="Nome do cliente"
+          value={nomeCliente}
+          onChange={(e) => setNomeCliente(e.target.value)}
+        />
 
-        <input placeholder="Telefone"
-               value={cliente.telefone}
-               onChange={(e) => setCliente({ ...cliente, telefone: e.target.value })} />
+        <input
+          type="text"
+          className="input"
+          placeholder="Telefone"
+          value={telefone}
+          onChange={(e) => setTelefone(e.target.value)}
+        />
 
-        <input placeholder="CPF"
-               value={cliente.cpf}
-               onChange={(e) => setCliente({ ...cliente, cpf: e.target.value })} />
+        <input
+          type="text"
+          className="input"
+          placeholder="CPF"
+          value={cpf}
+          onChange={(e) => setCpf(e.target.value)}
+        />
 
-        <button className="btn-finalizar" onClick={finalizarVenda}>
+        <button className="btn-vender" onClick={finalizarVenda}>
           Finalizar Venda
         </button>
-
       </div>
     </div>
   );
