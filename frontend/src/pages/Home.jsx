@@ -166,6 +166,11 @@ export default function Home() {
           <>
             <h3 className="section-title">🏍 Estoque de Motos</h3>
 
+            {/* 🔢 CONTADOR DE MOTOS */}
+            <p className="contador-motos">
+              🔢 Total de motos cadastradas: <strong>{motos.length}</strong>
+            </p>
+
             {user.role === "Diretoria" && (
               <button
                 className="add-btn"
@@ -206,22 +211,22 @@ export default function Home() {
                           Revisão
                         </button>
 
-                        {/* NOVO BOTÃO VENDER */}
-                        <button
-                          className="action-btn"
-                          style={{ backgroundColor: "#0a7a0a" }}
-                          onClick={() => nav(`/vender-moto/${m.id}`)}
-                        >
-                          Vender
-                        </button>
-
                         {user.role === "Diretoria" && (
-                          <button
-                            className="action-btn"
-                            onClick={() => nav(`/transferir-moto/${m.id}`)}
-                          >
-                            Transferir
-                          </button>
+                          <>
+                            <button
+                              className="action-btn"
+                              onClick={() => nav(`/transferir-moto/${m.id}`)}
+                            >
+                              Transferir
+                            </button>
+
+                            <button
+                              className="action-btn"
+                              onClick={() => nav(`/vender-moto/${m.id}`)}
+                            >
+                              Vender
+                            </button>
+                          </>
                         )}
                       </td>
                     </tr>
