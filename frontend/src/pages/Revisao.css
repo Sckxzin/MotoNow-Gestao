@@ -1,67 +1,56 @@
-.revisao-container {
-  max-width: 500px;
-  margin: 30px auto;
-  background: #ffffff;
-  padding: 25px;
-  border-radius: 12px;
-  box-shadow: 0 0 10px #00000020;
+.rev-container {
+  width: 100%;
+  padding: 20px;
+  font-family: 'Segoe UI', sans-serif;
 }
 
-.revisao-container h2 {
-  text-align: center;
-  margin-bottom: 20px;
+.rev-title {
+  font-size: 22px;
+  margin-bottom: 12px;
+  font-weight: bold;
 }
 
-.revisao-form {
+.rev-form {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
+  width: 350px;
+  background: #f7f7f7;
+  padding: 15px;
+  border-radius: 10px;
+  margin-bottom: 25px;
 }
 
-.revisao-form label {
-  font-weight: bold;
-  color: #333;
-}
-
-.revisao-form input,
-.revisao-form textarea,
-.revisao-form select {
-  width: 100%;
+.rev-form input,
+.rev-form select {
   padding: 10px;
-  border: 1px solid #bbb;
-  border-radius: 8px;
-  font-size: 15px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
 }
 
-.revisao-form textarea {
-  min-height: 80px;
-}
-
-.btn-salvar {
-  margin-top: 15px;
-  background: #28a745;
+.rev-btn {
+  background: #d30000;
   color: white;
-  padding: 12px;
   border: none;
-  border-radius: 8px;
-  font-size: 16px;
+  padding: 10px;
+  border-radius: 6px;
   cursor: pointer;
+  font-weight: bold;
 }
 
-.btn-salvar:hover {
-  background: #218838;
-}
-
-.btn-voltar {
-  margin-top: 15px;
+.rev-table table {
   width: 100%;
-  background: #777;
+  border-collapse: collapse;
+  background: white;
+}
+
+.rev-table th {
+  background: #111;
   color: white;
   padding: 10px;
-  border-radius: 8px;
-  cursor: pointer;
 }
 
-.btn-voltar:hover {
-  background: #555;
+.rev-table td {
+  padding: 10px;
+  border-bottom: 1px solid #ccc;
 }
