@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../api";
@@ -14,22 +15,24 @@ export default function VenderMoto() {
     cpf: ""
   });
 
+  // 🔥 Carregar a moto pelo ID direto do backend
   useEffect(() => {
-    api.get(`/motos`, { params: {} })
-      .then(res => {
-        const encontrada = res.data.find(m => m.id === Number(id));
-        setMoto(encontrada);
-      })
-      .catch(() => alert("Erro ao carregar moto!"));
-  }, [id]);
+    api.get(`/moto/${id}`)
+      .then((res) => setMoto(res.data))
+      .catch((err) => {
+        console.error(err);
+        alert("Moto não encontrada!");
+        nav("/home");
+      });
+  }, [id, nav]);
 
   function handleChange(e) {
     setCliente({ ...cliente, [e.target.name]: e.target.value });
   }
 
-  function vender() {
-    if (!cliente.nome || !cliente.cpf) {
-      alert("Preencha nome e CPF!");
+  function venderMoto() {
+    if (!cliente.nome || !cliente.telefone || !cliente.cpf) {
+      alert("Preencha todos os campos do cliente!");
       return;
     }
 
@@ -40,65 +43,62 @@ export default function VenderMoto() {
       cpf: cliente.cpf,
       filial: moto.filial
     })
-    .then(res => {
+    .then((res) => {
       alert("Moto vendida com sucesso!");
       nav("/home");
     })
-    .catch(err => {
+    .catch((err) => {
       console.error(err);
       alert("Erro ao vender moto!");
     });
   }
 
-  if (!moto)
-    return <h3 style={{ padding: 20 }}>Carregando dados da moto...</h3>;
+  if (!moto) {
+    return <h2 style={{ padding: "20px" }}>Carregando dados da moto...</h2>;
+  }
 
   return (
-    <div className="vender-container">
-      <h2>🛵 Vender Moto</h2>
+    <div className="vender-moto-container">
+      <h2>Venda de Moto</h2>
 
       <div className="moto-info">
-        <p><b>Modelo:</b> {moto.modelo}</p>
-        <p><b>Cor:</b> {moto.cor}</p>
-        <p><b>Chassi:</b> {moto.chassi}</p>
-        <p><b>Filial:</b> {moto.filial}</p>
+        <p><strong>Modelo:</strong> {moto.modelo}</p>
+        <p><strong>Cor:</strong> {moto.cor}</p>
+        <p><strong>Chassi:</strong> {moto.chassi}</p>
+        <p><strong>Filial:</strong> {moto.filial}</p>
       </div>
 
-      <h3>📄 Dados do Cliente</h3>
+      <h3>Dados do Cliente</h3>
 
       <input
         type="text"
         name="nome"
-        placeholder="Nome do Cliente"
+        placeholder="Nome do cliente"
+        className="input"
         value={cliente.nome}
         onChange={handleChange}
-        className="input"
       />
 
       <input
         type="text"
         name="telefone"
         placeholder="Telefone"
+        className="input"
         value={cliente.telefone}
         onChange={handleChange}
-        className="input"
       />
 
       <input
         type="text"
         name="cpf"
         placeholder="CPF"
+        className="input"
         value={cliente.cpf}
         onChange={handleChange}
-        className="input"
       />
 
-      <button className="btn-vender" onClick={vender}>
+      <button className="btn-vender" onClick={venderMoto}>
         Finalizar Venda
-      </button>
-
-      <button className="btn-voltar" onClick={() => nav(-1)}>
-        Voltar
       </button>
     </div>
   );
