@@ -10,6 +10,7 @@ export default function Home() {
   const [tab, setTab] = useState("pecas");
   const [pecas, setPecas] = useState([]);
   const [motos, setMotos] = useState([]);
+  const [filialFiltro, setFilialFiltro] = useState("TODAS");
   const [busca, setBusca] = useState("");
 
   useEffect(() => {
@@ -28,10 +29,7 @@ export default function Home() {
         params: { role: data.role, filial: data.filial },
       })
       .then((response) => setPecas(response.data))
-      .catch((err) => {
-        console.error(err);
-        alert("Erro ao carregar peças!");
-      });
+      .catch(() => alert("Erro ao carregar peças!"));
 
     // 🔥 Carregar motos
     api
@@ -39,10 +37,7 @@ export default function Home() {
         params: { role: data.role, filial: data.filial },
       })
       .then((response) => setMotos(response.data))
-      .catch((err) => {
-        console.error(err);
-        alert("Erro ao carregar motos!");
-      });
+      .catch(() => alert("Erro ao carregar motos!"));
   }, [nav]);
 
   function sair() {
@@ -55,6 +50,11 @@ export default function Home() {
     (p) =>
       p.nome.toLowerCase().includes(busca.toLowerCase()) ||
       p.codigo.toLowerCase().includes(busca.toLowerCase())
+  );
+
+  // 🔍 FILTRO DE MOTOS
+  const motosFiltradas = motos.filter((m) =>
+    filialFiltro === "TODAS" ? true : m.filial === filialFiltro
   );
 
   return user ? (
@@ -119,10 +119,7 @@ export default function Home() {
             />
 
             {user.role === "Diretoria" && (
-              <button
-                className="add-btn"
-                onClick={() => nav("/cadastro-peca")}
-              >
+              <button className="add-btn" onClick={() => nav("/cadastro-peca")}>
                 ➕ Adicionar Peça
               </button>
             )}
@@ -166,16 +163,31 @@ export default function Home() {
           <>
             <h3 className="section-title">🏍 Estoque de Motos</h3>
 
-            {/* 🔢 CONTADOR DE MOTOS */}
+            {/* FILTRO */}
+            <div className="filtro-motos">
+              <label>Filtrar por filial:</label>
+              <select
+                value={filialFiltro}
+                onChange={(e) => setFilialFiltro(e.target.value)}
+              >
+                <option value="TODAS">Todas</option>
+                <option value="CATENDE">Catende</option>
+                <option value="SÃO JOSÉ">São José</option>
+                <option value="XEXÉU">Xexéu</option>
+                <option value="ESCADA">Escada</option>
+                <option value="RIBEIRÃO">Ribeirão</option>
+                <option value="IPOJUCA">Ipojuca</option>
+              </select>
+            </div>
+
+            {/* CONTADOR */}
             <p className="contador-motos">
-              🔢 Total de motos cadastradas: <strong>{motos.length}</strong>
+              🔢 Total de motos filtradas:{" "}
+              <strong>{motosFiltradas.length}</strong>
             </p>
 
             {user.role === "Diretoria" && (
-              <button
-                className="add-btn"
-                onClick={() => nav("/cadastro-moto")}
-              >
+              <button className="add-btn" onClick={() => nav("/cadastro-moto")}>
                 ➕ Cadastrar Moto
               </button>
             )}
@@ -195,7 +207,7 @@ export default function Home() {
                 </thead>
 
                 <tbody>
-                  {motos.map((m) => (
+                  {motosFiltradas.map((m) => (
                     <tr key={m.id}>
                       <td>{m.modelo}</td>
                       <td>{m.ano}</td>
