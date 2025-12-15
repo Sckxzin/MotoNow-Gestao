@@ -1,0 +1,67 @@
+.revisao-container {
+  max-width: 500px;
+  margin: 30px auto;
+  background: #ffffff;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 0 10px #00000020;
+}
+
+.revisao-container h2 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.revisao-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.revisao-form label {
+  font-weight: bold;
+  color: #333;
+}
+
+.revisao-form input,
+.revisao-form textarea,
+.revisao-form select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #bbb;
+  border-radius: 8px;
+  font-size: 15px;
+}
+
+.revisao-form textarea {
+  min-height: 80px;
+}
+
+.btn-salvar {
+  margin-top: 15px;
+  background: #28a745;
+  color: white;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.btn-salvar:hover {
+  background: #218838;
+}
+
+.btn-voltar {
+  margin-top: 15px;
+  width: 100%;
+  background: #777;
+  color: white;
+  padding: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.btn-voltar:hover {
+  background: #555;
+}
