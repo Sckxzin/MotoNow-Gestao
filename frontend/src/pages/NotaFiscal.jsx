@@ -6,11 +6,12 @@ export default function NotaFiscal() {
 
   useEffect(() => {
     const saved = localStorage.getItem("notaFiscal");
+
     if (saved) {
       try {
         setNota(JSON.parse(saved));
       } catch (e) {
-        console.error("Erro ao carregar nota:", e);
+        console.error("Erro ao processar nota:", e);
       }
     }
   }, []);
@@ -47,18 +48,29 @@ export default function NotaFiscal() {
 
       {/* ===== CLIENTE ===== */}
       <h3 className="nf-section">DADOS DO CLIENTE</h3>
+
       <div className="nf-box">
-        <p><b>Nome:</b> {nota.cliente?.nome || nota.nome_cliente || "—"}</p>
-        <p><b>CPF:</b> {nota.cliente?.cpf || nota.cpf || "—"}</p>
-        <p><b>Telefone:</b> {nota.cliente?.telefone || nota.telefone || "—"}</p>
+        <p><b>Nome:</b> {nota.nome_cliente || nota.cliente?.nome || "—"}</p>
+        <p><b>CPF:</b> {nota.cpf || nota.cliente?.cpf || "—"}</p>
+        <p><b>Telefone:</b> {nota.telefone || nota.cliente?.telefone || "—"}</p>
       </div>
 
-      {/* ===== LISTA DE ITENS ===== */}
+      {/* ===== ITENS ===== */}
       <h3 className="nf-section">ITENS VENDIDOS</h3>
+
       <div className="nf-box">
 
-        {/* VENDA MÚLTIPLA */}
-        {isMultipla ? (
+        {/* VENDA SIMPLES */}
+        {!isMultipla && (
+          <>
+            <p><b>Descrição:</b> {nota.peca}</p>
+            <p><b>Código:</b> {nota.codigo}</p>
+            <p><b>Quantidade:</b> {nota.quantidade}</p>
+          </>
+        )}
+
+        {/* VENDA MÚLTIPLA (CARRINHO) */}
+        {isMultipla && (
           <table className="nf-table">
             <thead>
               <tr>
@@ -69,50 +81,41 @@ export default function NotaFiscal() {
                 <th>Subtotal</th>
               </tr>
             </thead>
-
             <tbody>
-              {nota.itens.map((item, i) => (
-                <tr key={i}>
+              {nota.itens.map((item, index) => (
+                <tr key={index}>
                   <td>{item.nome}</td>
                   <td>{item.codigo}</td>
                   <td>{item.quantidade}</td>
-                  <td>R$ {item.preco_unitario.toFixed(2)}</td>
-                  <td>R$ {item.subtotal.toFixed(2)}</td>
+                  <td>R$ {Number(item.preco_unitario).toFixed(2)}</td>
+                  <td>R$ {Number(item.subtotal).toFixed(2)}</td>
                 </tr>
               ))}
             </tbody>
           </table>
-        ) : (
-          <>
-            {/* VENDA SIMPLES */}
-            <p><b>Descrição:</b> {nota.peca || "—"}</p>
-            <p><b>Código:</b> {nota.codigo || "—"}</p>
-            <p><b>Quantidade:</b> {nota.quantidade || 0}</p>
-          </>
         )}
-
       </div>
 
       {/* ===== VALORES ===== */}
       <h3 className="nf-section">VALORES</h3>
+
       <div className="nf-box">
-        {isMultipla ? (
-          <>
-            <p><b>Total Geral:</b> <strong>R$ {nota.total.toFixed(2)}</strong></p>
-          </>
-        ) : (
+        {!isMultipla && (
           <>
             <p><b>Preço Unitário:</b> R$ {Number(nota.preco_unitario).toFixed(2)}</p>
             <p><b>Total:</b> <strong>R$ {Number(nota.total).toFixed(2)}</strong></p>
           </>
         )}
+
+        {isMultipla && (
+          <p><b>Total Geral:</b> <strong>R$ {Number(nota.total).toFixed(2)}</strong></p>
+        )}
       </div>
 
-      {/* ===== BOTÃO ===== */}
+      {/* BOTÃO IMPRIMIR */}
       <button className="nf-print" onClick={() => window.print()}>
         🖨 Imprimir Nota Fiscal
       </button>
-
     </div>
   );
 }
