@@ -23,7 +23,6 @@ export default function Home() {
   const [pecas, setPecas] = useState([]);
   const [motos, setMotos] = useState([]);
   const [busca, setBusca] = useState("");
-
   const [filialFiltro, setFilialFiltro] = useState("TODAS");
 
   useEffect(() => {
@@ -36,7 +35,7 @@ export default function Home() {
 
     setUser(data);
 
-    // 🔥 Carregar peças (respeita filial para não-diretoria)
+    // 🔥 Carregar peças
     api
       .get("/pecas", {
         params: { role: data.role, filial: data.filial },
@@ -44,9 +43,9 @@ export default function Home() {
       .then((response) => setPecas(response.data))
       .catch(() => alert("Erro ao carregar peças!"));
 
-    // 🔥 Carregar todas as motos (SEM RESTRIÇÃO DE FILIAL)
+    // 🔥 Carregar todas as motos (SEMPRE TODAS PARA TODAS AS FILIAIS)
     api
-      .get("/motos", { params: { role: data.role, filial: data.filial } })
+      .get("/motos", { params: { role: "Diretoria", filial: data.filial } })
       .then((response) => setMotos(response.data))
       .catch(() => alert("Erro ao carregar motos!"));
   }, [nav]);
@@ -63,10 +62,33 @@ export default function Home() {
       p.codigo.toLowerCase().includes(busca.toLowerCase())
   );
 
-  // 🔍 FILTRO DE MOTOS
+  // 🔍 FILTRO DE MOTOS POR FILIAL
   const motosFiltradas = motos.filter((m) =>
     filialFiltro === "TODAS" ? true : m.filial === filialFiltro
   );
+
+  // 🔥 ADICIONAR AO CARRINHO
+  function adicionarCarrinho(peca) {
+    const carrinhoAtual = JSON.parse(localStorage.getItem("carrinho")) || [];
+
+    const existente = carrinhoAtual.find((item) => item.id === peca.id);
+
+    if (existente) {
+      existente.quantidade += 1;
+    } else {
+      carrinhoAtual.push({
+        id: peca.id,
+        nome: peca.nome,
+        codigo: peca.codigo,
+        quantidade: 1,
+        preco_unitario: 0,
+      });
+    }
+
+    localStorage.setItem("carrinho", JSON.stringify(carrinhoAtual));
+
+    alert("Peça adicionada ao carrinho!");
+  }
 
   return user ? (
     <div className="home-container">
@@ -74,32 +96,25 @@ export default function Home() {
       <div className="home-header">
         <img src="/logo-shineray.png" alt="Shineray MotoNow" className="logo-mini" />
         <h2>MotoNow • Gestão — {user.filial}</h2>
-        <button className="btn-sair" onClick={sair}>
-          Sair
-        </button>
+        <button className="btn-sair" onClick={sair}>Sair</button>
       </div>
 
       {/* TABS */}
       <div className="tabs">
-        <button
-          className={`tab-btn ${tab === "pecas" ? "active" : ""}`}
-          onClick={() => setTab("pecas")}
-        >
+        <button className={`tab-btn ${tab === "pecas" ? "active" : ""}`} onClick={() => setTab("pecas")}>
           📦 Peças
         </button>
 
-        <button
-          className={`tab-btn ${tab === "motos" ? "active" : ""}`}
-          onClick={() => setTab("motos")}
-        >
+        <button className={`tab-btn ${tab === "motos" ? "active" : ""}`} onClick={() => setTab("motos")}>
           🏍 Motos
         </button>
 
-        <button
-          className={`tab-btn ${tab === "vendas" ? "active" : ""}`}
-          onClick={() => nav("/vendas")}
-        >
+        <button className={`tab-btn ${tab === "vendas" ? "active" : ""}`} onClick={() => nav("/vendas")}>
           🧾 Vendas
+        </button>
+
+        <button className={`tab-btn ${tab === "carrinho" ? "active" : ""}`} onClick={() => nav("/carrinho")}>
+          🛒 Carrinho
         </button>
       </div>
 
@@ -145,11 +160,11 @@ export default function Home() {
                       <td>{p.quantidade}</td>
                       <td>{p.filial_atual}</td>
                       <td>
-                        <button
-                          className="action-btn"
-                          onClick={() => nav(`/vender/${p.id}`)}
-                        >
-                          Vender / Dar Baixa
+                        <button className="action-btn" onClick={() => adicionarCarrinho(p)}>
+                          🛒 Adicionar
+                        </button>
+                        <button className="action-btn" onClick={() => nav(`/vender/${p.id}`)}>
+                          Vender / Baixa
                         </button>
                       </td>
                     </tr>
@@ -176,7 +191,7 @@ export default function Home() {
               value={filialFiltro}
               onChange={(e) => setFilialFiltro(e.target.value)}
             >
-              <option value="TODAS">Todas as Filiais</option>
+              <option value="TODAS">Todas</option>
               <option value="Matriz">Matriz</option>
               <option value="Ipojuca">Ipojuca</option>
               <option value="Escada">Escada</option>
@@ -185,12 +200,6 @@ export default function Home() {
               <option value="São José">São José</option>
               <option value="Xexéu">Xexéu</option>
             </select>
-
-            {user.role === "Diretoria" && (
-              <button className="add-btn" onClick={() => nav("/cadastro-moto")}>
-                ➕ Cadastrar Moto
-              </button>
-            )}
 
             <div className="table-container">
               <table className="table">
@@ -215,19 +224,10 @@ export default function Home() {
                       <td>{m.cor}</td>
                       <td>{m.chassi}</td>
                       <td>{m.filial}</td>
-
-                      {/* Santander colorido */}
-                      <td className={m.santander === "SIM" ? "santander-sim" : "santander-nao"}>
-                        {m.santander || "NÃO"}
-                      </td>
-
+                      <td>{m.santander || "NÃO"}</td>
                       <td>{m.status || "—"}</td>
-
                       <td>
-                        <button
-                          className="action-btn"
-                          onClick={() => nav(`/vender-moto/${m.id}`)}
-                        >
+                        <button className="action-btn" onClick={() => nav(`/vender-moto/${m.id}`)}>
                           Vender
                         </button>
                       </td>
@@ -238,6 +238,7 @@ export default function Home() {
             </div>
           </>
         )}
+
       </div>
     </div>
   ) : null;
