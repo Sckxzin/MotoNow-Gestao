@@ -1,0 +1,69 @@
+.carrinho-container {
+  padding: 25px;
+  font-family: Arial, sans-serif;
+}
+
+.carrinho-table {
+  width: 100%;
+  background: white;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+}
+
+.carrinho-table th {
+  background: #d90404;
+  color: white;
+  padding: 10px;
+}
+
+.carrinho-table td {
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+}
+
+.input-qtd,
+.input-preco {
+  width: 70px;
+}
+
+.btn-remover {
+  background: #a00000;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.btn-finalizar {
+  margin-top: 20px;
+  padding: 12px 25px;
+  background: #028402;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.btn-finalizar:hover {
+  background: #016801;
+}
+
+.total-final {
+  font-size: 20px;
+  margin-top: 10px;
+}
+
+.cliente-box {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cliente-box input {
+  padding: 10px;
+  border: 2px solid #ccc;
+  border-radius: 6px;
+}
