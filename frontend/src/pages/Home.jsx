@@ -68,7 +68,7 @@ export default function Home() {
       p.codigo.toLowerCase().includes(busca.toLowerCase())
   );
 
-  // 🔍 FILTRO DE MOTOS
+  // 🔍 FILTRO DE MOTOS POR FILIAL
   const motosFiltradas = motos.filter((m) =>
     filialFiltro === "TODAS" ? true : m.filial === filialFiltro
   );
@@ -211,21 +211,10 @@ export default function Home() {
                       <td>{m.filial}</td>
                       <td>{m.status || "—"}</td>
                       <td>
-                        <button className="action-btn" onClick={() => nav(`/revisao-moto/${m.id}`)}>
-                          Revisão
+                        {/* 🔥 APENAS O BOTÃO VENDER EM TODAS AS FILIAIS */}
+                        <button className="action-btn" onClick={() => nav(`/vender-moto/${m.id}`)}>
+                          Vender
                         </button>
-
-                        {user.role === "Diretoria" && (
-                          <>
-                            <button className="action-btn" onClick={() => nav(`/transferir-moto/${m.id}`)}>
-                              Transferir
-                            </button>
-
-                            <button className="action-btn" onClick={() => nav(`/vender-moto/${m.id}`)}>
-                              Vender
-                            </button>
-                          </>
-                        )}
                       </td>
                     </tr>
                   ))}
