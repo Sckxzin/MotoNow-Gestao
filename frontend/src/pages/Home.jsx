@@ -16,9 +16,6 @@ function identificarModelo(codigo) {
   return "OUTROS";
 }
 
-// 🔥 Importar tela de Revisão
-import Revisao from "./Revisao";
-
 export default function Home() {
   const nav = useNavigate();
   const [user, setUser] = useState(null);
@@ -26,7 +23,6 @@ export default function Home() {
   const [pecas, setPecas] = useState([]);
   const [motos, setMotos] = useState([]);
   const [busca, setBusca] = useState("");
-
   const [filialFiltro, setFilialFiltro] = useState("TODAS");
 
   useEffect(() => {
@@ -95,10 +91,6 @@ export default function Home() {
         <button className={`tab-btn ${tab === "vendas" ? "active" : ""}`} onClick={() => nav("/vendas")}>
           🧾 Vendas
         </button>
-
-        <button className={`tab-btn ${tab === "revisoes" ? "active" : ""}`} onClick={() => setTab("revisoes")}>
-          🛠 Revisões
-        </button>
       </div>
 
       {/* CONTEÚDO */}
@@ -160,12 +152,10 @@ export default function Home() {
           <>
             <h3 className="section-title">🏍 Estoque de Motos</h3>
 
-            {/* 🔢 CONTADOR */}
             <p className="contador-motos">
               🔢 Total de motos cadastradas: <strong>{motosFiltradas.length}</strong>
             </p>
 
-            {/* 🔍 FILTRO POR FILIAL */}
             <select
               className="select-filial"
               value={filialFiltro}
@@ -211,7 +201,6 @@ export default function Home() {
                       <td>{m.filial}</td>
                       <td>{m.status || "—"}</td>
                       <td>
-                        {/* 🔥 APENAS O BOTÃO VENDER EM TODAS AS FILIAIS */}
                         <button className="action-btn" onClick={() => nav(`/vender-moto/${m.id}`)}>
                           Vender
                         </button>
@@ -223,9 +212,6 @@ export default function Home() {
             </div>
           </>
         )}
-
-        {/* ==================== REVISÕES ==================== */}
-        {tab === "revisoes" && <Revisao user={user} />}
       </div>
     </div>
   ) : null;
