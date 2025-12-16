@@ -101,24 +101,36 @@
 .table-container {
   overflow-x: auto;
   border-radius: 6px;
+  margin-top: 10px;
 }
 
 .table {
   width: 100%;
   border-collapse: collapse;
   background: white;
+  min-width: 950px;
 }
 
+/* Cabeçalho da tabela */
 .table th {
   background: #d90404;
   color: white;
   padding: 10px;
   font-size: 14px;
+  text-align: left;
+  white-space: nowrap;
 }
 
+/* Linhas e células */
 .table td {
   padding: 10px;
   border-bottom: 1px solid #ddd;
+  vertical-align: middle;
+}
+
+/* Alternância de linhas */
+.table tbody tr:nth-child(even) {
+  background: #f6f6f6;
 }
 
 /* ===== BOTÕES DE AÇÃO ===== */
@@ -131,6 +143,7 @@
   font-size: 14px;
   cursor: pointer;
   transition: 0.2s;
+  white-space: nowrap;
 }
 
 .action-btn:hover {
@@ -141,6 +154,7 @@
 .contador-motos {
   margin-bottom: 10px;
   font-size: 16px;
+  font-weight: bold;
 }
 
 /* ===== SELECT FILIAL ===== */
@@ -150,4 +164,15 @@
   border: 2px solid #ccc;
   margin-bottom: 15px;
   cursor: pointer;
+}
+
+/* ===== COLUNA SANTANDER ===== */
+.santander-sim {
+  color: #028402;
+  font-weight: bold;
+}
+
+.santander-nao {
+  color: #d90404;
+  font-weight: bold;
 }
