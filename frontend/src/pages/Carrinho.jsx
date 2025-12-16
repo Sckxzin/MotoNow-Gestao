@@ -48,10 +48,13 @@ export default function Carrinho() {
   );
 
   async function finalizarVenda() {
-    if (!cliente.nome || !cliente.cpf) return alert("Preencha os dados do cliente");
+    if (!cliente.nome || !cliente.cpf) {
+      return alert("Preencha o nome e CPF do cliente");
+    }
 
     for (let item of carrinho) {
-      if (item.preco_unitario <= 0) return alert("Defina preços válidos!");
+      if (item.preco_unitario <= 0)
+        return alert("Todos os itens precisam ter preço válido.");
     }
 
     try {
@@ -63,19 +66,32 @@ export default function Carrinho() {
 
       alert("Venda concluída!");
 
-      // Limpa o carrinho
+      // 🔥 SALVAR NOTA COMPLETA (ESSENCIAL PARA FUNCIONAR!)
+      const notaCompleta = {
+        cliente,
+        filial: user.filial,
+        venda_id: res.data.venda_id,
+        total: totalGeral,
+        data: new Date().toLocaleString(),
+        itens: carrinho.map(item => ({
+          nome: item.nome,
+          codigo: item.codigo,
+          quantidade: item.quantidade,
+          preco_unitario: item.preco_unitario,
+          subtotal: item.quantidade * item.preco_unitario
+        }))
+      };
+
+      localStorage.setItem("notaFiscal", JSON.stringify(notaCompleta));
+
+      // Limpar carrinho após salvar nota
       localStorage.removeItem("carrinho");
 
-      // Abre a nota
-      localStorage.setItem(
-        "notaFiscal",
-        JSON.stringify({ venda_id: res.data.venda_id, total: res.data.total })
-      );
+      nav("/nota"); // abrir nota fiscal
 
-      nav("/nota");
     } catch (err) {
       console.error(err);
-      alert("Erro ao finalizar venda!");
+      alert("Erro ao finalizar venda.");
     }
   }
 
@@ -128,7 +144,10 @@ export default function Carrinho() {
                   </td>
 
                   <td>
-                    <button className="btn-remover" onClick={() => removerItem(i)}>
+                    <button
+                      className="btn-remover"
+                      onClick={() => removerItem(i)}
+                    >
                       X
                     </button>
                   </td>
@@ -152,7 +171,9 @@ export default function Carrinho() {
             <input
               placeholder="Telefone"
               value={cliente.telefone}
-              onChange={(e) => setCliente({ ...cliente, telefone: e.target.value })}
+              onChange={(e) =>
+                setCliente({ ...cliente, telefone: e.target.value })
+              }
             />
             <input
               placeholder="CPF"
