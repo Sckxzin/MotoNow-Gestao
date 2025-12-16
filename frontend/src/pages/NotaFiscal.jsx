@@ -6,7 +6,6 @@ export default function NotaFiscal() {
 
   useEffect(() => {
     const saved = localStorage.getItem("notaFiscal");
-
     if (saved) {
       try {
         setVenda(JSON.parse(saved));
@@ -20,14 +19,10 @@ export default function NotaFiscal() {
     return <h2 style={{ padding: 30 }}>Nenhuma venda carregada.</h2>;
   }
 
-  // 🔥 Garantir que os nomes corretos sejam usados
-  const nomePeca = venda.nome_peca || venda.peca || "—";
-  const codigoPeca = venda.codigo_peca || venda.codigo || "—";
-
   return (
     <div className="nf-container">
 
-      {/* TOPO */}
+      {/* ===== TOPO ===== */}
       <div className="nf-header">
         <div className="nf-line"></div>
 
@@ -48,7 +43,7 @@ export default function NotaFiscal() {
         <div className="nf-line"></div>
       </div>
 
-      {/* CLIENTE */}
+      {/* ===== CLIENTE ===== */}
       <h3 className="nf-section">DADOS DO CLIENTE</h3>
       <div className="nf-box">
         <p><b>Nome:</b> {venda.nome_cliente || "—"}</p>
@@ -56,25 +51,25 @@ export default function NotaFiscal() {
         <p><b>Telefone:</b> {venda.telefone || "—"}</p>
       </div>
 
-      {/* PEÇA */}
+      {/* ===== PEÇA ===== */}
       <h3 className="nf-section">PEÇA VENDIDA</h3>
       <div className="nf-box">
-        <p><b>Descrição:</b> {nomePeca}</p>
-        <p><b>Código:</b> {codigoPeca}</p>
+        <p><b>Descrição:</b> {venda.peca || "—"}</p>
+        <p><b>Código:</b> {venda.codigo || "—"}</p>
         <p><b>Quantidade:</b> {venda.quantidade || 0}</p>
       </div>
 
-      {/* VALORES */}
+      {/* ===== VALORES ===== */}
       <h3 className="nf-section">VALORES</h3>
       <div className="nf-box">
-        <p><b>Preço Unitário:</b> R$ {Number(venda.preco_unitario || 0).toFixed(2)}</p>
-        <p><b>Total:</b> <b>R$ {Number(venda.total || 0).toFixed(2)}</b></p>
+        <p><b>Preço Unitário:</b> R$ {Number(venda.preco_unitario).toFixed(2)}</p>
+        <p><b>Total:</b> <strong>R$ {Number(venda.total).toFixed(2)}</strong></p>
       </div>
 
+      {/* ===== BOTÃO ===== */}
       <button className="nf-print" onClick={() => window.print()}>
         🖨 Imprimir Nota Fiscal
       </button>
-
     </div>
   );
 }
