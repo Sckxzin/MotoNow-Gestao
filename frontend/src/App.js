@@ -9,6 +9,7 @@ import NotaFiscal from "./pages/NotaFiscal";
 import Vendas from "./pages/Vendas";
 import CadastroMoto from "./pages/CadastroMoto";
 import VenderMoto from "./pages/VenderMoto";
+import Carrinho from "./pages/Carrinho";
 // ❌ REMOVIDO — Revisão não existe mais
 // import Revisao from "./pages/Revisao";
 
@@ -30,6 +31,7 @@ export default function App() {
         {/* Motos */}
         <Route path="/cadastro-moto" element={<CadastroMoto />} />
         <Route path="/vender-moto/:id" element={<VenderMoto />} />
+        <Route path="/carrinho" element={<Carrinho />} />;
 
         {/* ❌ Removido: Revisão */}
         {/* <Route path="/revisao" element={<Revisao />} /> */}
