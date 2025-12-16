@@ -23,6 +23,7 @@ export default function Home() {
   const [pecas, setPecas] = useState([]);
   const [motos, setMotos] = useState([]);
   const [busca, setBusca] = useState("");
+
   const [filialFiltro, setFilialFiltro] = useState("TODAS");
 
   useEffect(() => {
@@ -43,11 +44,9 @@ export default function Home() {
       .then((response) => setPecas(response.data))
       .catch(() => alert("Erro ao carregar peças!"));
 
-    // 🔥 Carregar motos
+    // 🔥 Carregar todas as motos (sem filtro por filial!)
     api
-      .get("/motos", {
-        params: { role: data.role, filial: data.filial },
-      })
+      .get("/motos", { params: { role: data.role, filial: data.filial } })
       .then((response) => setMotos(response.data))
       .catch(() => alert("Erro ao carregar motos!"));
   }, [nav]);
@@ -64,7 +63,7 @@ export default function Home() {
       p.codigo.toLowerCase().includes(busca.toLowerCase())
   );
 
-  // 🔍 FILTRO DE MOTOS POR FILIAL
+  // 🔍 FILTRO DE MOTOS POR FILIAL (opcional)
   const motosFiltradas = motos.filter((m) =>
     filialFiltro === "TODAS" ? true : m.filial === filialFiltro
   );
@@ -80,15 +79,24 @@ export default function Home() {
 
       {/* TABS */}
       <div className="tabs">
-        <button className={`tab-btn ${tab === "pecas" ? "active" : ""}`} onClick={() => setTab("pecas")}>
+        <button
+          className={`tab-btn ${tab === "pecas" ? "active" : ""}`}
+          onClick={() => setTab("pecas")}
+        >
           📦 Peças
         </button>
 
-        <button className={`tab-btn ${tab === "motos" ? "active" : ""}`} onClick={() => setTab("motos")}>
+        <button
+          className={`tab-btn ${tab === "motos" ? "active" : ""}`}
+          onClick={() => setTab("motos")}
+        >
           🏍 Motos
         </button>
 
-        <button className={`tab-btn ${tab === "vendas" ? "active" : ""}`} onClick={() => nav("/vendas")}>
+        <button
+          className={`tab-btn ${tab === "vendas" ? "active" : ""}`}
+          onClick={() => nav("/vendas")}
+        >
           🧾 Vendas
         </button>
       </div>
@@ -135,7 +143,10 @@ export default function Home() {
                       <td>{p.quantidade}</td>
                       <td>{p.filial_atual}</td>
                       <td>
-                        <button className="action-btn" onClick={() => nav(`/vender/${p.id}`)}>
+                        <button
+                          className="action-btn"
+                          onClick={() => nav(`/vender/${p.id}`)}
+                        >
                           Vender / Dar Baixa
                         </button>
                       </td>
@@ -152,10 +163,12 @@ export default function Home() {
           <>
             <h3 className="section-title">🏍 Estoque de Motos</h3>
 
+            {/* 🔢 CONTADOR */}
             <p className="contador-motos">
               🔢 Total de motos cadastradas: <strong>{motosFiltradas.length}</strong>
             </p>
 
+            {/* 🔍 FILTRO POR FILIAL */}
             <select
               className="select-filial"
               value={filialFiltro}
@@ -186,6 +199,7 @@ export default function Home() {
                     <th>Cor</th>
                     <th>Chassi</th>
                     <th>Filial</th>
+                    <th>Santander</th>
                     <th>Status</th>
                     <th>Ação</th>
                   </tr>
@@ -199,9 +213,13 @@ export default function Home() {
                       <td>{m.cor}</td>
                       <td>{m.chassi}</td>
                       <td>{m.filial}</td>
+                      <td>{m.santander || "NÃO"}</td>
                       <td>{m.status || "—"}</td>
                       <td>
-                        <button className="action-btn" onClick={() => nav(`/vender-moto/${m.id}`)}>
+                        <button
+                          className="action-btn"
+                          onClick={() => nav(`/vender-moto/${m.id}`)}
+                        >
                           Vender
                         </button>
                       </td>
