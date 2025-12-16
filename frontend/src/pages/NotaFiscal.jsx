@@ -20,6 +20,10 @@ export default function NotaFiscal() {
     return <h2 style={{ padding: 30 }}>Nenhuma venda carregada.</h2>;
   }
 
+  // 🔥 Garantir que os nomes corretos sejam usados
+  const nomePeca = venda.nome_peca || venda.peca || "—";
+  const codigoPeca = venda.codigo_peca || venda.codigo || "—";
+
   return (
     <div className="nf-container">
 
@@ -55,16 +59,16 @@ export default function NotaFiscal() {
       {/* PEÇA */}
       <h3 className="nf-section">PEÇA VENDIDA</h3>
       <div className="nf-box">
-        <p><b>Descrição:</b> {venda.peca || "—"}</p>
-        <p><b>Código:</b> {venda.codigo || "—"}</p>
+        <p><b>Descrição:</b> {nomePeca}</p>
+        <p><b>Código:</b> {codigoPeca}</p>
         <p><b>Quantidade:</b> {venda.quantidade || 0}</p>
       </div>
 
       {/* VALORES */}
       <h3 className="nf-section">VALORES</h3>
       <div className="nf-box">
-        <p><b>Preço Unitário:</b> R$ {venda.preco_unitario || 0}</p>
-        <p><b>Total:</b> <b>R$ {venda.total || 0}</b></p>
+        <p><b>Preço Unitário:</b> R$ {Number(venda.preco_unitario || 0).toFixed(2)}</p>
+        <p><b>Total:</b> <b>R$ {Number(venda.total || 0).toFixed(2)}</b></p>
       </div>
 
       <button className="nf-print" onClick={() => window.print()}>
