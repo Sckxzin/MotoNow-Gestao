@@ -6,11 +6,11 @@ import Home from "./pages/Home";
 import CadastroPeca from "./pages/CadastroPeca";
 import VendaPeca from "./pages/VendaPeca";
 import NotaFiscal from "./pages/NotaFiscal";
-import Vendas from "./pages/Vendas"; // <-- IMPORTAÇÃO CORRETA
+import Vendas from "./pages/Vendas";
 import CadastroMoto from "./pages/CadastroMoto";
 import VenderMoto from "./pages/VenderMoto";
-import Revisao from "./pages/Revisao";
-
+// ❌ REMOVIDO — Revisão não existe mais
+// import Revisao from "./pages/Revisao";
 
 export default function App() {
   return (
@@ -18,14 +18,21 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/home" element={<Home />} />
+
+        {/* Peças */}
         <Route path="/cadastro-peca" element={<CadastroPeca />} />
         <Route path="/vender/:id" element={<VendaPeca />} />
         <Route path="/nota" element={<NotaFiscal />} />
-        <Route path="/vendas" element={<Vendas />} />
-        <Route path="/cadastro-moto" element={<CadastroMoto />} />
-  <Route path="/vender-moto/:id" element={<VenderMoto />} />
-  <Route path="/revisao" element={<Revisao />} />
 
+        {/* Vendas */}
+        <Route path="/vendas" element={<Vendas />} />
+
+        {/* Motos */}
+        <Route path="/cadastro-moto" element={<CadastroMoto />} />
+        <Route path="/vender-moto/:id" element={<VenderMoto />} />
+
+        {/* ❌ Removido: Revisão */}
+        {/* <Route path="/revisao" element={<Revisao />} /> */}
       </Routes>
     </BrowserRouter>
   );
