@@ -1,56 +1,101 @@
+/* ===== CONTAINER PRINCIPAL ===== */
 .rev-container {
-  width: 100%;
   padding: 20px;
-  font-family: 'Segoe UI', sans-serif;
+  background: #fafafa;
+  border-radius: 8px;
+  font-family: Arial, sans-serif;
 }
 
-.rev-title {
+/* ===== TÍTULOS ===== */
+.rev-container h2 {
+  margin-bottom: 15px;
   font-size: 22px;
-  margin-bottom: 12px;
-  font-weight: bold;
+  color: #111;
 }
 
+/* ===== FORMULÁRIO ===== */
 .rev-form {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  width: 350px;
-  background: #f7f7f7;
-  padding: 15px;
-  border-radius: 10px;
+  background: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  border: 2px solid #ddd;
   margin-bottom: 25px;
 }
 
 .rev-form input,
+.rev-form textarea,
 .rev-form select {
+  width: 100%;
   padding: 10px;
-  border: 1px solid #ddd;
   border-radius: 6px;
+  border: 2px solid #ccc;
+  margin-bottom: 12px;
+  font-size: 15px;
 }
 
+.rev-form textarea {
+  height: 80px;
+  resize: none;
+}
+
+/* ===== BOTÃO REGISTRAR ===== */
 .rev-btn {
-  background: #d30000;
-  color: white;
+  width: 100%;
+  background: #d90404;
+  color: #fff;
+  padding: 12px;
   border: none;
-  padding: 10px;
   border-radius: 6px;
-  cursor: pointer;
+  font-size: 16px;
   font-weight: bold;
+  cursor: pointer;
+  transition: 0.2s;
 }
 
-.rev-table table {
+.rev-btn:hover {
+  background: #a40303;
+}
+
+/* ===== TABELA ===== */
+.rev-table {
   width: 100%;
   border-collapse: collapse;
   background: white;
+  border-radius: 8px;
+  overflow: hidden;
 }
 
 .rev-table th {
-  background: #111;
+  background: #d90404;
   color: white;
   padding: 10px;
+  font-size: 14px;
 }
 
 .rev-table td {
   padding: 10px;
-  border-bottom: 1px solid #ccc;
+  border-bottom: 1px solid #ddd;
+  font-size: 14px;
+}
+
+.rev-table tr:hover {
+  background: #f3f3f3;
+}
+
+/* ===== RESPONSIVIDADE ===== */
+@media (max-width: 700px) {
+  .rev-form input,
+  .rev-form textarea,
+  .rev-form select {
+    font-size: 14px;
+  }
+
+  .rev-btn {
+    font-size: 15px;
+  }
+
+  .rev-table th,
+  .rev-table td {
+    font-size: 12px;
+  }
 }
