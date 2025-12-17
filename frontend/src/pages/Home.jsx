@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import api from "../api";
 import "./Home.css";
 
-// 🔥 Identificar modelo automaticamente
+// 🔎 Identificar modelo automaticamente
 function identificarModelo(codigo) {
   if (!codigo) return "—";
 
@@ -32,11 +32,13 @@ export default function Home() {
 
     setUser(data);
 
+    // 🔥 Carregar peças
     api
       .get("/pecas", { params: { role: data.role, filial: data.filial } })
       .then(res => setPecas(res.data))
       .catch(() => alert("Erro ao carregar peças"));
 
+    // 🔥 Carregar motos
     api
       .get("/motos", { params: { role: "Diretoria", filial: data.filial } })
       .then(res => setMotos(res.data))
@@ -48,21 +50,23 @@ export default function Home() {
     nav("/");
   }
 
+  // 🔍 Filtro de peças
   const pecasFiltradas = pecas.filter(
     p =>
       p.nome.toLowerCase().includes(busca.toLowerCase()) ||
       p.codigo.toLowerCase().includes(busca.toLowerCase())
   );
 
+  // 🔍 Filtro de motos
   const motosFiltradas = motos.filter(m =>
     filialFiltro === "TODAS" ? true : m.filial === filialFiltro
   );
 
-  // 🔥 ADICIONAR AO CARRINHO COM VALOR FIXO
+  // 🛒 ADICIONAR AO CARRINHO (valor vem do banco)
   function adicionarCarrinho(peca) {
     const carrinho = JSON.parse(localStorage.getItem("carrinho")) || [];
 
-    const existente = carrinho.find(item => item.id === peca.id);
+    const existente = carrinho.find(item => item.peca_id === peca.id);
 
     if (existente) {
       existente.quantidade += 1;
@@ -72,7 +76,7 @@ export default function Home() {
         nome: peca.nome,
         codigo: peca.codigo,
         quantidade: 1,
-        preco_unitario: Number(peca.valor) // 🔥 VALOR CADASTRADO
+        preco_unitario: Number(peca.valor)
       });
     }
 
@@ -80,8 +84,11 @@ export default function Home() {
     alert("Peça adicionada ao carrinho!");
   }
 
-  return user ? (
+  if (!user) return null;
+
+  return (
     <div className="home-container">
+
       {/* HEADER */}
       <div className="home-header">
         <img src="/logo-shineray.png" alt="Shineray" className="logo-mini" />
@@ -91,21 +98,30 @@ export default function Home() {
 
       {/* TABS */}
       <div className="tabs">
-        <button className={`tab-btn ${tab === "pecas" ? "active" : ""}`} onClick={() => setTab("pecas")}>
+        <button
+          className={`tab-btn ${tab === "pecas" ? "active" : ""}`}
+          onClick={() => setTab("pecas")}
+        >
           📦 Peças
         </button>
-        <button className={`tab-btn ${tab === "motos" ? "active" : ""}`} onClick={() => setTab("motos")}>
+
+        <button
+          className={`tab-btn ${tab === "motos" ? "active" : ""}`}
+          onClick={() => setTab("motos")}
+        >
           🏍 Motos
         </button>
+
         <button className="tab-btn" onClick={() => nav("/vendas")}>
           🧾 Vendas
         </button>
+
         <button className="tab-btn" onClick={() => nav("/carrinho")}>
           🛒 Carrinho
         </button>
       </div>
 
-      {/* PEÇAS */}
+      {/* ==================== PEÇAS ==================== */}
       {tab === "pecas" && (
         <>
           <h3 className="section-title">📦 Estoque de Peças</h3>
@@ -146,11 +162,11 @@ export default function Home() {
                     <td><strong>R$ {Number(p.valor).toFixed(2)}</strong></td>
                     <td>{p.filial_atual}</td>
                     <td>
-                      <button className="action-btn" onClick={() => adicionarCarrinho(p)}>
+                      <button
+                        className="action-btn"
+                        onClick={() => adicionarCarrinho(p)}
+                      >
                         🛒 Carrinho
-                      </button>
-                      <button className="action-btn" onClick={() => nav(`/vender/${p.id}`)}>
-                        Vender
                       </button>
                     </td>
                   </tr>
@@ -161,7 +177,7 @@ export default function Home() {
         </>
       )}
 
-      {/* MOTOS */}
+      {/* ==================== MOTOS ==================== */}
       {tab === "motos" && (
         <>
           <h3 className="section-title">🏍 Estoque de Motos</h3>
@@ -210,7 +226,10 @@ export default function Home() {
                     <td>{m.santander || "NÃO"}</td>
                     <td>{m.status || "—"}</td>
                     <td>
-                      <button className="action-btn" onClick={() => nav(`/vender-moto/${m.id}`)}>
+                      <button
+                        className="action-btn"
+                        onClick={() => nav(`/vender-moto/${m.id}`)}
+                      >
                         Vender
                       </button>
                     </td>
@@ -221,6 +240,7 @@ export default function Home() {
           </div>
         </>
       )}
+
     </div>
-  ) : null;
+  );
 }
