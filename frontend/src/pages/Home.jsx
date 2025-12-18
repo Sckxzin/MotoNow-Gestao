@@ -15,6 +15,7 @@ function identificarModelo(codigo) {
 
 export default function Home() {
   const nav = useNavigate();
+
   const [user, setUser] = useState(null);
   const [tab, setTab] = useState("pecas");
 
@@ -24,10 +25,27 @@ export default function Home() {
   const [busca, setBusca] = useState("");
   const [filialFiltro, setFilialFiltro] = useState("TODAS");
 
-  /* ================= LOAD INICIAL ================= */
+  /* ================= LOAD SEGURO ================= */
   useEffect(() => {
-    const data = JSON.parse(localStorage.getItem("user"));
-    if (!data) {
+    const raw = localStorage.getItem("user");
+
+    if (!raw) {
+      nav("/");
+      return;
+    }
+
+    let data;
+    try {
+      data = JSON.parse(raw);
+    } catch (e) {
+      console.error("Erro ao ler user do localStorage", e);
+      localStorage.clear();
+      nav("/");
+      return;
+    }
+
+    if (!data?.role || !data?.filial) {
+      localStorage.clear();
       nav("/");
       return;
     }
@@ -39,14 +57,21 @@ export default function Home() {
       .get("/pecas", {
         params: { role: data.role, filial: data.filial }
       })
-      .then(res => setPecas(res.data))
-      .catch(() => alert("Erro ao carregar peças"));
+      .then(res => setPecas(res.data || []))
+      .catch(err => {
+        console.error("Erro peças", err);
+        setPecas([]);
+      });
 
-    /* 🔥 MOTOS — SEMPRE TODAS */
+    /* 🔥 MOTOS (sempre todas) */
     api
       .get("/motos", { params: { role: "Diretoria" } })
-      .then(res => setMotos(res.data))
-      .catch(() => alert("Erro ao carregar motos"));
+      .then(res => setMotos(res.data || []))
+      .catch(err => {
+        console.error("Erro motos", err);
+        setMotos([]);
+      });
+
   }, [nav]);
 
   function sair() {
@@ -55,10 +80,9 @@ export default function Home() {
   }
 
   /* ================= FILTROS ================= */
-  const pecasFiltradas = pecas.filter(
-    p =>
-      p.nome.toLowerCase().includes(busca.toLowerCase()) ||
-      p.codigo.toLowerCase().includes(busca.toLowerCase())
+  const pecasFiltradas = pecas.filter(p =>
+    (p.nome || "").toLowerCase().includes(busca.toLowerCase()) ||
+    (p.codigo || "").toLowerCase().includes(busca.toLowerCase())
   );
 
   const motosFiltradas = motos.filter(m =>
@@ -79,7 +103,7 @@ export default function Home() {
         nome: peca.nome,
         codigo: peca.codigo,
         quantidade: 1,
-        preco_unitario: Number(peca.valor) // 🔥 valor fixo do banco
+        preco_unitario: Number(peca.valor) || 0
       });
     }
 
@@ -188,16 +212,11 @@ export default function Home() {
           {user.role === "Diretoria" && (
             <button
               className="add-btn"
-              style={{ marginBottom: 15 }}
               onClick={() => nav("/cadastro-moto")}
             >
               ➕ Cadastrar Moto
             </button>
           )}
-
-          <p className="contador-motos">
-            Total cadastradas: <strong>{motosFiltradas.length}</strong>
-          </p>
 
           <select
             className="select-filial"
@@ -223,7 +242,6 @@ export default function Home() {
                   <th>Cor</th>
                   <th>Chassi</th>
                   <th>Filial</th>
-                  <th>Santander</th>
                   <th>Status</th>
                   <th>Ação</th>
                 </tr>
@@ -236,8 +254,7 @@ export default function Home() {
                     <td>{m.cor}</td>
                     <td>{m.chassi}</td>
                     <td>{m.filial}</td>
-                    <td>{m.santander || "NÃO"}</td>
-                    <td>{m.status || "—"}</td>
+                    <td>{m.status}</td>
                     <td>
                       <button
                         className="action-btn"
@@ -253,7 +270,6 @@ export default function Home() {
           </div>
         </>
       )}
-
     </div>
   );
 }
