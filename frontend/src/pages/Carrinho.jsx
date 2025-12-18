@@ -74,19 +74,19 @@ export default function Carrinho() {
     }
 
     const payload = {
-      cliente: {
-        nome,
-        telefone,
-        cpf
-      },
-      filial: localStorage.getItem("filial"),
-      forma_pagamento: formaPagamento,
-      itens: itens.map(item => ({
-        peca_id: item.id, // ⚠️ TEM que existir
-        quantidade: Number(item.quantidade),
-        preco_unitario: Number(item.preco_unitario)
-      }))
-    };
+  cliente: {
+    nome,
+    telefone,
+    cpf
+  },
+  filial: localStorage.getItem("filial"), // 🔥 AGORA NÃO VEM NULL
+  forma_pagamento: formaPagamento,
+  itens: itens.map(item => ({
+    peca_id: item.id,              // 🔥 TEM QUE SER O ID DO BANCO
+    quantidade: Number(item.quantidade),
+    preco_unitario: Number(item.preco_unitario)
+  }))
+};
 
     console.log("PAYLOAD FINAL:", payload);
 
