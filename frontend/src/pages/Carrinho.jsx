@@ -76,9 +76,9 @@ export default function Carrinho() {
         }))
       };
 
-      const res = await api.post("/venda-multipla", payload);
+      // ✅ SEM VARIÁVEL "res" (corrige o build)
+      await api.post("/venda-multipla", payload);
 
-      // NOTA FISCAL LOCAL
       localStorage.setItem(
         "notaFiscal",
         JSON.stringify({
@@ -93,14 +93,12 @@ export default function Carrinho() {
 
       localStorage.removeItem("carrinho");
       nav("/nota");
-
     } catch (err) {
       console.error(err);
       alert("Erro ao finalizar venda");
     }
   }
 
-  /* ================= RENDER ================= */
   return (
     <div className="carrinho-container">
       <h2>🛒 Carrinho de Vendas</h2>
@@ -133,7 +131,6 @@ export default function Carrinho() {
                       min="1"
                       value={item.quantidade}
                       onChange={e => alterarQuantidade(i, e.target.value)}
-                      className="input-qtd"
                     />
                   </td>
 
@@ -143,7 +140,6 @@ export default function Carrinho() {
                       step="0.01"
                       value={item.preco_unitario}
                       onChange={e => alterarPreco(i, e.target.value)}
-                      className="input-preco"
                     />
                   </td>
 
@@ -152,68 +148,48 @@ export default function Carrinho() {
                   </td>
 
                   <td>
-                    <button
-                      className="btn-remover"
-                      onClick={() => removerItem(i)}
-                    >
-                      X
-                    </button>
+                    <button onClick={() => removerItem(i)}>X</button>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
 
-          <h2 className="total-final">
-            Total Geral: <strong>R$ {totalGeral.toFixed(2)}</strong>
-          </h2>
+          <h2>Total Geral: R$ {totalGeral.toFixed(2)}</h2>
 
-          {/* ================= CLIENTE ================= */}
-          <div className="cliente-box">
-            <h3>Dados do Cliente</h3>
+          <h3>Dados do Cliente</h3>
+          <input
+            placeholder="Nome"
+            value={cliente.nome}
+            onChange={e => setCliente({ ...cliente, nome: e.target.value })}
+          />
+          <input
+            placeholder="Telefone"
+            value={cliente.telefone}
+            onChange={e => setCliente({ ...cliente, telefone: e.target.value })}
+          />
+          <input
+            placeholder="CPF"
+            value={cliente.cpf}
+            onChange={e => setCliente({ ...cliente, cpf: e.target.value })}
+          />
 
-            <input
-              placeholder="Nome"
-              value={cliente.nome}
-              onChange={e => setCliente({ ...cliente, nome: e.target.value })}
-            />
+          <h3>Forma de Pagamento</h3>
+          <select
+            value={formaPagamento}
+            onChange={e => setFormaPagamento(e.target.value)}
+          >
+            <option value="Pix">Pix</option>
+            <option value="Dinheiro">Dinheiro</option>
+            <option value="Cartão">Cartão</option>
+          </select>
 
-            <input
-              placeholder="Telefone"
-              value={cliente.telefone}
-              onChange={e =>
-                setCliente({ ...cliente, telefone: e.target.value })
-              }
-            />
-
-            <input
-              placeholder="CPF"
-              value={cliente.cpf}
-              onChange={e => setCliente({ ...cliente, cpf: e.target.value })}
-            />
-          </div>
-
-          {/* ================= PAGAMENTO ================= */}
-          <div className="cliente-box">
-            <h3>Forma de Pagamento</h3>
-
-            <select
-              value={formaPagamento}
-              onChange={e => setFormaPagamento(e.target.value)}
-            >
-              <option value="Pix">Pix</option>
-              <option value="Dinheiro">Dinheiro</option>
-              <option value="Cartão Débito">Cartão Débito</option>
-              <option value="Cartão Crédito">Cartão Crédito</option>
-            </select>
-          </div>
-
-          <div className="assinatura">
+          <div style={{ marginTop: 30 }}>
             _______________________________<br />
             Assinatura do Cliente
           </div>
 
-          <button className="btn-finalizar" onClick={finalizarVenda}>
+          <button onClick={finalizarVenda} style={{ marginTop: 20 }}>
             ✔ Finalizar Venda
           </button>
         </>
