@@ -6,113 +6,94 @@ export default function NotaFiscal() {
 
   useEffect(() => {
     const saved = localStorage.getItem("notaFiscal");
-
     if (saved) {
       try {
         setNota(JSON.parse(saved));
-      } catch (e) {
-        console.error("Erro ao processar nota:", e);
+      } catch {
+        setNota(null);
       }
     }
   }, []);
 
   if (!nota) {
-    return <h2 style={{ padding: 30 }}>Nenhuma venda carregada.</h2>;
+    return <h2 style={{ padding: 30 }}>Nenhuma nota fiscal encontrada.</h2>;
   }
-
-  const isMultipla = Array.isArray(nota.itens);
 
   return (
     <div className="nf-container">
 
-      {/* ===== TOPO ===== */}
+      {/* ===== CABEÇALHO ===== */}
       <div className="nf-header">
         <div className="nf-line"></div>
-
-        <p className="nf-identificacao">IDENTIFICAÇÃO DO EMITENTE</p>
 
         <div className="nf-logos">
           <img src="/logo-shineray.png" alt="Shineray" />
           <img src="/logo-motonow.png" alt="MotoNow" />
         </div>
 
-        <h2 className="nf-title">MOTONOW COMÉRCIO DE MOTOCICLETA LTDA</h2>
+        <h2 className="nf-title">MOTONOW COMÉRCIO DE MOTOCICLETAS LTDA</h2>
         <p className="nf-text">
-          AV COMENDADOR JOSE PEREIRA, 695 <br />
-          MARACUJÁ — 55500-000 <br />
-          Escada - PE • Telefone/Fax: (81) 99302-4733
+          Av. Comendador José Pereira, 695<br />
+          Escada - PE • (81) 99302-4733
         </p>
 
         <div className="nf-line"></div>
       </div>
 
+      {/* ===== DADOS DA VENDA ===== */}
+      <h3 className="nf-section">DADOS DA VENDA</h3>
+      <div className="nf-box">
+        <p><b>Nº Venda:</b> {nota.venda_id}</p>
+        <p><b>Data:</b> {nota.data}</p>
+        <p><b>Filial:</b> {nota.filial}</p>
+        <p><b>Forma de Pagamento:</b> {nota.forma_pagamento}</p>
+      </div>
+
       {/* ===== CLIENTE ===== */}
       <h3 className="nf-section">DADOS DO CLIENTE</h3>
-
       <div className="nf-box">
-        <p><b>Nome:</b> {nota.nome_cliente || nota.cliente?.nome || "—"}</p>
-        <p><b>CPF:</b> {nota.cpf || nota.cliente?.cpf || "—"}</p>
-        <p><b>Telefone:</b> {nota.telefone || nota.cliente?.telefone || "—"}</p>
+        <p><b>Nome:</b> {nota.cliente.nome}</p>
+        <p><b>CPF:</b> {nota.cliente.cpf}</p>
+        <p><b>Telefone:</b> {nota.cliente.telefone || "—"}</p>
       </div>
 
       {/* ===== ITENS ===== */}
       <h3 className="nf-section">ITENS VENDIDOS</h3>
+      <table className="nf-table">
+        <thead>
+          <tr>
+            <th>Descrição</th>
+            <th>Código</th>
+            <th>Qtd</th>
+            <th>Valor Unit.</th>
+            <th>Subtotal</th>
+          </tr>
+        </thead>
+        <tbody>
+          {nota.itens.map((i, idx) => (
+            <tr key={idx}>
+              <td>{i.nome}</td>
+              <td>{i.codigo}</td>
+              <td>{i.quantidade}</td>
+              <td>R$ {Number(i.preco_unitario).toFixed(2)}</td>
+              <td>R$ {Number(i.subtotal).toFixed(2)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
 
-      <div className="nf-box">
-
-        {/* VENDA SIMPLES */}
-        {!isMultipla && (
-          <>
-            <p><b>Descrição:</b> {nota.peca}</p>
-            <p><b>Código:</b> {nota.codigo}</p>
-            <p><b>Quantidade:</b> {nota.quantidade}</p>
-          </>
-        )}
-
-        {/* VENDA MÚLTIPLA (CARRINHO) */}
-        {isMultipla && (
-          <table className="nf-table">
-            <thead>
-              <tr>
-                <th>Descrição</th>
-                <th>Código</th>
-                <th>Qtd</th>
-                <th>Unitário</th>
-                <th>Subtotal</th>
-              </tr>
-            </thead>
-            <tbody>
-              {nota.itens.map((item, index) => (
-                <tr key={index}>
-                  <td>{item.nome}</td>
-                  <td>{item.codigo}</td>
-                  <td>{item.quantidade}</td>
-                  <td>R$ {Number(item.preco_unitario).toFixed(2)}</td>
-                  <td>R$ {Number(item.subtotal).toFixed(2)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
+      {/* ===== TOTAL ===== */}
+      <div className="nf-total">
+        <h2>Total Geral: R$ {Number(nota.total).toFixed(2)}</h2>
       </div>
 
-      {/* ===== VALORES ===== */}
-      <h3 className="nf-section">VALORES</h3>
-
-      <div className="nf-box">
-        {!isMultipla && (
-          <>
-            <p><b>Preço Unitário:</b> R$ {Number(nota.preco_unitario).toFixed(2)}</p>
-            <p><b>Total:</b> <strong>R$ {Number(nota.total).toFixed(2)}</strong></p>
-          </>
-        )}
-
-        {isMultipla && (
-          <p><b>Total Geral:</b> <strong>R$ {Number(nota.total).toFixed(2)}</strong></p>
-        )}
+      {/* ===== ASSINATURA ===== */}
+      <div className="nf-sign">
+        <p>______________________________________________</p>
+        <p>Assinatura do Cliente</p>
       </div>
 
-      {/* BOTÃO IMPRIMIR */}
+      {/* ===== BOTÃO ===== */}
       <button className="nf-print" onClick={() => window.print()}>
         🖨 Imprimir Nota Fiscal
       </button>
