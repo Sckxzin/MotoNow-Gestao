@@ -80,10 +80,27 @@ app.post("/pecas", (req, res) => {
 
 /* ===================== VENDA MULTIPLA (CARRINHO) ===================== */
 app.post("/venda-multipla", (req, res) => {
-  const { cliente, filial, itens, forma_pagamento } = req.body;
+  const {
+    cliente,
+    filial,
+    itens,
+    forma_pagamento,
+    revisao,
+    modelo_moto,
+    chassi
+  } = req.body;
 
-  if (!cliente || !itens || itens.length === 0) {
-    return res.status(400).json({ message: "Dados inválidos" });
+  // Validações básicas
+  if (!cliente || !cliente.nome) {
+    return res.status(400).json({ message: "Cliente inválido" });
+  }
+
+  if (!itens || itens.length === 0) {
+    return res.status(400).json({ message: "Carrinho vazio" });
+  }
+
+  if (revisao === true && (!modelo_moto || !chassi)) {
+    return res.status(400).json({ message: "Modelo e chassi obrigatórios na revisão" });
   }
 
   const total = itens.reduce(
@@ -97,17 +114,21 @@ app.post("/venda-multipla", (req, res) => {
       return res.status(500).json({ message: "Erro ao iniciar transação" });
     }
 
+    // 🔹 INSERE VENDA PRINCIPAL
     db.query(
       `INSERT INTO vendas_multi
-       (nome_cliente, telefone, cpf, total, forma_pagamento, filial, data_venda)
-       VALUES (?, ?, ?, ?, ?, ?, NOW())`,
+       (nome_cliente, telefone, cpf, total, forma_pagamento, filial, revisao, modelo_moto, chassi, data_venda)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
       [
         cliente.nome,
         cliente.telefone,
         cliente.cpf,
         total,
         forma_pagamento,
-        filial
+        filial,
+        revisao ? "SIM" : "NAO",
+        modelo_moto || null,
+        chassi || null
       ],
       (err, result) => {
         if (err) {
@@ -119,6 +140,7 @@ app.post("/venda-multipla", (req, res) => {
 
         const vendaId = result.insertId;
 
+        // 🔹 PROCESSA ITENS UM A UM
         const processarItem = index => {
           if (index >= itens.length) {
             return db.commit(err => {
@@ -193,6 +215,7 @@ app.post("/venda-multipla", (req, res) => {
     );
   });
 });
+
 
 
 /* ===================== MOTOS ===================== */
