@@ -7,17 +7,23 @@ export default function Carrinho() {
   const nav = useNavigate();
 
   const [carrinho, setCarrinho] = useState([]);
-  const [formaPagamento, setFormaPagamento] = useState("Pix");
-
   const [cliente, setCliente] = useState({
     nome: "",
     telefone: "",
     cpf: ""
   });
 
+  // 🔥 NOVO: revisão
+  const [isRevisao, setIsRevisao] = useState(false);
+  const [revisao, setRevisao] = useState({
+    modelo_moto: "",
+    chassi: ""
+  });
+
+  const [formaPagamento, setFormaPagamento] = useState("Pix");
+
   const user = JSON.parse(localStorage.getItem("user"));
 
-  /* ================= LOAD ================= */
   useEffect(() => {
     const c = JSON.parse(localStorage.getItem("carrinho")) || [];
     setCarrinho(c);
@@ -28,16 +34,15 @@ export default function Carrinho() {
     localStorage.setItem("carrinho", JSON.stringify(novo));
   }
 
-  /* ================= ALTERAÇÕES ================= */
-  function alterarQuantidade(index, valor) {
+  function alterarQuantidade(index, q) {
     const novo = [...carrinho];
-    novo[index].quantidade = Number(valor);
+    novo[index].quantidade = Number(q);
     atualizarCarrinho(novo);
   }
 
-  function alterarPreco(index, valor) {
+  function alterarPreco(index, p) {
     const novo = [...carrinho];
-    novo[index].preco_unitario = Number(valor);
+    novo[index].preco_unitario = Number(p);
     atualizarCarrinho(novo);
   }
 
@@ -46,22 +51,18 @@ export default function Carrinho() {
     atualizarCarrinho(novo);
   }
 
-  /* ================= TOTAIS ================= */
   const totalGeral = carrinho.reduce(
-    (sum, item) => sum + item.quantidade * item.preco_unitario,
+    (s, i) => s + i.quantidade * i.preco_unitario,
     0
   );
 
-  /* ================= FINALIZAR ================= */
   async function finalizarVenda() {
     if (!cliente.nome || !cliente.cpf) {
-      alert("Preencha nome e CPF do cliente");
-      return;
+      return alert("Preencha os dados do cliente");
     }
 
-    if (carrinho.length === 0) {
-      alert("Carrinho vazio");
-      return;
+    if (isRevisao && (!revisao.modelo_moto || !revisao.chassi)) {
+      return alert("Preencha modelo e chassi da moto");
     }
 
     try {
@@ -69,29 +70,30 @@ export default function Carrinho() {
         cliente,
         filial: user.filial,
         forma_pagamento: formaPagamento,
+        revisao: isRevisao ? revisao : null,
         itens: carrinho.map(item => ({
           peca_id: item.peca_id,
-          quantidade: Number(item.quantidade),
-          preco_unitario: Number(item.preco_unitario)
+          quantidade: item.quantidade,
+          preco_unitario: item.preco_unitario
         }))
       };
 
-      // ✅ SEM VARIÁVEL "res" (corrige o build)
-      await api.post("/venda-multipla", payload);
+      const res = await api.post("/venda-multipla", payload);
 
-      localStorage.setItem(
-        "notaFiscal",
-        JSON.stringify({
-          cliente,
-          filial: user.filial,
-          forma_pagamento: formaPagamento,
-          total: totalGeral,
-          data: new Date().toLocaleString(),
-          itens: carrinho
-        })
-      );
+      // 🧾 Nota fiscal (local)
+      const nota = {
+        cliente,
+        filial: user.filial,
+        forma_pagamento: formaPagamento,
+        revisao: isRevisao ? revisao : null,
+        total: totalGeral,
+        data: new Date().toLocaleString(),
+        itens: carrinho
+      };
 
+      localStorage.setItem("notaFiscal", JSON.stringify(nota));
       localStorage.removeItem("carrinho");
+
       nav("/nota");
     } catch (err) {
       console.error(err);
@@ -104,7 +106,7 @@ export default function Carrinho() {
       <h2>🛒 Carrinho de Vendas</h2>
 
       {carrinho.length === 0 ? (
-        <h3 style={{ marginTop: 30 }}>Carrinho vazio</h3>
+        <h3>Carrinho vazio</h3>
       ) : (
         <>
           <table className="carrinho-table">
@@ -118,35 +120,33 @@ export default function Carrinho() {
                 <th>Ação</th>
               </tr>
             </thead>
-
             <tbody>
               {carrinho.map((item, i) => (
                 <tr key={i}>
                   <td>{item.nome}</td>
                   <td>{item.codigo}</td>
-
                   <td>
                     <input
                       type="number"
                       min="1"
                       value={item.quantidade}
-                      onChange={e => alterarQuantidade(i, e.target.value)}
+                      onChange={e =>
+                        alterarQuantidade(i, e.target.value)
+                      }
                     />
                   </td>
-
                   <td>
                     <input
                       type="number"
-                      step="0.01"
                       value={item.preco_unitario}
-                      onChange={e => alterarPreco(i, e.target.value)}
+                      onChange={e =>
+                        alterarPreco(i, e.target.value)
+                      }
                     />
                   </td>
-
                   <td>
                     R$ {(item.quantidade * item.preco_unitario).toFixed(2)}
                   </td>
-
                   <td>
                     <button onClick={() => removerItem(i)}>X</button>
                   </td>
@@ -155,41 +155,88 @@ export default function Carrinho() {
             </tbody>
           </table>
 
-          <h2>Total Geral: R$ {totalGeral.toFixed(2)}</h2>
+          <h3>Total Geral: R$ {totalGeral.toFixed(2)}</h3>
 
-          <h3>Dados do Cliente</h3>
-          <input
-            placeholder="Nome"
-            value={cliente.nome}
-            onChange={e => setCliente({ ...cliente, nome: e.target.value })}
-          />
-          <input
-            placeholder="Telefone"
-            value={cliente.telefone}
-            onChange={e => setCliente({ ...cliente, telefone: e.target.value })}
-          />
-          <input
-            placeholder="CPF"
-            value={cliente.cpf}
-            onChange={e => setCliente({ ...cliente, cpf: e.target.value })}
-          />
-
-          <h3>Forma de Pagamento</h3>
-          <select
-            value={formaPagamento}
-            onChange={e => setFormaPagamento(e.target.value)}
-          >
-            <option value="Pix">Pix</option>
-            <option value="Dinheiro">Dinheiro</option>
-            <option value="Cartão">Cartão</option>
-          </select>
-
-          <div style={{ marginTop: 30 }}>
-            _______________________________<br />
-            Assinatura do Cliente
+          {/* CLIENTE */}
+          <div className="cliente-box">
+            <h3>Dados do Cliente</h3>
+            <input
+              placeholder="Nome"
+              value={cliente.nome}
+              onChange={e =>
+                setCliente({ ...cliente, nome: e.target.value })
+              }
+            />
+            <input
+              placeholder="Telefone"
+              value={cliente.telefone}
+              onChange={e =>
+                setCliente({ ...cliente, telefone: e.target.value })
+              }
+            />
+            <input
+              placeholder="CPF"
+              value={cliente.cpf}
+              onChange={e =>
+                setCliente({ ...cliente, cpf: e.target.value })
+              }
+            />
           </div>
 
-          <button onClick={finalizarVenda} style={{ marginTop: 20 }}>
+          {/* REVISÃO */}
+          <div className="cliente-box">
+            <h3>Revisão</h3>
+
+            <label>
+              <input
+                type="checkbox"
+                checked={isRevisao}
+                onChange={e => setIsRevisao(e.target.checked)}
+              />{" "}
+              Venda referente a revisão
+            </label>
+
+            {isRevisao && (
+              <>
+                <input
+                  placeholder="Modelo da moto"
+                  value={revisao.modelo_moto}
+                  onChange={e =>
+                    setRevisao({
+                      ...revisao,
+                      modelo_moto: e.target.value
+                    })
+                  }
+                />
+                <input
+                  placeholder="Chassi"
+                  value={revisao.chassi}
+                  onChange={e =>
+                    setRevisao({
+                      ...revisao,
+                      chassi: e.target.value
+                    })
+                  }
+                />
+              </>
+            )}
+          </div>
+
+          {/* PAGAMENTO */}
+          <div className="cliente-box">
+            <h3>Forma de Pagamento</h3>
+            <select
+              value={formaPagamento}
+              onChange={e => setFormaPagamento(e.target.value)}
+            >
+              <option>Pix</option>
+              <option>Dinheiro</option>
+              <option>Cartão</option>
+              <option>Transferência</option>
+            </select>
+          </div>
+
+          <button className="btn-finalizar" onClick={finalizarVenda}>
             ✔ Finalizar Venda
           </button>
         </>
