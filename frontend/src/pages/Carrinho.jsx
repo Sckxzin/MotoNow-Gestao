@@ -4,57 +4,59 @@ import api from "../api";
 import "./Carrinho.css";
 
 export default function Carrinho() {
-  const nav = useNavigate();
+  const navigate = useNavigate();
 
   const [itens, setItens] = useState([]);
+
   const [nome, setNome] = useState("");
   const [telefone, setTelefone] = useState("");
   const [cpf, setCpf] = useState("");
+
   const [formaPagamento, setFormaPagamento] = useState("Pix");
 
   const [isRevisao, setIsRevisao] = useState(false);
   const [modeloMoto, setModeloMoto] = useState("");
   const [chassi, setChassi] = useState("");
 
-  /* ================= LOAD CARRINHO ================= */
+  /* ================= CARREGA CARRINHO ================= */
   useEffect(() => {
     const carrinho = JSON.parse(localStorage.getItem("carrinho")) || [];
     setItens(carrinho);
   }, []);
 
-  /* ================= ATUALIZA LOCALSTORAGE ================= */
+  /* ================= ATUALIZA CARRINHO ================= */
   function atualizarCarrinho(novo) {
     setItens(novo);
     localStorage.setItem("carrinho", JSON.stringify(novo));
   }
 
   /* ================= ALTERAR QTD ================= */
-  function alterarQtd(index, qtd) {
+  function alterarQtd(index, valor) {
     const novo = [...itens];
-    novo[index].quantidade = Number(qtd);
+    novo[index].quantidade = Number(valor);
     atualizarCarrinho(novo);
   }
 
   /* ================= ALTERAR PREÇO ================= */
-  function alterarPreco(index, preco) {
+  function alterarPreco(index, valor) {
     const novo = [...itens];
-    novo[index].preco_unitario = Number(preco);
+    novo[index].preco_unitario = Number(valor);
     atualizarCarrinho(novo);
   }
 
-  /* ================= REMOVER ITEM ================= */
-  function remover(index) {
+  /* ================= REMOVER ================= */
+  function removerItem(index) {
     const novo = itens.filter((_, i) => i !== index);
     atualizarCarrinho(novo);
   }
 
   /* ================= TOTAL ================= */
   const total = itens.reduce(
-    (soma, i) => soma + i.quantidade * i.preco_unitario,
+    (soma, item) => soma + item.quantidade * item.preco_unitario,
     0
   );
 
-  /* ================= FINALIZAR ================= */
+  /* ================= FINALIZAR VENDA ================= */
   async function finalizarVenda() {
     if (itens.length === 0) {
       alert("Carrinho vazio");
@@ -67,25 +69,32 @@ export default function Carrinho() {
     }
 
     if (isRevisao && (!modeloMoto || !chassi)) {
-      alert("Informe modelo e chassi da moto");
+      alert("Informe o modelo da moto e o chassi");
       return;
     }
 
     const payload = {
-      cliente: { nome, telefone, cpf },
+      cliente: {
+        nome,
+        telefone,
+        cpf
+      },
+      filial: localStorage.getItem("filial"),
       forma_pagamento: formaPagamento,
-      revisao: isRevisao,
-      modelo_moto: modeloMoto,
-      chassi,
-      itens,
-      total
+      itens: itens.map(item => ({
+        peca_id: item.id, // ⚠️ TEM que existir
+        quantidade: Number(item.quantidade),
+        preco_unitario: Number(item.preco_unitario)
+      }))
     };
 
+    console.log("PAYLOAD FINAL:", payload);
+
     try {
-      await api.post("/venda-multipla", payload); // 🔥 sem variável não usada
+      await api.post("/venda-multipla", payload);
       localStorage.removeItem("carrinho");
-      alert("Venda finalizada!");
-      nav("/home");
+      alert("Venda finalizada com sucesso!");
+      navigate("/home");
     } catch (err) {
       console.error(err);
       alert("Erro ao finalizar venda");
@@ -108,30 +117,30 @@ export default function Carrinho() {
           </tr>
         </thead>
         <tbody>
-          {itens.map((i, index) => (
+          {itens.map((item, index) => (
             <tr key={index}>
-              <td>{i.nome}</td>
-              <td>{i.codigo}</td>
+              <td>{item.nome}</td>
+              <td>{item.codigo}</td>
               <td>
                 <input
                   type="number"
                   min="1"
-                  value={i.quantidade}
-                  onChange={(e) => alterarQtd(index, e.target.value)}
+                  value={item.quantidade}
+                  onChange={e => alterarQtd(index, e.target.value)}
                 />
               </td>
               <td>
                 <input
                   type="number"
-                  value={i.preco_unitario}
-                  onChange={(e) => alterarPreco(index, e.target.value)}
+                  value={item.preco_unitario}
+                  onChange={e => alterarPreco(index, e.target.value)}
                 />
               </td>
               <td>
-                R$ {(i.quantidade * i.preco_unitario).toFixed(2)}
+                R$ {(item.quantidade * item.preco_unitario).toFixed(2)}
               </td>
               <td>
-                <button onClick={() => remover(index)}>❌</button>
+                <button onClick={() => removerItem(index)}>❌</button>
               </td>
             </tr>
           ))}
@@ -141,12 +150,27 @@ export default function Carrinho() {
       <h3>Total Geral: R$ {total.toFixed(2)}</h3>
 
       <h3>Dados do Cliente</h3>
-      <input placeholder="Nome" value={nome} onChange={e => setNome(e.target.value)} />
-      <input placeholder="Telefone" value={telefone} onChange={e => setTelefone(e.target.value)} />
-      <input placeholder="CPF" value={cpf} onChange={e => setCpf(e.target.value)} />
+      <input
+        placeholder="Nome"
+        value={nome}
+        onChange={e => setNome(e.target.value)}
+      />
+      <input
+        placeholder="Telefone"
+        value={telefone}
+        onChange={e => setTelefone(e.target.value)}
+      />
+      <input
+        placeholder="CPF"
+        value={cpf}
+        onChange={e => setCpf(e.target.value)}
+      />
 
       <h3>Revisão?</h3>
-      <select value={isRevisao ? "sim" : "nao"} onChange={e => setIsRevisao(e.target.value === "sim")}>
+      <select
+        value={isRevisao ? "sim" : "nao"}
+        onChange={e => setIsRevisao(e.target.value === "sim")}
+      >
         <option value="nao">Não</option>
         <option value="sim">Sim</option>
       </select>
@@ -167,7 +191,10 @@ export default function Carrinho() {
       )}
 
       <h3>Forma de Pagamento</h3>
-      <select value={formaPagamento} onChange={e => setFormaPagamento(e.target.value)}>
+      <select
+        value={formaPagamento}
+        onChange={e => setFormaPagamento(e.target.value)}
+      >
         <option>Pix</option>
         <option>Dinheiro</option>
         <option>Cartão</option>
@@ -175,6 +202,7 @@ export default function Carrinho() {
       </select>
 
       <br /><br />
+
       <button className="btn-finalizar" onClick={finalizarVenda}>
         ✅ Finalizar Venda
       </button>
