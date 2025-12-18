@@ -4,10 +4,9 @@ import { useNavigate } from "react-router-dom";
 import api from "../api";
 import "./Home.css";
 
-// 🔎 Identificar modelo automaticamente
+/* 🔎 Identificar modelo automaticamente */
 function identificarModelo(codigo) {
   if (!codigo) return "—";
-
   const c = codigo.toUpperCase();
   if (c.startsWith("W175SHI")) return "SHI";
   if (c.startsWith("RDIV") || c.includes("JET")) return "JET";
@@ -18,11 +17,14 @@ export default function Home() {
   const nav = useNavigate();
   const [user, setUser] = useState(null);
   const [tab, setTab] = useState("pecas");
+
   const [pecas, setPecas] = useState([]);
   const [motos, setMotos] = useState([]);
+
   const [busca, setBusca] = useState("");
   const [filialFiltro, setFilialFiltro] = useState("TODAS");
 
+  /* ================= LOAD INICIAL ================= */
   useEffect(() => {
     const data = JSON.parse(localStorage.getItem("user"));
     if (!data) {
@@ -32,13 +34,15 @@ export default function Home() {
 
     setUser(data);
 
-    // 🔥 Peças (filtra por filial se não for diretoria)
+    /* 🔥 PEÇAS */
     api
-      .get("/pecas", { params: { role: data.role, filial: data.filial } })
+      .get("/pecas", {
+        params: { role: data.role, filial: data.filial }
+      })
       .then(res => setPecas(res.data))
       .catch(() => alert("Erro ao carregar peças"));
 
-    // 🔥 Motos: SEMPRE TODAS
+    /* 🔥 MOTOS — SEMPRE TODAS */
     api
       .get("/motos", { params: { role: "Diretoria" } })
       .then(res => setMotos(res.data))
@@ -50,23 +54,22 @@ export default function Home() {
     nav("/");
   }
 
-  // 🔍 Filtro peças
+  /* ================= FILTROS ================= */
   const pecasFiltradas = pecas.filter(
     p =>
       p.nome.toLowerCase().includes(busca.toLowerCase()) ||
       p.codigo.toLowerCase().includes(busca.toLowerCase())
   );
 
-  // 🔍 Filtro motos por filial
   const motosFiltradas = motos.filter(m =>
     filialFiltro === "TODAS" ? true : m.filial === filialFiltro
   );
 
-  // 🛒 Adicionar ao carrinho (valor vem do banco)
+  /* ================= CARRINHO ================= */
   function adicionarCarrinho(peca) {
     const carrinho = JSON.parse(localStorage.getItem("carrinho")) || [];
 
-    const existente = carrinho.find(item => item.peca_id === peca.id);
+    const existente = carrinho.find(i => i.peca_id === peca.id);
 
     if (existente) {
       existente.quantidade += 1;
@@ -76,7 +79,7 @@ export default function Home() {
         nome: peca.nome,
         codigo: peca.codigo,
         quantidade: 1,
-        preco_unitario: Number(peca.valor)
+        preco_unitario: Number(peca.valor) // 🔥 valor fixo do banco
       });
     }
 
@@ -89,20 +92,26 @@ export default function Home() {
   return (
     <div className="home-container">
 
-      {/* HEADER */}
+      {/* ================= HEADER ================= */}
       <div className="home-header">
         <img src="/logo-shineray.png" alt="Shineray" className="logo-mini" />
         <h2>MotoNow • Gestão — {user.filial}</h2>
         <button className="btn-sair" onClick={sair}>Sair</button>
       </div>
 
-      {/* TABS */}
+      {/* ================= TABS ================= */}
       <div className="tabs">
-        <button className={`tab-btn ${tab === "pecas" ? "active" : ""}`} onClick={() => setTab("pecas")}>
+        <button
+          className={`tab-btn ${tab === "pecas" ? "active" : ""}`}
+          onClick={() => setTab("pecas")}
+        >
           📦 Peças
         </button>
 
-        <button className={`tab-btn ${tab === "motos" ? "active" : ""}`} onClick={() => setTab("motos")}>
+        <button
+          className={`tab-btn ${tab === "motos" ? "active" : ""}`}
+          onClick={() => setTab("motos")}
+        >
           🏍 Motos
         </button>
 
@@ -153,10 +162,13 @@ export default function Home() {
                     <td>{identificarModelo(p.codigo)}</td>
                     <td>{p.codigo}</td>
                     <td>{p.quantidade}</td>
-                    <td>R$ {Number(p.valor).toFixed(2)}</td>
+                    <td><strong>R$ {Number(p.valor).toFixed(2)}</strong></td>
                     <td>{p.filial_atual}</td>
                     <td>
-                      <button className="action-btn" onClick={() => adicionarCarrinho(p)}>
+                      <button
+                        className="action-btn"
+                        onClick={() => adicionarCarrinho(p)}
+                      >
                         🛒 Carrinho
                       </button>
                     </td>
@@ -173,7 +185,6 @@ export default function Home() {
         <>
           <h3 className="section-title">🏍 Estoque de Motos</h3>
 
-          {/* 🔥 BOTÃO EXCLUSIVO DIRETORIA */}
           {user.role === "Diretoria" && (
             <button
               className="add-btn"
