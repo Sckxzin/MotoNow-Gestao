@@ -1,9 +1,7 @@
 require("dotenv").config();
-
 const express = require("express");
 const cors = require("cors");
 const mysql = require("mysql2");
-const path = require("path");
 
 const app = express();
 app.use(cors());
@@ -11,16 +9,19 @@ app.use(express.json());
 
 /* ===================== DATABASE ===================== */
 const db = mysql.createConnection({
-  host: process.env.DB_HOST || "sql5.freesqldatabase.com",
-  user: process.env.DB_USER || "sql5811685",
-  password: process.env.DB_PASS || "AMBiJinAHg",
-  database: process.env.DB_NAME || "sql5811685",
+  host: "sql5.freesqldatabase.com",
+  user: "sql5811685",
+  password: "AMBiJinAHg",
+  database: "sql5811685",
   port: 3306
 });
 
 db.connect(err => {
-  if (err) console.error("❌ Erro MySQL:", err);
-  else console.log("✅ MySQL conectado");
+  if (err) {
+    console.error("❌ Erro ao conectar MySQL:", err);
+  } else {
+    console.log("✅ MySQL conectado com sucesso");
+  }
 });
 
 /* ===================== LOGIN ===================== */
@@ -30,12 +31,17 @@ app.post("/login", (req, res) => {
   db.query(
     "SELECT id, username, role, filial FROM usuarios WHERE username = ? AND password = ?",
     [username, password],
-    (err, r) => {
-      if (err) return res.status(500).json(err);
-      if (r.length === 0)
-        return res.status(401).json({ message: "Login inválido" });
+    (err, rows) => {
+      if (err) {
+        console.error("Erro login:", err);
+        return res.status(500).json({ message: "Erro no servidor" });
+      }
 
-      res.json(r[0]);
+      if (rows.length === 0) {
+        return res.status(401).json({ message: "Usuário ou senha inválidos" });
+      }
+
+      res.json(rows[0]);
     }
   );
 });
@@ -52,9 +58,9 @@ app.get("/pecas", (req, res) => {
     params.push(filial);
   }
 
-  db.query(sql, params, (err, r) => {
+  db.query(sql, params, (err, rows) => {
     if (err) return res.status(500).json(err);
-    res.json(r);
+    res.json(rows);
   });
 });
 
@@ -62,24 +68,26 @@ app.post("/pecas", (req, res) => {
   const { nome, codigo, quantidade, filial_atual, valor } = req.body;
 
   db.query(
-    "INSERT INTO pecas (nome, codigo, quantidade, filial_atual, valor) VALUES (?, ?, ?, ?, ?)",
+    `INSERT INTO pecas (nome, codigo, quantidade, filial_atual, valor)
+     VALUES (?, ?, ?, ?, ?)`,
     [nome, codigo, quantidade, filial_atual, valor],
     err => {
       if (err) return res.status(500).json(err);
-      res.json({ message: "Peça cadastrada!" });
+      res.json({ message: "Peça cadastrada com sucesso" });
     }
   );
 });
 
-/* ===================== VENDA MULTIPLA ===================== */
+/* ===================== VENDA MULTIPLA (CARRINHO) ===================== */
 app.post("/venda-multipla", (req, res) => {
-  const { cliente, filial, itens } = req.body;
+  const { cliente, filial, itens, forma_pagamento } = req.body;
 
-  if (!itens || itens.length === 0)
+  if (!itens || itens.length === 0) {
     return res.status(400).json({ message: "Carrinho vazio" });
+  }
 
   const total = itens.reduce(
-    (s, i) => s + i.preco_unitario * i.quantidade,
+    (s, i) => s + Number(i.preco_unitario) * Number(i.quantidade),
     0
   );
 
@@ -87,12 +95,14 @@ app.post("/venda-multipla", (req, res) => {
     if (err) return res.status(500).json(err);
 
     db.query(
-      "INSERT INTO vendas_multi (nome_cliente, telefone, cpf, total, filial) VALUES (?, ?, ?, ?, ?)",
+      `INSERT INTO vendas_multi 
+       (nome_cliente, telefone, cpf, total, filial, data_venda)
+       VALUES (?, ?, ?, ?, ?, NOW())`,
       [cliente.nome, cliente.telefone, cliente.cpf, total, filial],
-      (err, r) => {
+      (err, result) => {
         if (err) return db.rollback(() => res.status(500).json(err));
 
-        const vendaId = r.insertId;
+        const vendaId = result.insertId;
         let pendentes = itens.length;
 
         itens.forEach(item => {
@@ -125,21 +135,13 @@ app.post("/venda-multipla", (req, res) => {
                       item.peca_id
                     ],
                     err => {
-                      if (err)
-                        return db.rollback(() => res.status(500).json(err));
+                      if (err) return db.rollback(() => res.status(500).json(err));
 
                       pendentes--;
                       if (pendentes === 0) {
                         db.commit(err => {
-                          if (err)
-                            return db.rollback(() =>
-                              res.status(500).json(err)
-                            );
-                          res.json({
-                            message: "Venda concluída",
-                            venda_id: vendaId,
-                            total
-                          });
+                          if (err) return db.rollback(() => res.status(500).json(err));
+                          res.json({ venda_id: vendaId, total });
                         });
                       }
                     }
@@ -166,9 +168,9 @@ app.get("/motos", (req, res) => {
     params.push(filial);
   }
 
-  db.query(sql, params, (err, r) => {
+  db.query(sql, params, (err, rows) => {
     if (err) return res.status(500).json(err);
-    res.json(r);
+    res.json(rows);
   });
 });
 
@@ -176,58 +178,62 @@ app.post("/motos", (req, res) => {
   const { modelo, ano, cor, chassi, filial, santander } = req.body;
 
   db.query(
-    "INSERT INTO motos (modelo, ano, cor, chassi, filial, santander, status) VALUES (?, ?, ?, ?, ?, ?, 'DISPONIVEL')",
+    `INSERT INTO motos 
+     (modelo, ano, cor, chassi, filial, santander, status)
+     VALUES (?, ?, ?, ?, ?, ?, 'DISPONIVEL')`,
     [modelo, ano, cor, chassi, filial, santander],
     err => {
       if (err) return res.status(500).json(err);
-      res.json({ message: "Moto cadastrada!" });
+      res.json({ message: "Moto cadastrada" });
     }
   );
 });
 
+/* ===================== VENDER MOTO ===================== */
 app.post("/vender-moto", (req, res) => {
-  const { moto_id, nome_cliente, telefone, cpf, filial, valor } = req.body;
+  const {
+    moto_id,
+    nome_cliente,
+    telefone,
+    cpf,
+    filial,
+    valor,
+    capacete_brinde
+  } = req.body;
 
   db.beginTransaction(err => {
     if (err) return res.status(500).json(err);
 
     db.query(
-      "SELECT status FROM motos WHERE id = ?",
+      "UPDATE motos SET status = 'VENDIDA' WHERE id = ? AND status = 'DISPONIVEL'",
       [moto_id],
-      (err, r) => {
-        if (err || r.length === 0)
+      (err, result) => {
+        if (err || result.affectedRows === 0) {
           return db.rollback(() =>
-            res.status(404).json({ message: "Moto não encontrada" })
+            res.status(400).json({ message: "Moto indisponível" })
           );
-
-        if (r[0].status === "VENDIDA")
-          return db.rollback(() =>
-            res.status(400).json({ message: "Moto já vendida" })
-          );
+        }
 
         db.query(
-          "INSERT INTO vendas_motos (moto_id, nome_cliente, telefone, cpf, filial, valor) VALUES (?, ?, ?, ?, ?, ?)",
+          `INSERT INTO vendas_motos 
+           (moto_id, nome_cliente, telefone, cpf, filial, valor, data_venda)
+           VALUES (?, ?, ?, ?, ?, ?, NOW())`,
           [moto_id, nome_cliente, telefone, cpf, filial, valor],
           err => {
-            if (err)
-              return db.rollback(() => res.status(500).json(err));
+            if (err) return db.rollback(() => res.status(500).json(err));
 
-            db.query(
-              "UPDATE motos SET status = 'VENDIDA' WHERE id = ?",
-              [moto_id],
-              err => {
-                if (err)
-                  return db.rollback(() => res.status(500).json(err));
+            if (capacete_brinde === "SIM") {
+              db.query(
+                `UPDATE pecas SET quantidade = quantidade - 1
+                 WHERE filial_atual = ? AND nome LIKE '%capacete%' LIMIT 1`,
+                [filial]
+              );
+            }
 
-                db.commit(err => {
-                  if (err)
-                    return db.rollback(() =>
-                      res.status(500).json(err)
-                    );
-                  res.json({ message: "Moto vendida!" });
-                });
-              }
-            );
+            db.commit(err => {
+              if (err) return db.rollback(() => res.status(500).json(err));
+              res.json({ message: "Moto vendida com sucesso" });
+            });
           }
         );
       }
@@ -235,15 +241,8 @@ app.post("/vender-moto", (req, res) => {
   });
 });
 
-/* ===================== FRONTEND REACT ===================== */
-app.use(express.static(path.join(__dirname, "build")));
-
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "build", "index.html"));
-});
-
 /* ===================== SERVER ===================== */
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, "0.0.0.0", () =>
-  console.log("🚀 Server rodando na porta", PORT)
+  console.log("🚀 API rodando na porta", PORT)
 );
