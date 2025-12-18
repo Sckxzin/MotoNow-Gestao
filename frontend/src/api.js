@@ -1,5 +1,7 @@
 import axios from "axios";
 
-export default axios.create({
-  baseURL: "https://believable-harmony-production.up.railway.app"
+const api = axios.create({
+  baseURL: "https://motonow-gestao-production.up.railway.app"
 });
+
+export default api;
