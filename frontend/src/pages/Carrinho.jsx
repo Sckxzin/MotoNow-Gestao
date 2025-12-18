@@ -7,7 +7,8 @@ export default function Carrinho() {
   const nav = useNavigate();
 
   const [carrinho, setCarrinho] = useState([]);
-  const [formaPagamento, setFormaPagamento] = useState("");
+  const [formaPagamento, setFormaPagamento] = useState("Pix");
+
   const [cliente, setCliente] = useState({
     nome: "",
     telefone: "",
@@ -16,7 +17,7 @@ export default function Carrinho() {
 
   const user = JSON.parse(localStorage.getItem("user"));
 
-  /* ================= LOAD CARRINHO ================= */
+  /* ================= LOAD ================= */
   useEffect(() => {
     const c = JSON.parse(localStorage.getItem("carrinho")) || [];
     setCarrinho(c);
@@ -27,9 +28,16 @@ export default function Carrinho() {
     localStorage.setItem("carrinho", JSON.stringify(novo));
   }
 
-  function alterarQuantidade(index, qtd) {
+  /* ================= ALTERAÇÕES ================= */
+  function alterarQuantidade(index, valor) {
     const novo = [...carrinho];
-    novo[index].quantidade = Number(qtd);
+    novo[index].quantidade = Number(valor);
+    atualizarCarrinho(novo);
+  }
+
+  function alterarPreco(index, valor) {
+    const novo = [...carrinho];
+    novo[index].preco_unitario = Number(valor);
     atualizarCarrinho(novo);
   }
 
@@ -38,32 +46,27 @@ export default function Carrinho() {
     atualizarCarrinho(novo);
   }
 
+  /* ================= TOTAIS ================= */
   const totalGeral = carrinho.reduce(
-    (s, i) => s + i.quantidade * i.preco_unitario,
+    (sum, item) => sum + item.quantidade * item.preco_unitario,
     0
   );
 
-  /* ================= FINALIZAR VENDA ================= */
+  /* ================= FINALIZAR ================= */
   async function finalizarVenda() {
     if (!cliente.nome || !cliente.cpf) {
-      return alert("Preencha nome e CPF");
-    }
-
-    if (!formaPagamento) {
-      return alert("Selecione a forma de pagamento");
+      alert("Preencha nome e CPF do cliente");
+      return;
     }
 
     if (carrinho.length === 0) {
-      return alert("Carrinho vazio");
+      alert("Carrinho vazio");
+      return;
     }
 
     try {
       const payload = {
-        cliente: {
-          nome: cliente.nome,
-          telefone: cliente.telefone,
-          cpf: cliente.cpf
-        },
+        cliente,
         filial: user.filial,
         forma_pagamento: formaPagamento,
         itens: carrinho.map(item => ({
@@ -75,32 +78,25 @@ export default function Carrinho() {
 
       const res = await api.post("/venda-multipla", payload);
 
-      /* ===== NOTA FISCAL ===== */
-      const nota = {
-        venda_id: res.data.venda_id,
-        data: new Date().toLocaleString(),
-        cliente,
-        filial: user.filial,
-        forma_pagamento: formaPagamento,
-        total: totalGeral,
-        itens: carrinho.map(i => ({
-          nome: i.nome,
-          codigo: i.codigo,
-          quantidade: i.quantidade,
-          preco_unitario: i.preco_unitario,
-          subtotal: i.quantidade * i.preco_unitario
-        }))
-      };
+      // NOTA FISCAL LOCAL
+      localStorage.setItem(
+        "notaFiscal",
+        JSON.stringify({
+          cliente,
+          filial: user.filial,
+          forma_pagamento: formaPagamento,
+          total: totalGeral,
+          data: new Date().toLocaleString(),
+          itens: carrinho
+        })
+      );
 
-      localStorage.setItem("notaFiscal", JSON.stringify(nota));
       localStorage.removeItem("carrinho");
-
-      alert("Venda concluída com sucesso!");
       nav("/nota");
 
     } catch (err) {
       console.error(err);
-      alert(err.response?.data?.message || "Erro ao finalizar venda");
+      alert("Erro ao finalizar venda");
     }
   }
 
@@ -110,7 +106,7 @@ export default function Carrinho() {
       <h2>🛒 Carrinho de Vendas</h2>
 
       {carrinho.length === 0 ? (
-        <h3>Carrinho vazio</h3>
+        <h3 style={{ marginTop: 30 }}>Carrinho vazio</h3>
       ) : (
         <>
           <table className="carrinho-table">
@@ -124,25 +120,37 @@ export default function Carrinho() {
                 <th>Ação</th>
               </tr>
             </thead>
+
             <tbody>
               {carrinho.map((item, i) => (
                 <tr key={i}>
                   <td>{item.nome}</td>
                   <td>{item.codigo}</td>
+
                   <td>
                     <input
                       type="number"
                       min="1"
                       value={item.quantidade}
-                      onChange={e =>
-                        alterarQuantidade(i, e.target.value)
-                      }
+                      onChange={e => alterarQuantidade(i, e.target.value)}
+                      className="input-qtd"
                     />
                   </td>
-                  <td>R$ {Number(item.preco_unitario).toFixed(2)}</td>
+
+                  <td>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={item.preco_unitario}
+                      onChange={e => alterarPreco(i, e.target.value)}
+                      className="input-preco"
+                    />
+                  </td>
+
                   <td>
                     R$ {(item.quantidade * item.preco_unitario).toFixed(2)}
                   </td>
+
                   <td>
                     <button
                       className="btn-remover"
@@ -156,18 +164,18 @@ export default function Carrinho() {
             </tbody>
           </table>
 
-          <h2>Total Geral: R$ {totalGeral.toFixed(2)}</h2>
+          <h2 className="total-final">
+            Total Geral: <strong>R$ {totalGeral.toFixed(2)}</strong>
+          </h2>
 
-          {/* ===== CLIENTE ===== */}
+          {/* ================= CLIENTE ================= */}
           <div className="cliente-box">
             <h3>Dados do Cliente</h3>
 
             <input
               placeholder="Nome"
               value={cliente.nome}
-              onChange={e =>
-                setCliente({ ...cliente, nome: e.target.value })
-              }
+              onChange={e => setCliente({ ...cliente, nome: e.target.value })}
             />
 
             <input
@@ -181,13 +189,11 @@ export default function Carrinho() {
             <input
               placeholder="CPF"
               value={cliente.cpf}
-              onChange={e =>
-                setCliente({ ...cliente, cpf: e.target.value })
-              }
+              onChange={e => setCliente({ ...cliente, cpf: e.target.value })}
             />
           </div>
 
-          {/* ===== PAGAMENTO ===== */}
+          {/* ================= PAGAMENTO ================= */}
           <div className="cliente-box">
             <h3>Forma de Pagamento</h3>
 
@@ -195,19 +201,16 @@ export default function Carrinho() {
               value={formaPagamento}
               onChange={e => setFormaPagamento(e.target.value)}
             >
-              <option value="">Selecione</option>
-              <option value="DINHEIRO">Dinheiro</option>
-              <option value="PIX">Pix</option>
-              <option value="CARTAO_DEBITO">Cartão Débito</option>
-              <option value="CARTAO_CREDITO">Cartão Crédito</option>
-              <option value="BOLETO">Boleto</option>
+              <option value="Pix">Pix</option>
+              <option value="Dinheiro">Dinheiro</option>
+              <option value="Cartão Débito">Cartão Débito</option>
+              <option value="Cartão Crédito">Cartão Crédito</option>
             </select>
           </div>
 
-          {/* ===== ASSINATURA ===== */}
-          <div style={{ marginTop: 30 }}>
-            <p>__________________________________________</p>
-            <p>Assinatura do Cliente</p>
+          <div className="assinatura">
+            _______________________________<br />
+            Assinatura do Cliente
           </div>
 
           <button className="btn-finalizar" onClick={finalizarVenda}>
