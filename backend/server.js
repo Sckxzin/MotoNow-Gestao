@@ -18,8 +18,11 @@ const db = mysql.createConnection({
 });
 
 db.connect(err => {
-  if (err) console.error("❌ Erro MySQL:", err);
-  else console.log("✅ MySQL conectado");
+  if (err) {
+    console.error("❌ Erro MySQL:", err);
+  } else {
+    console.log("✅ MySQL conectado");
+  }
 });
 
 /* ===================== LOGIN ===================== */
@@ -67,9 +70,7 @@ app.post("/pecas", (req, res) => {
   const { nome, codigo, quantidade, filial_atual, valor } = req.body;
 
   db.query(
-    `INSERT INTO pecas 
-     (nome, codigo, quantidade, filial_atual, valor)
-     VALUES (?, ?, ?, ?, ?)`,
+    "INSERT INTO pecas (nome, codigo, quantidade, filial_atual, valor) VALUES (?, ?, ?, ?, ?)",
     [nome, codigo, quantidade, filial_atual, valor],
     err => {
       if (err) return res.status(500).json(err);
@@ -80,13 +81,13 @@ app.post("/pecas", (req, res) => {
 
 /* ===================== VENDA MÚLTIPLA (CARRINHO) ===================== */
 app.post("/venda-multipla", (req, res) => {
-  const { cliente, filial, itens } = req.body;
+  const { cliente, filial, itens, forma_pagamento } = req.body;
 
   if (!itens || itens.length === 0)
     return res.status(400).json({ message: "Carrinho vazio" });
 
   const total = itens.reduce(
-    (s, i) => s + Number(i.preco_unitario) * Number(i.quantidade),
+    (s, i) => s + i.preco_unitario * i.quantidade,
     0
   );
 
@@ -95,32 +96,37 @@ app.post("/venda-multipla", (req, res) => {
 
     db.query(
       `INSERT INTO vendas_multi 
-       (nome_cliente, telefone, cpf, total, filial)
-       VALUES (?, ?, ?, ?, ?)`,
-      [cliente.nome, cliente.telefone, cliente.cpf, total, filial],
-      (err, vendaRes) => {
+       (nome_cliente, telefone, cpf, total, forma_pagamento, filial) 
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [
+        cliente.nome,
+        cliente.telefone,
+        cliente.cpf,
+        total,
+        forma_pagamento,
+        filial
+      ],
+      (err, r) => {
         if (err) return db.rollback(() => res.status(500).json(err));
 
-        const vendaId = vendaRes.insertId;
+        const vendaId = r.insertId;
         let pendentes = itens.length;
 
         itens.forEach(item => {
-          // Verificar estoque
           db.query(
             "SELECT quantidade FROM pecas WHERE id = ?",
             [item.peca_id],
-            (err, r) => {
+            (err, q) => {
               if (
                 err ||
-                r.length === 0 ||
-                r[0].quantidade < item.quantidade
+                q.length === 0 ||
+                q[0].quantidade < item.quantidade
               ) {
                 return db.rollback(() =>
                   res.status(400).json({ message: "Estoque insuficiente" })
                 );
               }
 
-              // Baixar estoque
               db.query(
                 "UPDATE pecas SET quantidade = quantidade - ? WHERE id = ?",
                 [item.quantidade, item.peca_id],
@@ -128,17 +134,17 @@ app.post("/venda-multipla", (req, res) => {
                   if (err)
                     return db.rollback(() => res.status(500).json(err));
 
-                  // Inserir item vendido
                   db.query(
                     `INSERT INTO venda_itens
                      (venda_id, peca_id, nome_peca, codigo_peca, quantidade, preco_unitario, subtotal)
-                     SELECT ?, id, nome, codigo, ?, ?, ?
+                     SELECT ?, id, nome, codigo, ?, ?, (? * ?)
                      FROM pecas WHERE id = ?`,
                     [
                       vendaId,
                       item.quantidade,
                       item.preco_unitario,
-                      item.quantidade * item.preco_unitario,
+                      item.quantidade,
+                      item.preco_unitario,
                       item.peca_id
                     ],
                     err => {
@@ -148,7 +154,6 @@ app.post("/venda-multipla", (req, res) => {
                         );
 
                       pendentes--;
-
                       if (pendentes === 0) {
                         db.commit(err => {
                           if (err)
@@ -157,7 +162,7 @@ app.post("/venda-multipla", (req, res) => {
                             );
 
                           res.json({
-                            message: "Venda concluída com sucesso",
+                            message: "Venda concluída",
                             venda_id: vendaId,
                             total
                           });
@@ -181,7 +186,7 @@ app.post("/motos", (req, res) => {
 
   db.query(
     `INSERT INTO motos 
-     (modelo, ano, cor, chassi, filial, santander, status)
+     (modelo, ano, cor, chassi, filial, santander, status) 
      VALUES (?, ?, ?, ?, ?, ?, 'DISPONIVEL')`,
     [modelo, ano, cor, chassi, filial, santander],
     err => {
@@ -263,16 +268,13 @@ app.post("/vender-moto", (req, res) => {
               [moto_id],
               err => {
                 if (err)
-                  return db.rollback(() =>
-                    res.status(500).json(err)
-                  );
+                  return db.rollback(() => res.status(500).json(err));
 
                 if (capacete_brinde === "SIM") {
                   db.query(
                     `UPDATE pecas 
                      SET quantidade = quantidade - 1
-                     WHERE filial_atual = ? 
-                     AND nome LIKE '%capacete%' 
+                     WHERE filial_atual = ? AND nome LIKE '%capacete%' 
                      LIMIT 1`,
                     [filial]
                   );
@@ -283,6 +285,7 @@ app.post("/vender-moto", (req, res) => {
                     return db.rollback(() =>
                       res.status(500).json(err)
                     );
+
                   res.json({ message: "Moto vendida com sucesso" });
                 });
               }
@@ -294,8 +297,8 @@ app.post("/vender-moto", (req, res) => {
   });
 });
 
-/* ===================== SERVER ===================== */
+/* ===================== SERVIDOR ===================== */
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, "0.0.0.0", () =>
-  console.log("🚀 Server rodando na porta", PORT)
-);
+app.listen(PORT, "0.0.0.0", () => {
+  console.log("🚀 Server rodando na porta", PORT);
+});
