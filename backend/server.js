@@ -82,8 +82,8 @@ app.post("/pecas", (req, res) => {
 app.post("/venda-multipla", (req, res) => {
   const { cliente, filial, itens, forma_pagamento } = req.body;
 
-  if (!itens || itens.length === 0) {
-    return res.status(400).json({ message: "Carrinho vazio" });
+  if (!cliente || !itens || itens.length === 0) {
+    return res.status(400).json({ message: "Dados inválidos" });
   }
 
   const total = itens.reduce(
@@ -92,25 +92,59 @@ app.post("/venda-multipla", (req, res) => {
   );
 
   db.beginTransaction(err => {
-    if (err) return res.status(500).json(err);
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ message: "Erro ao iniciar transação" });
+    }
 
     db.query(
-      `INSERT INTO vendas_multi 
-       (nome_cliente, telefone, cpf, total, filial, data_venda)
-       VALUES (?, ?, ?, ?, ?, NOW())`,
-      [cliente.nome, cliente.telefone, cliente.cpf, total, filial],
+      `INSERT INTO vendas_multi
+       (nome_cliente, telefone, cpf, total, forma_pagamento, filial, data_venda)
+       VALUES (?, ?, ?, ?, ?, ?, NOW())`,
+      [
+        cliente.nome,
+        cliente.telefone,
+        cliente.cpf,
+        total,
+        forma_pagamento,
+        filial
+      ],
       (err, result) => {
-        if (err) return db.rollback(() => res.status(500).json(err));
+        if (err) {
+          console.error(err);
+          return db.rollback(() =>
+            res.status(500).json({ message: "Erro ao criar venda" })
+          );
+        }
 
         const vendaId = result.insertId;
-        let pendentes = itens.length;
 
-        itens.forEach(item => {
+        const processarItem = index => {
+          if (index >= itens.length) {
+            return db.commit(err => {
+              if (err) {
+                console.error(err);
+                return db.rollback(() =>
+                  res.status(500).json({ message: "Erro ao finalizar venda" })
+                );
+              }
+              res.json({ venda_id: vendaId, total });
+            });
+          }
+
+          const item = itens[index];
+
           db.query(
             "SELECT quantidade FROM pecas WHERE id = ?",
             [item.peca_id],
-            (err, q) => {
-              if (err || q.length === 0 || q[0].quantidade < item.quantidade) {
+            (err, rows) => {
+              if (err || rows.length === 0) {
+                return db.rollback(() =>
+                  res.status(400).json({ message: "Peça não encontrada" })
+                );
+              }
+
+              if (rows[0].quantidade < item.quantidade) {
                 return db.rollback(() =>
                   res.status(400).json({ message: "Estoque insuficiente" })
                 );
@@ -120,12 +154,17 @@ app.post("/venda-multipla", (req, res) => {
                 "UPDATE pecas SET quantidade = quantidade - ? WHERE id = ?",
                 [item.quantidade, item.peca_id],
                 err => {
-                  if (err) return db.rollback(() => res.status(500).json(err));
+                  if (err) {
+                    return db.rollback(() =>
+                      res.status(500).json({ message: "Erro ao baixar estoque" })
+                    );
+                  }
 
                   db.query(
                     `INSERT INTO venda_itens
                      (venda_id, peca_id, nome_peca, codigo_peca, quantidade, preco_unitario, subtotal)
-                     SELECT ?, id, nome, codigo, ?, ?, (? * ?) FROM pecas WHERE id = ?`,
+                     SELECT ?, id, nome, codigo, ?, ?, (? * ?)
+                     FROM pecas WHERE id = ?`,
                     [
                       vendaId,
                       item.quantidade,
@@ -135,26 +174,26 @@ app.post("/venda-multipla", (req, res) => {
                       item.peca_id
                     ],
                     err => {
-                      if (err) return db.rollback(() => res.status(500).json(err));
-
-                      pendentes--;
-                      if (pendentes === 0) {
-                        db.commit(err => {
-                          if (err) return db.rollback(() => res.status(500).json(err));
-                          res.json({ venda_id: vendaId, total });
-                        });
+                      if (err) {
+                        return db.rollback(() =>
+                          res.status(500).json({ message: "Erro ao salvar item" })
+                        );
                       }
+                      processarItem(index + 1);
                     }
                   );
                 }
               );
             }
           );
-        });
+        };
+
+        processarItem(0);
       }
     );
   });
 });
+
 
 /* ===================== MOTOS ===================== */
 app.get("/motos", (req, res) => {
