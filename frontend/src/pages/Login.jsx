@@ -31,6 +31,7 @@ export default function Login() {
 
       // 🔥 Salvar usuário logado
       localStorage.setItem("user", JSON.stringify(res.data));
+      localStorage.setItem("filial", res.data.filial);
 
       // 🔥 Ir para o Home
       nav("/home");
