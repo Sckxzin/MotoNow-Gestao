@@ -32,15 +32,15 @@ export default function Home() {
 
     setUser(data);
 
-    // 🔥 Carregar peças
+    // 🔥 Peças (filtra por filial se não for diretoria)
     api
       .get("/pecas", { params: { role: data.role, filial: data.filial } })
       .then(res => setPecas(res.data))
       .catch(() => alert("Erro ao carregar peças"));
 
-    // 🔥 Carregar motos
+    // 🔥 Motos: SEMPRE TODAS
     api
-      .get("/motos", { params: { role: "Diretoria", filial: data.filial } })
+      .get("/motos", { params: { role: "Diretoria" } })
       .then(res => setMotos(res.data))
       .catch(() => alert("Erro ao carregar motos"));
   }, [nav]);
@@ -50,19 +50,19 @@ export default function Home() {
     nav("/");
   }
 
-  // 🔍 Filtro de peças
+  // 🔍 Filtro peças
   const pecasFiltradas = pecas.filter(
     p =>
       p.nome.toLowerCase().includes(busca.toLowerCase()) ||
       p.codigo.toLowerCase().includes(busca.toLowerCase())
   );
 
-  // 🔍 Filtro de motos
+  // 🔍 Filtro motos por filial
   const motosFiltradas = motos.filter(m =>
     filialFiltro === "TODAS" ? true : m.filial === filialFiltro
   );
 
-  // 🛒 ADICIONAR AO CARRINHO (valor vem do banco)
+  // 🛒 Adicionar ao carrinho (valor vem do banco)
   function adicionarCarrinho(peca) {
     const carrinho = JSON.parse(localStorage.getItem("carrinho")) || [];
 
@@ -98,17 +98,11 @@ export default function Home() {
 
       {/* TABS */}
       <div className="tabs">
-        <button
-          className={`tab-btn ${tab === "pecas" ? "active" : ""}`}
-          onClick={() => setTab("pecas")}
-        >
+        <button className={`tab-btn ${tab === "pecas" ? "active" : ""}`} onClick={() => setTab("pecas")}>
           📦 Peças
         </button>
 
-        <button
-          className={`tab-btn ${tab === "motos" ? "active" : ""}`}
-          onClick={() => setTab("motos")}
-        >
+        <button className={`tab-btn ${tab === "motos" ? "active" : ""}`} onClick={() => setTab("motos")}>
           🏍 Motos
         </button>
 
@@ -121,7 +115,7 @@ export default function Home() {
         </button>
       </div>
 
-      {/* ==================== PEÇAS ==================== */}
+      {/* ================= PEÇAS ================= */}
       {tab === "pecas" && (
         <>
           <h3 className="section-title">📦 Estoque de Peças</h3>
@@ -147,7 +141,7 @@ export default function Home() {
                   <th>Modelo</th>
                   <th>Código</th>
                   <th>Qtd</th>
-                  <th>Valor (R$)</th>
+                  <th>Valor</th>
                   <th>Filial</th>
                   <th>Ação</th>
                 </tr>
@@ -159,13 +153,10 @@ export default function Home() {
                     <td>{identificarModelo(p.codigo)}</td>
                     <td>{p.codigo}</td>
                     <td>{p.quantidade}</td>
-                    <td><strong>R$ {Number(p.valor).toFixed(2)}</strong></td>
+                    <td>R$ {Number(p.valor).toFixed(2)}</td>
                     <td>{p.filial_atual}</td>
                     <td>
-                      <button
-                        className="action-btn"
-                        onClick={() => adicionarCarrinho(p)}
-                      >
+                      <button className="action-btn" onClick={() => adicionarCarrinho(p)}>
                         🛒 Carrinho
                       </button>
                     </td>
@@ -177,10 +168,21 @@ export default function Home() {
         </>
       )}
 
-      {/* ==================== MOTOS ==================== */}
+      {/* ================= MOTOS ================= */}
       {tab === "motos" && (
         <>
           <h3 className="section-title">🏍 Estoque de Motos</h3>
+
+          {/* 🔥 BOTÃO EXCLUSIVO DIRETORIA */}
+          {user.role === "Diretoria" && (
+            <button
+              className="add-btn"
+              style={{ marginBottom: 15 }}
+              onClick={() => nav("/cadastro-moto")}
+            >
+              ➕ Cadastrar Moto
+            </button>
+          )}
 
           <p className="contador-motos">
             Total cadastradas: <strong>{motosFiltradas.length}</strong>
