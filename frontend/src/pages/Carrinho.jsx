@@ -15,6 +15,7 @@ export default function Carrinho() {
 
   const user = JSON.parse(localStorage.getItem("user"));
 
+  // 🔥 Carregar carrinho
   useEffect(() => {
     const c = JSON.parse(localStorage.getItem("carrinho")) || [];
     setCarrinho(c);
@@ -31,12 +32,6 @@ export default function Carrinho() {
     atualizarCarrinho(novo);
   }
 
-  function alterarPreco(index, p) {
-    const novo = [...carrinho];
-    novo[index].preco_unitario = Number(p);
-    atualizarCarrinho(novo);
-  }
-
   function removerItem(index) {
     const novo = carrinho.filter((_, i) => i !== index);
     atualizarCarrinho(novo);
@@ -47,31 +42,41 @@ export default function Carrinho() {
     0
   );
 
+  // ✅ FINALIZAR VENDA (BAIXA NO ESTOQUE FUNCIONANDO)
   async function finalizarVenda() {
     if (!cliente.nome || !cliente.cpf) {
       return alert("Preencha o nome e CPF do cliente");
     }
 
-    for (let item of carrinho) {
-      if (item.preco_unitario <= 0)
-        return alert("Todos os itens precisam ter preço válido.");
+    if (carrinho.length === 0) {
+      return alert("Carrinho vazio");
     }
 
     try {
-      const res = await api.post("/venda-multipla", {
-        cliente,
+      const payload = {
+        cliente: {
+          nome: cliente.nome,
+          telefone: cliente.telefone,
+          cpf: cliente.cpf
+        },
         filial: user.filial,
-        itens: carrinho
-      });
+        itens: carrinho.map(item => ({
+          peca_id: item.peca_id,              // 🔥 ESSENCIAL
+          quantidade: Number(item.quantidade),
+          preco_unitario: Number(item.preco_unitario)
+        }))
+      };
+
+      const res = await api.post("/venda-multipla", payload);
 
       alert("Venda concluída!");
 
-      // 🔥 SALVAR NOTA COMPLETA (ESSENCIAL PARA FUNCIONAR!)
+      // 🧾 Salvar nota fiscal
       const notaCompleta = {
         cliente,
         filial: user.filial,
         venda_id: res.data.venda_id,
-        total: totalGeral,
+        total: res.data.total,
         data: new Date().toLocaleString(),
         itens: carrinho.map(item => ({
           nome: item.nome,
@@ -83,15 +88,12 @@ export default function Carrinho() {
       };
 
       localStorage.setItem("notaFiscal", JSON.stringify(notaCompleta));
-
-      // Limpar carrinho após salvar nota
       localStorage.removeItem("carrinho");
 
-      nav("/nota"); // abrir nota fiscal
-
+      nav("/nota");
     } catch (err) {
       console.error(err);
-      alert("Erro ao finalizar venda.");
+      alert("Erro ao finalizar venda");
     }
   }
 
@@ -100,7 +102,7 @@ export default function Carrinho() {
       <h2>🛒 Carrinho de Vendas</h2>
 
       {carrinho.length === 0 ? (
-        <h3 style={{ marginTop: 30 }}>Carrinho vazio.</h3>
+        <h3 style={{ marginTop: 30 }}>Carrinho vazio</h3>
       ) : (
         <>
           <table className="carrinho-table">
@@ -124,20 +126,14 @@ export default function Carrinho() {
                   <td>
                     <input
                       type="number"
+                      min="1"
                       value={item.quantidade}
-                      onChange={(e) => alterarQuantidade(i, e.target.value)}
+                      onChange={e => alterarQuantidade(i, e.target.value)}
                       className="input-qtd"
                     />
                   </td>
 
-                  <td>
-                    <input
-                      type="number"
-                      value={item.preco_unitario}
-                      onChange={(e) => alterarPreco(i, e.target.value)}
-                      className="input-preco"
-                    />
-                  </td>
+                  <td>R$ {Number(item.preco_unitario).toFixed(2)}</td>
 
                   <td>
                     R$ {(item.quantidade * item.preco_unitario).toFixed(2)}
@@ -166,19 +162,21 @@ export default function Carrinho() {
             <input
               placeholder="Nome"
               value={cliente.nome}
-              onChange={(e) => setCliente({ ...cliente, nome: e.target.value })}
+              onChange={e => setCliente({ ...cliente, nome: e.target.value })}
             />
+
             <input
               placeholder="Telefone"
               value={cliente.telefone}
-              onChange={(e) =>
+              onChange={e =>
                 setCliente({ ...cliente, telefone: e.target.value })
               }
             />
+
             <input
               placeholder="CPF"
               value={cliente.cpf}
-              onChange={(e) => setCliente({ ...cliente, cpf: e.target.value })}
+              onChange={e => setCliente({ ...cliente, cpf: e.target.value })}
             />
           </div>
 
