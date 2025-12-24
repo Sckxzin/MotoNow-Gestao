@@ -15,22 +15,15 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/home" element={<Login />} />
+        <Route path="/" element={<Login />} />
+        <Route path="/home" element={<Home />} />
 
-        {/* Peças */}
         <Route path="/cadastro-peca" element={<CadastroPeca />} />
         <Route path="/vender/:id" element={<VendaPeca />} />
         <Route path="/nota" element={<NotaFiscal />} />
-
-        {/* Vendas */}
         <Route path="/vendas" element={<Vendas />} />
-
-        {/* Motos */}
         <Route path="/cadastro-moto" element={<CadastroMoto />} />
         <Route path="/vender-moto/:id" element={<VenderMoto />} />
-
-        {/* Carrinho */}
         <Route path="/carrinho" element={<Carrinho />} />
       </Routes>
     </BrowserRouter>
