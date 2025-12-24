@@ -22,20 +22,26 @@ db.connect()
 app.post("/login", (req, res) => {
   const { username, password } = req.body;
 
-  db.query(
-    "SELECT id, username, role, filial FROM usuarios WHERE username = ? AND password = ?",
-    [username, password],
-    (err, rows) => {
-      if (err) {
-        console.error("Erro login:", err);
-        return res.status(500).json({ message: "Erro no servidor" });
-      }
+ app.post("/login", async (req, res) => {
+  const { username, password } = req.body;
 
-      if (rows.length === 0) {
-        return res.status(401).json({ message: "Usuário ou senha inválidos" });
-      }
+  try {
+    const result = await db.query(
+      "SELECT id, username, role, cidade FROM usuarios WHERE username = $1 AND password = $2",
+      [username, password]
+    );
 
-      res.json(rows[0]);
+    if (result.rows.length === 0) {
+      return res.status(401).json({ message: "Usuário ou senha inválidos" });
+    }
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error("Erro login:", err);
+    res.status(500).json({ message: "Erro no servidor" });
+  }
+});
+
     }
   );
 });
