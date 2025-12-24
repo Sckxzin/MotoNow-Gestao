@@ -81,8 +81,7 @@ export default function Home() {
 
   /* ================= FILTROS ================= */
   const pecasFiltradas = pecas.filter(p =>
-    (p.nome || "").toLowerCase().includes(busca.toLowerCase()) ||
-    (p.codigo || "").toLowerCase().includes(busca.toLowerCase())
+    (p.nome || "").toLowerCase().includes(busca.toLowerCase())
   );
 
   const motosFiltradas = motos.filter(m =>
