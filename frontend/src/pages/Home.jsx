@@ -4,15 +4,6 @@ import { useNavigate } from "react-router-dom";
 import api from "../api";
 import "./Home.css";
 
-/* 🔎 Identificar modelo automaticamente */
-function identificarModelo(codigo) {
-  if (!codigo) return "—";
-  const c = codigo.toUpperCase();
-  if (c.startsWith("W175SHI")) return "SHI";
-  if (c.startsWith("RDIV") || c.includes("JET")) return "JET";
-  return "OUTROS";
-}
-
 export default function Home() {
   const nav = useNavigate();
 
@@ -37,8 +28,7 @@ export default function Home() {
     let data;
     try {
       data = JSON.parse(raw);
-    } catch (e) {
-      console.error("Erro ao ler user do localStorage", e);
+    } catch {
       localStorage.clear();
       nav("/");
       return;
@@ -54,23 +44,15 @@ export default function Home() {
 
     /* 🔥 PEÇAS */
     api
-      .get("/pecas", {
-        params: { role: data.role, filial: data.filial }
-      })
+      .get("/pecas")
       .then(res => setPecas(res.data || []))
-      .catch(err => {
-        console.error("Erro peças", err);
-        setPecas([]);
-      });
+      .catch(() => setPecas([]));
 
-    /* 🔥 MOTOS (sempre todas) */
+    /* 🔥 MOTOS */
     api
-      .get("/motos", { params: { role: "Diretoria" } })
+      .get("/motos")
       .then(res => setMotos(res.data || []))
-      .catch(err => {
-        console.error("Erro motos", err);
-        setMotos([]);
-      });
+      .catch(() => setMotos([]));
 
   }, [nav]);
 
@@ -100,9 +82,8 @@ export default function Home() {
       carrinho.push({
         peca_id: peca.id,
         nome: peca.nome,
-        codigo: peca.codigo,
         quantidade: 1,
-        preco_unitario: Number(peca.valor) || 0
+        preco_unitario: Number(peca.preco) || 0
       });
     }
 
@@ -154,27 +135,18 @@ export default function Home() {
 
           <input
             className="input-busca"
-            placeholder="Buscar por nome ou código..."
+            placeholder="Buscar por nome..."
             value={busca}
             onChange={e => setBusca(e.target.value)}
           />
-
-          {user.role === "Diretoria" && (
-            <button className="add-btn" onClick={() => nav("/cadastro-peca")}>
-              ➕ Adicionar Peça
-            </button>
-          )}
 
           <div className="table-container">
             <table className="table">
               <thead>
                 <tr>
                   <th>Nome</th>
-                  <th>Modelo</th>
-                  <th>Código</th>
                   <th>Qtd</th>
                   <th>Valor</th>
-                  <th>Filial</th>
                   <th>Ação</th>
                 </tr>
               </thead>
@@ -182,11 +154,8 @@ export default function Home() {
                 {pecasFiltradas.map(p => (
                   <tr key={p.id}>
                     <td>{p.nome}</td>
-                    <td>{identificarModelo(p.codigo)}</td>
-                    <td>{p.codigo}</td>
-                    <td>{p.quantidade}</td>
-                    <td><strong>R$ {Number(p.valor).toFixed(2)}</strong></td>
-                    <td>{p.filial_atual}</td>
+                    <td>{p.estoque}</td>
+                    <td><strong>R$ {Number(p.preco).toFixed(2)}</strong></td>
                     <td>
                       <button
                         className="action-btn"
@@ -208,28 +177,15 @@ export default function Home() {
         <>
           <h3 className="section-title">🏍 Estoque de Motos</h3>
 
-          {user.role === "Diretoria" && (
-            <button
-              className="add-btn"
-              onClick={() => nav("/cadastro-moto")}
-            >
-              ➕ Cadastrar Moto
-            </button>
-          )}
-
           <select
             className="select-filial"
             value={filialFiltro}
             onChange={e => setFilialFiltro(e.target.value)}
           >
             <option value="TODAS">Todas</option>
-            <option value="Matriz">Matriz</option>
-            <option value="Ipojuca">Ipojuca</option>
             <option value="Escada">Escada</option>
+            <option value="Ipojuca">Ipojuca</option>
             <option value="Ribeirão">Ribeirão</option>
-            <option value="Catende">Catende</option>
-            <option value="São José">São José</option>
-            <option value="Xexéu">Xexéu</option>
           </select>
 
           <div className="table-container">
@@ -242,7 +198,6 @@ export default function Home() {
                   <th>Chassi</th>
                   <th>Filial</th>
                   <th>Status</th>
-                  <th>Ação</th>
                 </tr>
               </thead>
               <tbody>
@@ -254,14 +209,6 @@ export default function Home() {
                     <td>{m.chassi}</td>
                     <td>{m.filial}</td>
                     <td>{m.status}</td>
-                    <td>
-                      <button
-                        className="action-btn"
-                        onClick={() => nav(`/vender-moto/${m.id}`)}
-                      >
-                        Vender
-                      </button>
-                    </td>
                   </tr>
                 ))}
               </tbody>
