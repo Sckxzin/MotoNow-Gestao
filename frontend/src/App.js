@@ -1,7 +1,7 @@
 // src/App.js
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
-//import Login from "./pages/Login";
+import Login from "./pages/Login";
 import Home from "./pages/Home";
 import CadastroPeca from "./pages/CadastroPeca";
 import VendaPeca from "./pages/VendaPeca";
