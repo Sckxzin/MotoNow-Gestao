@@ -1,27 +1,21 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
-const mysql = require("mysql2");
+const { Pool } = require("pg");
 
-const app = express();
-app.use(cors());
-app.use(express.json());
-
-/* ===================== DATABASE ===================== */
-const db = mysql.createConnection({
-  host: "sql5.freesqldatabase.com",
-  user: "sql5811685",
-  password: "AMBiJinAHg",
-  database: "sql5811685",
-  port: 3306
+const db = new Pool({
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASS,
+  database: process.env.DB_NAME,
+  port: process.env.DB_PORT,
+  ssl: { rejectUnauthorized: false }
 });
 
-db.connect(err => {
-  if (err) {
-    console.error("❌ Erro ao conectar MySQL:", err);
-  } else {
-    console.log("✅ MySQL conectado com sucesso");
-  }
+db.connect()
+  .then(() => console.log("✅ PostgreSQL conectado (Supabase)"))
+  .catch(err => console.error("❌ Erro ao conectar PG:", err));
+
 });
 
 /* ===================== LOGIN ===================== */
