@@ -1,53 +1,83 @@
-require("dotenv").config();
-const express = require("express");
-const cors = require("cors");
-const { Pool } = require("pg");
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import api from "../api";
+import "./Login.css";
 
-const app = express();
-app.use(cors());
-app.use(express.json());
+export default function Login() {
+  const nav = useNavigate();
 
-/* ================= DATABASE ================= */
-const db = new Pool({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASS,
-  database: process.env.DB_NAME,
-  port: process.env.DB_PORT,
-  ssl: { rejectUnauthorized: false }
-});
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
-db.connect()
-  .then(() => console.log("DB OK"))
-  .catch(err => console.error("DB ERRO", err));
-
-/* ================= ROTAS ================= */
-app.get("/health", (req, res) => {
-  res.json({ status: "ok" });
-});
-
-app.post("/login", async (req, res) => {
-  const { username, password } = req.body;
-
-  try {
-    const r = await db.query(
-      "SELECT id, username, role, cidade FROM usuarios WHERE username=$1 AND password=$2",
-      [username, password]
-    );
-
-    if (r.rows.length === 0) {
-      return res.status(401).json({ message: "Login inválido" });
+  async function handleLogin() {
+    if (!username || !password) {
+      alert("Preencha usuário e senha");
+      return;
     }
 
-    res.json(r.rows[0]);
-  } catch (e) {
-    console.error(e);
-    res.status(500).json({ message: "Erro servidor" });
-  }
-});
+    setLoading(true);
 
-/* ================= SERVER ================= */
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, "0.0.0.0", () =>
-  console.log("API ON", PORT)
-);
+    try {
+      const res = await api.post("/login", {
+        username,
+        password
+      });
+
+      // ✅ valida exatamente o que o backend retorna
+      if (!res.data || !res.data.role || !res.data.cidade) {
+        throw new Error("Resposta inválida da API");
+      }
+
+      // ✅ salvar usuário
+      localStorage.setItem("user", JSON.stringify(res.data));
+      localStorage.setItem("filial", res.data.cidade);
+
+      // ✅ ir para home
+      nav("/home");
+    } catch (err) {
+      console.error("Erro no login:", err);
+      alert("Usuário ou senha inválidos");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="login-container">
+      <div className="login-card">
+        <img
+          src="/logo-shineray.png"
+          alt="Shineray"
+          className="login-logo"
+        />
+
+        <h2 className="login-title">MotoNow • Gestão</h2>
+
+        <input
+          type="text"
+          placeholder="Usuário"
+          className="login-input"
+          value={username}
+          onChange={e => setUsername(e.target.value)}
+        />
+
+        <input
+          type="password"
+          placeholder="Senha"
+          className="login-input"
+          value={password}
+          onChange={e => setPassword(e.target.value)}
+        />
+
+        <button
+          className="login-btn"
+          onClick={handleLogin}
+          disabled={loading}
+        >
+          {loading ? "Entrando..." : "Entrar"}
+        </button>
+      </div>
+    </div>
+  );
+}
