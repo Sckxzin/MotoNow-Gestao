@@ -25,7 +25,7 @@ export default function Login() {
       });
 
       // 🔒 Validação de segurança da resposta
-      if (!res.data || !res.data.role || !res.data.filial) {
+      if (!res.data || !res.data.role || !res.data.cidade) {
         throw new Error("Resposta inválida da API");
       }
 
