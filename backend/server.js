@@ -1,83 +1,65 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import api from "../api";
-import "./Login.css";
+require("dotenv").config();
+const express = require("express");
+const cors = require("cors");
+const { Pool } = require("pg");
 
-export default function Login() {
-  const nav = useNavigate();
+const app = express();
 
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
+/* ================= CORS (FIX REAL) ================= */
+app.use(cors({
+  origin: [
+    "https://motonow-gestao-production.up.railway.app"
+  ],
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+}));
 
-  async function handleLogin() {
-    if (!username || !password) {
-      alert("Preencha usuário e senha");
-      return;
+app.options("*", cors());
+
+/* ================= MIDDLEWARE ================= */
+app.use(express.json());
+
+/* ================= DATABASE ================= */
+const db = new Pool({
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASS,
+  database: process.env.DB_NAME,
+  port: process.env.DB_PORT,
+  ssl: { rejectUnauthorized: false }
+});
+
+db.connect()
+  .then(() => console.log("DB OK"))
+  .catch(err => console.error("DB ERRO", err));
+
+/* ================= ROTAS ================= */
+app.get("/health", (req, res) => {
+  res.json({ status: "ok" });
+});
+
+app.post("/login", async (req, res) => {
+  const { username, password } = req.body;
+
+  try {
+    const r = await db.query(
+      "SELECT id, username, role, cidade FROM usuarios WHERE username=$1 AND password=$2",
+      [username, password]
+    );
+
+    if (r.rows.length === 0) {
+      return res.status(401).json({ message: "Login inválido" });
     }
 
-    setLoading(true);
-
-    try {
-      const res = await api.post("/login", {
-        username,
-        password
-      });
-
-      // ✅ valida exatamente o que o backend retorna
-      if (!res.data || !res.data.role || !res.data.cidade) {
-        throw new Error("Resposta inválida da API");
-      }
-
-      // ✅ salvar usuário
-      localStorage.setItem("user", JSON.stringify(res.data));
-      localStorage.setItem("filial", res.data.cidade);
-
-      // ✅ ir para home
-      nav("/home");
-    } catch (err) {
-      console.error("Erro no login:", err);
-      alert("Usuário ou senha inválidos");
-    } finally {
-      setLoading(false);
-    }
+    res.json(r.rows[0]);
+  } catch (e) {
+    console.error("Erro login:", e);
+    res.status(500).json({ message: "Erro servidor" });
   }
+});
 
-  return (
-    <div className="login-container">
-      <div className="login-card">
-        <img
-          src="/logo-shineray.png"
-          alt="Shineray"
-          className="login-logo"
-        />
-
-        <h2 className="login-title">MotoNow • Gestão</h2>
-
-        <input
-          type="text"
-          placeholder="Usuário"
-          className="login-input"
-          value={username}
-          onChange={e => setUsername(e.target.value)}
-        />
-
-        <input
-          type="password"
-          placeholder="Senha"
-          className="login-input"
-          value={password}
-          onChange={e => setPassword(e.target.value)}
-        />
-
-        <button
-          className="login-btn"
-          onClick={handleLogin}
-          disabled={loading}
-        >
-          {loading ? "Entrando..." : "Entrar"}
-        </button>
-      </div>
-    </div>
-  );
-}
+/* ================= SERVER ================= */
+const PORT = process.env.PORT || 8080;
+app.listen(PORT, "0.0.0.0", () => {
+  console.log("API ON", PORT);
+});
