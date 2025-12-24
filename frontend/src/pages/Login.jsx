@@ -32,7 +32,7 @@ export default function Login() {
       // ✅ salvar usuário
       localStorage.setItem(
         "user",
-        Json.stringify({
+        JSON.stringify({
           ...res.data,
           filial: res.data.cidade
         })
