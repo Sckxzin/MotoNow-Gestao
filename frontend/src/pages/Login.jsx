@@ -30,8 +30,13 @@ export default function Login() {
       }
 
       // ✅ salvar usuário
-      localStorage.setItem("user", JSON.stringify(res.data));
-      localStorage.setItem("filial", res.data.cidade);
+      localStorage.setItem(
+        "user",
+        Json.stringify({
+          ...res.data,
+          filial: res.data.cidade
+        })
+        );
 
       // ✅ ir para home
       nav("/home");
