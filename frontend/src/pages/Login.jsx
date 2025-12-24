@@ -24,20 +24,20 @@ export default function Login() {
         password
       });
 
-      // 🔒 Validação de segurança da resposta
+      // ✅ valida exatamente o que o backend retorna
       if (!res.data || !res.data.role || !res.data.cidade) {
         throw new Error("Resposta inválida da API");
       }
 
-      // 🔥 Salvar usuário logado
+      // ✅ salvar usuário
       localStorage.setItem("user", JSON.stringify(res.data));
-      localStorage.setItem("filial", res.data.filial);
+      localStorage.setItem("filial", res.data.cidade);
 
-      // 🔥 Ir para o Home
+      // ✅ ir para home
       nav("/home");
     } catch (err) {
       console.error("Erro no login:", err);
-      alert("Usuário ou senha inválidos, ou erro no servidor.");
+      alert("Usuário ou senha inválidos");
     } finally {
       setLoading(false);
     }
