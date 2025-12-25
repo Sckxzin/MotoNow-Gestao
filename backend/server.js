@@ -11,7 +11,6 @@ app.use(cors({
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
-
 app.options("*", cors());
 
 /* ================= MIDDLEWARE ================= */
@@ -33,7 +32,7 @@ db.connect()
 
 /* ================= ROTAS ================= */
 
-// Health check
+// Health
 app.get("/health", (req, res) => {
   res.json({ status: "ok" });
 });
@@ -59,7 +58,7 @@ app.post("/login", async (req, res) => {
   }
 });
 
-// 🔥 LISTAR PEÇAS (ESSENCIAL)
+// Listar peças
 app.get("/pecas", async (req, res) => {
   try {
     const result = await db.query(
@@ -67,12 +66,12 @@ app.get("/pecas", async (req, res) => {
     );
     res.json(result.rows);
   } catch (err) {
-    console.error("Erro ao buscar peças:", err);
+    console.error("Erro peças:", err);
     res.status(500).json({ message: "Erro ao buscar peças" });
   }
 });
 
-// 🔥 LISTAR MOTOS
+// Listar motos
 app.get("/motos", async (req, res) => {
   try {
     const result = await db.query(
@@ -80,8 +79,61 @@ app.get("/motos", async (req, res) => {
     );
     res.json(result.rows);
   } catch (err) {
-    console.error("Erro ao buscar motos:", err);
+    console.error("Erro motos:", err);
     res.status(500).json({ message: "Erro ao buscar motos" });
+  }
+});
+
+// 🔥 FINALIZAR VENDA
+app.post("/finalizar-venda", async (req, res) => {
+  const { itens } = req.body;
+
+  if (!itens || itens.length === 0) {
+    return res.status(400).json({ message: "Carrinho vazio" });
+  }
+
+  const client = await db.connect();
+
+  try {
+    await client.query("BEGIN");
+
+    const total = itens.reduce(
+      (s, i) => s + i.quantidade * i.preco_unitario,
+      0
+    );
+
+    const vendaRes = await client.query(
+      "INSERT INTO vendas (total) VALUES ($1) RETURNING id",
+      [total]
+    );
+
+    const vendaId = vendaRes.rows[0].id;
+
+    for (const item of itens) {
+      await client.query(
+        `INSERT INTO venda_itens
+         (venda_id, peca_id, quantidade, preco_unitario)
+         VALUES ($1, $2, $3, $4)`,
+        [vendaId, item.peca_id, item.quantidade, item.preco_unitario]
+      );
+
+      await client.query(
+        `UPDATE pecas
+         SET estoque = estoque - $1
+         WHERE id = $2`,
+        [item.quantidade, item.peca_id]
+      );
+    }
+
+    await client.query("COMMIT");
+    res.json({ message: "Venda finalizada", vendaId });
+
+  } catch (err) {
+    await client.query("ROLLBACK");
+    console.error("Erro finalizar venda:", err);
+    res.status(500).json({ message: "Erro ao finalizar venda" });
+  } finally {
+    client.release();
   }
 });
 
