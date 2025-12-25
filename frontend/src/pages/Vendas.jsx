@@ -1,102 +1,86 @@
-// src/pages/Vendas.jsx
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import api from "../api"; // 🔥 usando API correta
+import api from "../api";
 import "./Vendas.css";
 
 export default function Vendas() {
   const nav = useNavigate();
-  const user = JSON.parse(localStorage.getItem("user"));
+
   const [vendas, setVendas] = useState([]);
+  const [aberta, setAberta] = useState(null);
 
   useEffect(() => {
-    if (!user) return;
-
-    api
-      .get("/vendas", {
-        params: {
-          role: user.role,
-          filial: user.filial
-        }
+    api.get("/vendas")
+      .then(res => {
+        setVendas(res.data || []);
       })
-      .then(res => setVendas(res.data))
-      .catch(() => alert("Erro ao carregar vendas!"));
-
-  }, [user]); // 🔥 CORREÇÃO QUE REMOVE O ERRO NO RAILWAY
-
-  function imprimir(venda) {
-    localStorage.setItem("notaFiscal", JSON.stringify({
-      nome_cliente: venda.nome_cliente,
-      telefone: venda.telefone,
-      cpf: venda.cpf,
-      quantidade: venda.quantidade,
-      preco_unitario: venda.preco_unitario,
-      total: venda.total,
-      peca: venda.nome_peca,
-      codigo: venda.codigo_peca,
-      filial: venda.filial,
-      data: venda.data_venda || venda.data
-    }));
-
-    nav("/nota");
-  }
+      .catch(err => {
+        console.error("Erro ao buscar vendas:", err);
+        setVendas([]);
+      });
+  }, []);
 
   return (
     <div className="vendas-container">
-      <h2 className="titulo-vendas">🧾 Histórico de Vendas</h2>
+      <div className="vendas-header">
+        <h2>🧾 Histórico de Vendas</h2>
+        <button className="btn-voltar" onClick={() => nav("/home")}>
+          ⬅ Voltar
+        </button>
+      </div>
 
-      <table className="tabela-vendas">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Cliente</th>
-            <th>Peça</th>
-            <th>Qtd</th>
-            <th>Total</th>
-            <th>Filial</th>
-            <th>Data</th>
-            <th>Ação</th>
-          </tr>
-        </thead>
-
-        <tbody>
-          {vendas.length === 0 && (
+      {vendas.length === 0 ? (
+        <p>Nenhuma venda registrada.</p>
+      ) : (
+        <table className="table">
+          <thead>
             <tr>
-              <td colSpan="8" style={{ textAlign: "center", padding: 20 }}>
-                Nenhuma venda registrada.
-              </td>
+              <th>ID</th>
+              <th>Data</th>
+              <th>Total</th>
+              <th>Detalhes</th>
             </tr>
-          )}
+          </thead>
+          <tbody>
+            {vendas.map(v => (
+              <>
+                <tr key={v.id}>
+                  <td>{v.id}</td>
+                  <td>{new Date(v.data_venda).toLocaleString()}</td>
+                  <td>
+                    <strong>R$ {Number(v.total).toFixed(2)}</strong>
+                  </td>
+                  <td>
+                    <button
+                      className="btn-detalhes"
+                      onClick={() =>
+                        setAberta(aberta === v.id ? null : v.id)
+                      }
+                    >
+                      {aberta === v.id ? "▲" : "▼"}
+                    </button>
+                  </td>
+                </tr>
 
-          {vendas.map(v => (
-            <tr key={v.id}>
-              <td>{v.id}</td>
-              <td>{v.nome_cliente}</td>
-              <td>{v.nome_peca}</td>
-              <td>{v.quantidade}</td>
-              <td>R$ {Number(v.total).toFixed(2)}</td>
-              <td>{v.filial}</td>
-              <td>
-                {v.data_venda
-                  ? new Date(v.data_venda).toLocaleString()
-                  : v.data
-                  ? new Date(v.data).toLocaleString()
-                  : ""}
-              </td>
-
-              <td>
-                <button
-                  className="btn-imprimir"
-                  onClick={() => imprimir(v)}
-                >
-                  Imprimir Nota
-                </button>
-              </td>
-
-            </tr>
-          ))}
-        </tbody>
-      </table>
+                {aberta === v.id && (
+                  <tr>
+                    <td colSpan="4">
+                      <ul className="lista-itens">
+                        {v.itens.map((i, idx) => (
+                          <li key={idx}>
+                            {i.nome} — {i.quantidade} × R${" "}
+                            {Number(i.preco_unitario).toFixed(2)}
+                          </li>
+                        ))}
+                      </ul>
+                    </td>
+                  </tr>
+                )}
+              </>
+            ))}
+          </tbody>
+        </table>
+      )}
     </div>
   );
 }
