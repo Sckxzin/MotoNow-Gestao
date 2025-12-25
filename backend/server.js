@@ -58,12 +58,20 @@ app.post("/login", async (req, res) => {
   }
 });
 
-// Listar peças
+// 🔥 LISTAR PEÇAS (ALINHADO COM O FRONT)
 app.get("/pecas", async (req, res) => {
   try {
     const result = await db.query(
-      "SELECT id, nome, codigo, estoque, preco, filial_atual FROM pecas"
+      `SELECT 
+        id,
+        nome,
+        codigo,
+        estoque AS quantidade,
+        preco AS valor,
+        filial_atual
+       FROM pecas`
     );
+
     res.json(result.rows);
   } catch (err) {
     console.error("Erro peças:", err);
