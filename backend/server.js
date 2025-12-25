@@ -62,7 +62,7 @@ app.post("/login", async (req, res) => {
 app.get("/pecas", async (req, res) => {
   try {
     const result = await db.query(
-      "SELECT id, nome, preco, estoque FROM pecas"
+      "SELECT id, nome, codigo, estoque, preco, filial_atual FROM pecas"
     );
     res.json(result.rows);
   } catch (err) {
@@ -84,7 +84,7 @@ app.get("/motos", async (req, res) => {
   }
 });
 
-// 🔥 FINALIZAR VENDA
+// Finalizar venda (carrinho)
 app.post("/finalizar-venda", async (req, res) => {
   const { itens } = req.body;
 
@@ -103,7 +103,7 @@ app.post("/finalizar-venda", async (req, res) => {
     );
 
     const vendaRes = await client.query(
-      "INSERT INTO vendas (total) VALUES ($1) RETURNING id",
+      "INSERT INTO vendas (total) VALUES ($1) RETURNING id, data_venda",
       [total]
     );
 
@@ -134,6 +134,39 @@ app.post("/finalizar-venda", async (req, res) => {
     res.status(500).json({ message: "Erro ao finalizar venda" });
   } finally {
     client.release();
+  }
+});
+
+// Histórico de vendas
+app.get("/vendas", async (req, res) => {
+  try {
+    const vendas = await db.query(
+      `SELECT id, data_venda, total
+       FROM vendas
+       ORDER BY data_venda DESC`
+    );
+
+    const resultado = [];
+
+    for (const v of vendas.rows) {
+      const itens = await db.query(
+        `SELECT vi.quantidade, vi.preco_unitario, p.nome
+         FROM venda_itens vi
+         JOIN pecas p ON p.id = vi.peca_id
+         WHERE vi.venda_id = $1`,
+        [v.id]
+      );
+
+      resultado.push({
+        ...v,
+        itens: itens.rows
+      });
+    }
+
+    res.json(resultado);
+  } catch (err) {
+    console.error("Erro histórico vendas:", err);
+    res.status(500).json({ message: "Erro ao buscar vendas" });
   }
 });
 
