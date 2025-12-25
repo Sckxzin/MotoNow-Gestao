@@ -5,11 +5,9 @@ const { Pool } = require("pg");
 
 const app = express();
 
-/* ================= CORS (FIX REAL) ================= */
+/* ================= CORS ================= */
 app.use(cors({
-  origin: [
-    "https://motonow-gestao-production.up.railway.app"
-  ],
+  origin: ["https://motonow-gestao-production.up.railway.app"],
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
@@ -34,10 +32,13 @@ db.connect()
   .catch(err => console.error("DB ERRO", err));
 
 /* ================= ROTAS ================= */
+
+// Health check
 app.get("/health", (req, res) => {
   res.json({ status: "ok" });
 });
 
+// Login
 app.post("/login", async (req, res) => {
   const { username, password } = req.body;
 
@@ -55,6 +56,32 @@ app.post("/login", async (req, res) => {
   } catch (e) {
     console.error("Erro login:", e);
     res.status(500).json({ message: "Erro servidor" });
+  }
+});
+
+// 🔥 LISTAR PEÇAS (ESSENCIAL)
+app.get("/pecas", async (req, res) => {
+  try {
+    const result = await db.query(
+      "SELECT id, nome, preco, estoque FROM pecas"
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error("Erro ao buscar peças:", err);
+    res.status(500).json({ message: "Erro ao buscar peças" });
+  }
+});
+
+// 🔥 LISTAR MOTOS
+app.get("/motos", async (req, res) => {
+  try {
+    const result = await db.query(
+      "SELECT id, modelo, ano, cor, chassi, filial, status FROM motos"
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error("Erro ao buscar motos:", err);
+    res.status(500).json({ message: "Erro ao buscar motos" });
   }
 });
 
