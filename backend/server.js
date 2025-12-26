@@ -228,6 +228,81 @@ app.get("/vendas", async (req, res) => {
     res.status(500).json({ message: "Erro ao listar vendas" });
   }
 });
+// 🔥 VENDER MOTO
+app.post("/vender-moto", async (req, res) => {
+  const {
+    moto_id,
+    cliente_nome,
+    valor,
+    brinde,
+    gasolina,
+    forma_pagamento,
+    como_chegou
+  } = req.body;
+
+  if (!moto_id || !cliente_nome || !valor) {
+    return res.status(400).json({ message: "Dados obrigatórios ausentes" });
+  }
+
+  const client = await db.connect();
+
+  try {
+    await client.query("BEGIN");
+
+    // buscar dados da moto
+    const motoRes = await client.query(
+      `SELECT modelo, cor, chassi
+       FROM motos
+       WHERE id = $1 AND status = 'DISPONIVEL'`,
+      [moto_id]
+    );
+
+    if (motoRes.rows.length === 0) {
+      throw new Error("Moto não disponível");
+    }
+
+    const moto = motoRes.rows[0];
+
+    // registrar venda
+    await client.query(
+      `INSERT INTO vendas_motos
+       (moto_id, modelo, cor, chassi, cliente_nome, valor,
+        brinde, gasolina, forma_pagamento, como_chegou)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,
+      [
+        moto_id,
+        moto.modelo,
+        moto.cor,
+        moto.chassi,
+        cliente_nome,
+        valor,
+        brinde,
+        gasolina,
+        forma_pagamento,
+        como_chegou
+      ]
+    );
+
+    // atualizar status da moto
+    await client.query(
+      `UPDATE motos
+       SET status = 'VENDIDA'
+       WHERE id = $1`,
+      [moto_id]
+    );
+
+    await client.query("COMMIT");
+    res.json({ message: "Moto vendida com sucesso" });
+
+  } catch (err) {
+    await client.query("ROLLBACK");
+    console.error("Erro vender moto:", err);
+    res.status(500).json({ message: "Erro ao vender moto" });
+  } finally {
+    client.release();
+  }
+});
+
 
 
 /* ================= SERVER ================= */
