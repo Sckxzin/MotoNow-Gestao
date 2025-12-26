@@ -15,43 +15,27 @@ export default function Home() {
 
   const [busca, setBusca] = useState("");
 
-  /* ================= LOAD SEGURO ================= */
+  /* ======== MODAL VENDA MOTO ======== */
+  const [motoSelecionada, setMotoSelecionada] = useState(null);
+  const [clienteNome, setClienteNome] = useState("");
+  const [valorMoto, setValorMoto] = useState("");
+  const [brinde, setBrinde] = useState(false);
+  const [gasolina, setGasolina] = useState(false);
+  const [formaPagamento, setFormaPagamento] = useState("");
+  const [comoChegou, setComoChegou] = useState("");
+
+  /* ================= LOAD ================= */
   useEffect(() => {
     const raw = localStorage.getItem("user");
+    if (!raw) return nav("/");
 
-    if (!raw) {
-      nav("/");
-      return;
-    }
-
-    let data;
-    try {
-      data = JSON.parse(raw);
-    } catch {
-      localStorage.clear();
-      nav("/");
-      return;
-    }
-
-    if (!data?.role || !data?.filial) {
-      localStorage.clear();
-      nav("/");
-      return;
-    }
+    const data = JSON.parse(raw);
+    if (!data?.role || !data?.filial) return nav("/");
 
     setUser(data);
 
-    // 🔥 PEÇAS
-    api
-      .get("/pecas")
-      .then(res => setPecas(res.data || []))
-      .catch(() => setPecas([]));
-
-    // 🔥 MOTOS
-    api
-      .get("/motos")
-      .then(res => setMotos(res.data || []))
-      .catch(() => setMotos([]));
+    api.get("/pecas").then(res => setPecas(res.data || []));
+    api.get("/motos").then(res => setMotos(res.data || []));
   }, [nav]);
 
   function sair() {
@@ -59,20 +43,14 @@ export default function Home() {
     nav("/");
   }
 
-  /* ================= FILTRO ================= */
-  const pecasFiltradas = pecas.filter(p =>
-    (p.nome || "").toLowerCase().includes(busca.toLowerCase())
-  );
-
-  /* ================= CARRINHO ================= */
+  /* ================= CARRINHO PEÇAS ================= */
   function adicionarCarrinho(peca) {
     const carrinho = JSON.parse(localStorage.getItem("carrinho")) || [];
 
     const existente = carrinho.find(i => i.peca_id === peca.id);
 
-    if (existente) {
-      existente.quantidade += 1;
-    } else {
+    if (existente) existente.quantidade += 1;
+    else {
       carrinho.push({
         peca_id: peca.id,
         nome: peca.nome,
@@ -85,19 +63,43 @@ export default function Home() {
     alert("Peça adicionada ao carrinho!");
   }
 
-  /* ================= VENDER MOTO ================= */
-  async function venderMoto(id) {
-    if (!window.confirm("Confirmar venda da moto?")) return;
+  /* ================= VENDA MOTO ================= */
+  function abrirVendaMoto(moto) {
+    setMotoSelecionada(moto);
+    setClienteNome("");
+    setValorMoto("");
+    setBrinde(false);
+    setGasolina(false);
+    setFormaPagamento("");
+    setComoChegou("");
+  }
+
+  async function confirmarVendaMoto() {
+    if (!clienteNome || !valorMoto) {
+      alert("Informe nome do cliente e valor");
+      return;
+    }
 
     try {
-      await api.post("/vender-moto", { moto_id: id });
+      await api.post("/vender-moto", {
+        moto_id: motoSelecionada.id,
+        cliente_nome: clienteNome,
+        valor: valorMoto,
+        brinde,
+        gasolina,
+        forma_pagamento: formaPagamento,
+        como_chegou: comoChegou
+      });
 
       setMotos(prev =>
         prev.map(m =>
-          m.id === id ? { ...m, status: "VENDIDA" } : m
+          m.id === motoSelecionada.id
+            ? { ...m, status: "VENDIDA" }
+            : m
         )
       );
 
+      setMotoSelecionada(null);
       alert("Moto vendida com sucesso!");
     } catch (err) {
       console.error(err);
@@ -109,127 +111,128 @@ export default function Home() {
 
   return (
     <div className="home-container">
-      {/* ================= HEADER ================= */}
+      {/* HEADER */}
       <div className="home-header">
-        <img src="/logo-shineray.png" alt="Shineray" className="logo-mini" />
         <h2>MotoNow • Gestão — {user.filial}</h2>
-        <button className="btn-sair" onClick={sair}>
-          Sair
-        </button>
+        <button onClick={sair}>Sair</button>
       </div>
 
-      {/* ================= TABS ================= */}
+      {/* TABS */}
       <div className="tabs">
-        <button
-          className={`tab-btn ${tab === "pecas" ? "active" : ""}`}
-          onClick={() => setTab("pecas")}
-        >
-          📦 Peças
-        </button>
-
-        <button
-          className={`tab-btn ${tab === "motos" ? "active" : ""}`}
-          onClick={() => setTab("motos")}
-        >
-          🏍 Motos
-        </button>
-
-        <button className="tab-btn" onClick={() => nav("/vendas")}>
-          🧾 Vendas
-        </button>
-
-        <button className="tab-btn" onClick={() => nav("/carrinho")}>
-          🛒 Carrinho
-        </button>
+        <button onClick={() => setTab("pecas")}>📦 Peças</button>
+        <button onClick={() => setTab("motos")}>🏍 Motos</button>
+        <button onClick={() => nav("/vendas")}>🧾 Vendas</button>
+        <button onClick={() => nav("/carrinho")}>🛒 Carrinho</button>
       </div>
 
-      {/* ================= PEÇAS ================= */}
+      {/* PEÇAS */}
       {tab === "pecas" && (
         <>
-          <h3 className="section-title">📦 Estoque de Peças</h3>
-
           <input
-            className="input-busca"
-            placeholder="Buscar por nome..."
+            placeholder="Buscar peça..."
             value={busca}
             onChange={e => setBusca(e.target.value)}
           />
 
-          <div className="table-container">
-            <table className="table">
-              <thead>
-                <tr>
-                  <th>Nome</th>
-                  <th>Qtd</th>
-                  <th>Valor</th>
-                  <th>Ação</th>
-                </tr>
-              </thead>
-              <tbody>
-                {pecasFiltradas.map(p => (
+          <table className="table">
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>Qtd</th>
+                <th>Valor</th>
+                <th>Ação</th>
+              </tr>
+            </thead>
+            <tbody>
+              {pecas
+                .filter(p =>
+                  p.nome.toLowerCase().includes(busca.toLowerCase())
+                )
+                .map(p => (
                   <tr key={p.id}>
                     <td>{p.nome}</td>
                     <td>{p.estoque}</td>
+                    <td>R$ {Number(p.preco).toFixed(2)}</td>
                     <td>
-                      <strong>R$ {Number(p.preco).toFixed(2)}</strong>
-                    </td>
-                    <td>
-                      <button
-                        className="action-btn"
-                        onClick={() => adicionarCarrinho(p)}
-                      >
-                        🛒 Carrinho
+                      <button onClick={() => adicionarCarrinho(p)}>
+                        🛒
                       </button>
                     </td>
                   </tr>
                 ))}
-              </tbody>
-            </table>
-          </div>
+            </tbody>
+          </table>
         </>
       )}
 
-      {/* ================= MOTOS ================= */}
+      {/* MOTOS */}
       {tab === "motos" && (
-        <>
-          <h3 className="section-title">🏍 Estoque de Motos</h3>
+        <table className="table">
+          <thead>
+            <tr>
+              <th>Modelo</th>
+              <th>Cor</th>
+              <th>Chassi</th>
+              <th>Filial</th>
+              <th>Status</th>
+              <th>Ação</th>
+            </tr>
+          </thead>
+          <tbody>
+            {motos.map(m => (
+              <tr key={m.id}>
+                <td>{m.modelo}</td>
+                <td>{m.cor}</td>
+                <td>{m.chassi}</td>
+                <td>{m.filial}</td>
+                <td>{m.status}</td>
+                <td>
+                  {m.status === "DISPONIVEL" && (
+                    <button onClick={() => abrirVendaMoto(m)}>
+                      Vender
+                    </button>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
 
-          <div className="table-container">
-            <table className="table">
-              <thead>
-                <tr>
-                  <th>Modelo</th>
-                  <th>Cor</th>
-                  <th>Chassi</th>
-                  <th>Filial</th>
-                  <th>Status</th>
-                  <th>Ação</th>
-                </tr>
-              </thead>
-              <tbody>
-                {motos.map(m => (
-                  <tr key={m.id}>
-                    <td>{m.modelo}</td>
-                    <td>{m.cor}</td>
-                    <td>{m.chassi}</td>
-                    <td>{m.filial}</td>
-                    <td>{m.status}</td>
-                    <td>
-                      {m.status === "DISPONIVEL" && (
-                        <button
-                          className="action-btn"
-                          onClick={() => venderMoto(m.id)}
-                        >
-                          Vender
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+      {/* MODAL VENDA MOTO */}
+      {motoSelecionada && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <h3>Venda da Moto</h3>
+
+            <input placeholder="Nome do cliente" value={clienteNome}
+              onChange={e => setClienteNome(e.target.value)} />
+
+            <input placeholder="Valor" type="number" value={valorMoto}
+              onChange={e => setValorMoto(e.target.value)} />
+
+            <label>
+              <input type="checkbox" checked={brinde}
+                onChange={e => setBrinde(e.target.checked)} /> Brinde
+            </label>
+
+            <label>
+              <input type="checkbox" checked={gasolina}
+                onChange={e => setGasolina(e.target.checked)} /> Gasolina
+            </label>
+
+            <input placeholder="Forma de pagamento"
+              value={formaPagamento}
+              onChange={e => setFormaPagamento(e.target.value)} />
+
+            <input placeholder="Como chegou?"
+              value={comoChegou}
+              onChange={e => setComoChegou(e.target.value)} />
+
+            <button onClick={confirmarVendaMoto}>Confirmar</button>
+            <button onClick={() => setMotoSelecionada(null)}>Cancelar</button>
           </div>
-        </>
+        </div>
       )}
     </div>
   );
