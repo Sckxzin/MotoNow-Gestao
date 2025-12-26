@@ -5,7 +5,7 @@ const { Pool } = require("pg");
 
 const app = express();
 
-/* ================= CORS ================= */
+/* ===== CORS ===== */
 app.use(cors({
   origin: ["https://motonow-gestao-production.up.railway.app"],
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
@@ -15,7 +15,7 @@ app.options("*", cors());
 
 app.use(express.json());
 
-/* ================= DATABASE ================= */
+/* ===== DB ===== */
 const db = new Pool({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
@@ -29,74 +29,111 @@ db.connect()
   .then(() => console.log("✅ DB OK"))
   .catch(err => console.error("❌ DB ERRO", err));
 
-/* ================= ROTAS ================= */
-
-/* ---------- HEALTH ---------- */
+/* ===== HEALTH ===== */
 app.get("/health", (req, res) => {
   res.json({ status: "ok" });
 });
 
-/* ---------- LOGIN ---------- */
+/* ===== LOGIN ===== */
 app.post("/login", async (req, res) => {
   const { username, password } = req.body;
 
+  const r = await db.query(
+    `SELECT id, username, role, cidade
+     FROM usuarios
+     WHERE username = $1 AND password = $2`,
+    [username, password]
+  );
+
+  if (r.rows.length === 0) {
+    return res.status(401).json({ message: "Login inválido" });
+  }
+
+  res.json(r.rows[0]);
+});
+
+/* ===== PEÇAS ===== */
+app.get("/pecas", async (req, res) => {
+  const result = await db.query(
+    "SELECT id, nome, preco, estoque FROM pecas ORDER BY nome"
+  );
+  res.json(result.rows);
+});
+
+/* ===== MOTOS ===== */
+app.get("/motos", async (req, res) => {
+  const result = await db.query(
+    "SELECT id, modelo, cor, chassi, filial, status FROM motos ORDER BY id"
+  );
+  res.json(result.rows);
+});
+
+/* ===== FINALIZAR VENDA (PEÇAS) ===== */
+app.post("/finalizar-venda", async (req, res) => {
+  const { cliente_nome, cliente_cpf, forma_pagamento, itens, total } = req.body;
+
+  if (!cliente_nome || !cliente_cpf || !forma_pagamento) {
+    return res.status(400).json({ message: "Dados do cliente incompletos" });
+  }
+
+  if (!itens || itens.length === 0) {
+    return res.status(400).json({ message: "Carrinho vazio" });
+  }
+
+  const client = await db.connect();
+
   try {
-    const r = await db.query(
-      `SELECT id, username, role, cidade
-       FROM usuarios
-       WHERE username = $1 AND password = $2`,
-      [username, password]
+    await client.query("BEGIN");
+
+    const vendaRes = await client.query(
+      `INSERT INTO vendas
+       (cliente_nome, cliente_cpf, forma_pagamento, total)
+       VALUES ($1,$2,$3,$4)
+       RETURNING id`,
+      [cliente_nome, cliente_cpf, forma_pagamento, total]
     );
 
-    if (r.rows.length === 0) {
-      return res.status(401).json({ message: "Login inválido" });
+    const vendaId = vendaRes.rows[0].id;
+
+    for (const item of itens) {
+      await client.query(
+        `INSERT INTO venda_itens
+         (venda_id, peca_id, quantidade, preco_unitario)
+         VALUES ($1,$2,$3,$4)`,
+        [vendaId, item.peca_id, item.quantidade, item.preco_unitario]
+      );
+
+      await client.query(
+        `UPDATE pecas SET estoque = estoque - $1 WHERE id = $2`,
+        [item.quantidade, item.peca_id]
+      );
     }
 
-    res.json(r.rows[0]);
+    await client.query("COMMIT");
+    res.json({ message: "Venda realizada", vendaId });
+
   } catch (err) {
+    await client.query("ROLLBACK");
     console.error(err);
-    res.status(500).json({ message: "Erro servidor" });
+    res.status(500).json({ message: "Erro ao finalizar venda" });
+  } finally {
+    client.release();
   }
 });
 
-/* ---------- PEÇAS ---------- */
-app.get("/pecas", async (req, res) => {
-  try {
-    const result = await db.query(
-      "SELECT id, nome, preco, estoque FROM pecas ORDER BY nome"
-    );
-    res.json(result.rows);
-  } catch (err) {
-    res.status(500).json({ message: "Erro ao buscar peças" });
-  }
+/* ===== HISTÓRICO VENDAS MOTOS ===== */
+app.get("/vendas-motos", async (req, res) => {
+  const result = await db.query(
+    "SELECT * FROM vendas_motos ORDER BY data_venda DESC"
+  );
+  res.json(result.rows);
 });
 
-/* ---------- MOTOS ---------- */
-app.get("/motos", async (req, res) => {
-  try {
-    const result = await db.query(
-      `SELECT id, modelo, cor, chassi, filial, status
-       FROM motos
-       ORDER BY id`
-    );
-    res.json(result.rows);
-  } catch (err) {
-    res.status(500).json({ message: "Erro ao buscar motos" });
-  }
-});
-
-/* ---------- VENDA DE MOTO + HISTÓRICO ---------- */
+/* ===== VENDER MOTO ===== */
 app.post("/vender-moto", async (req, res) => {
   const {
-    moto_id,
-    nome_cliente,
-    cpf,
-    telefone,
-    valor,
-    forma_pagamento,
-    brinde,
-    gasolina,
-    como_chegou
+    moto_id, nome_cliente, cpf, telefone,
+    valor, forma_pagamento, brinde, gasolina, como_chegou
   } = req.body;
 
   const client = await db.connect();
@@ -105,15 +142,12 @@ app.post("/vender-moto", async (req, res) => {
     await client.query("BEGIN");
 
     const motoRes = await client.query(
-      "SELECT modelo, cor, chassi, filial, status FROM motos WHERE id = $1",
+      "SELECT * FROM motos WHERE id = $1 AND status = 'DISPONIVEL'",
       [moto_id]
     );
 
     if (motoRes.rows.length === 0)
-      throw new Error("Moto não encontrada");
-
-    if (motoRes.rows[0].status !== "DISPONIVEL")
-      throw new Error("Moto já vendida");
+      throw new Error("Moto indisponível");
 
     const moto = motoRes.rows[0];
 
@@ -124,19 +158,9 @@ app.post("/vender-moto", async (req, res) => {
         valor, forma_pagamento, brinde, gasolina, como_chegou)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)`,
       [
-        moto_id,
-        moto.modelo,
-        moto.cor,
-        moto.chassi,
-        moto.filial,
-        nome_cliente,
-        cpf,
-        telefone,
-        valor,
-        forma_pagamento,
-        brinde,
-        gasolina,
-        como_chegou
+        moto.id, moto.modelo, moto.cor, moto.chassi, moto.filial,
+        nome_cliente, cpf, telefone,
+        valor, forma_pagamento, brinde, gasolina, como_chegou
       ]
     );
 
@@ -146,34 +170,19 @@ app.post("/vender-moto", async (req, res) => {
     );
 
     await client.query("COMMIT");
-    res.json({ message: "Moto vendida com sucesso" });
+    res.json({ message: "Moto vendida" });
 
   } catch (err) {
     await client.query("ROLLBACK");
-    console.error(err);
     res.status(500).json({ message: err.message });
   } finally {
     client.release();
   }
 });
 
-/* ---------- HISTÓRICO DE VENDAS DE MOTOS ---------- */
-app.get("/vendas-motos", async (req, res) => {
-  try {
-    const result = await db.query(
-      `SELECT *
-       FROM vendas_motos
-       ORDER BY data_venda DESC`
-    );
-    res.json(result.rows);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Erro ao buscar histórico de motos" });
-  }
-});
-
-/* ================= SERVER ================= */
+/* ===== SERVER ===== */
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, "0.0.0.0", () => {
-  console.log("🚀 API ON na porta", PORT);
+  console.log("🚀 API ON", PORT);
 });
+
