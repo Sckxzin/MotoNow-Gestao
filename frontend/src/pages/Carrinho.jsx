@@ -8,15 +8,10 @@ export default function Carrinho() {
 
   const [itens, setItens] = useState([]);
 
-  // 🔹 Dados da venda
+  // 🔹 Dados do cliente (PEÇAS)
   const [nomeCliente, setNomeCliente] = useState("");
-  const [modelo, setModelo] = useState("");
-  const [cor, setCor] = useState("");
-  const [chassi, setChassi] = useState("");
-  const [pagamento, setPagamento] = useState("");
-  const [comoChegou, setComoChegou] = useState("");
-  const [brinde, setBrinde] = useState(false);
-  const [gasolina, setGasolina] = useState(false);
+  const [cpf, setCpf] = useState("");
+  const [formaPagamento, setFormaPagamento] = useState("");
 
   /* ================= LOAD CARRINHO ================= */
   useEffect(() => {
@@ -57,23 +52,18 @@ export default function Carrinho() {
       return;
     }
 
-    if (!nomeCliente || !pagamento) {
-      alert("Preencha nome do cliente e forma de pagamento");
+    if (!nomeCliente || !cpf || !formaPagamento) {
+      alert("Preencha nome, CPF e forma de pagamento");
       return;
     }
 
     try {
       await api.post("/finalizar-venda", {
         tipo: "PECA",
-        nome_cliente: nomeCliente,
-        modelo,
-        cor,
-        chassi,
-        brinde,
-        gasolina,
-        forma_pagamento: pagamento,
-        como_chegou: comoChegou,
-        valor: total,
+        cliente_nome: nomeCliente,
+        cliente_cpf: cpf,
+        forma_pagamento: formaPagamento,
+        total,
         itens
       });
 
@@ -88,7 +78,7 @@ export default function Carrinho() {
 
   return (
     <div className="carrinho-container">
-      <h2>🛒 Carrinho de Vendas</h2>
+      <h2>🛒 Carrinho de Peças</h2>
 
       {itens.length === 0 ? (
         <p>Carrinho vazio</p>
@@ -137,66 +127,26 @@ export default function Carrinho() {
 
           <h3>Total: R$ {total.toFixed(2)}</h3>
 
-          {/* ================= DADOS DA VENDA ================= */}
-          <h3>📋 Dados da Venda</h3>
+          {/* ================= DADOS DO CLIENTE ================= */}
+          <h3>👤 Dados do Cliente</h3>
 
           <input
-            placeholder="Nome do Cliente"
+            placeholder="Nome do cliente"
             value={nomeCliente}
             onChange={e => setNomeCliente(e.target.value)}
           />
 
           <input
-            placeholder="Modelo"
-            value={modelo}
-            onChange={e => setModelo(e.target.value)}
+            placeholder="CPF"
+            value={cpf}
+            onChange={e => setCpf(e.target.value)}
           />
 
           <input
-            placeholder="Cor"
-            value={cor}
-            onChange={e => setCor(e.target.value)}
+            placeholder="Forma de pagamento"
+            value={formaPagamento}
+            onChange={e => setFormaPagamento(e.target.value)}
           />
-
-          <input
-            placeholder="Chassi"
-            value={chassi}
-            onChange={e => setChassi(e.target.value)}
-          />
-
-          <select value={pagamento} onChange={e => setPagamento(e.target.value)}>
-            <option value="">Forma de Pagamento</option>
-            <option value="Pix">Pix</option>
-            <option value="Dinheiro">Dinheiro</option>
-            <option value="Cartão">Cartão</option>
-            <option value="Transferência">Transferência</option>
-          </select>
-
-          <select value={comoChegou} onChange={e => setComoChegou(e.target.value)}>
-            <option value="">Como chegou?</option>
-            <option value="Loja">Loja</option>
-            <option value="Indicação">Indicação</option>
-            <option value="Instagram">Instagram</option>
-            <option value="WhatsApp">WhatsApp</option>
-          </select>
-
-          <label>
-            <input
-              type="checkbox"
-              checked={brinde}
-              onChange={e => setBrinde(e.target.checked)}
-            />
-            Brinde
-          </label>
-
-          <label>
-            <input
-              type="checkbox"
-              checked={gasolina}
-              onChange={e => setGasolina(e.target.checked)}
-            />
-            Gasolina
-          </label>
 
           <br /><br />
 
