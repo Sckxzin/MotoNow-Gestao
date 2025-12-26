@@ -8,6 +8,16 @@ export default function Carrinho() {
 
   const [itens, setItens] = useState([]);
 
+  // 🔹 Dados da venda
+  const [nomeCliente, setNomeCliente] = useState("");
+  const [modelo, setModelo] = useState("");
+  const [cor, setCor] = useState("");
+  const [chassi, setChassi] = useState("");
+  const [pagamento, setPagamento] = useState("");
+  const [comoChegou, setComoChegou] = useState("");
+  const [brinde, setBrinde] = useState(false);
+  const [gasolina, setGasolina] = useState(false);
+
   /* ================= LOAD CARRINHO ================= */
   useEffect(() => {
     const carrinho = JSON.parse(localStorage.getItem("carrinho")) || [];
@@ -47,8 +57,23 @@ export default function Carrinho() {
       return;
     }
 
+    if (!nomeCliente || !pagamento) {
+      alert("Preencha nome do cliente e forma de pagamento");
+      return;
+    }
+
     try {
       await api.post("/finalizar-venda", {
+        tipo: "PECA",
+        nome_cliente: nomeCliente,
+        modelo,
+        cor,
+        chassi,
+        brinde,
+        gasolina,
+        forma_pagamento: pagamento,
+        como_chegou: comoChegou,
+        valor: total,
         itens
       });
 
@@ -73,7 +98,6 @@ export default function Carrinho() {
             <thead>
               <tr>
                 <th>Peça</th>
-                <th>Código</th>
                 <th>Qtd</th>
                 <th>Preço</th>
                 <th>Subtotal</th>
@@ -84,7 +108,6 @@ export default function Carrinho() {
               {itens.map((i, index) => (
                 <tr key={index}>
                   <td>{i.nome}</td>
-                  <td>{i.codigo}</td>
                   <td>
                     <input
                       type="number"
@@ -96,7 +119,6 @@ export default function Carrinho() {
                   <td>
                     <input
                       type="number"
-                      min="0"
                       step="0.01"
                       value={i.preco_unitario}
                       onChange={e => alterarPreco(index, e.target.value)}
@@ -113,9 +135,71 @@ export default function Carrinho() {
             </tbody>
           </table>
 
-          <h3>Total Geral: R$ {total.toFixed(2)}</h3>
+          <h3>Total: R$ {total.toFixed(2)}</h3>
 
-          <br />
+          {/* ================= DADOS DA VENDA ================= */}
+          <h3>📋 Dados da Venda</h3>
+
+          <input
+            placeholder="Nome do Cliente"
+            value={nomeCliente}
+            onChange={e => setNomeCliente(e.target.value)}
+          />
+
+          <input
+            placeholder="Modelo"
+            value={modelo}
+            onChange={e => setModelo(e.target.value)}
+          />
+
+          <input
+            placeholder="Cor"
+            value={cor}
+            onChange={e => setCor(e.target.value)}
+          />
+
+          <input
+            placeholder="Chassi"
+            value={chassi}
+            onChange={e => setChassi(e.target.value)}
+          />
+
+          <select value={pagamento} onChange={e => setPagamento(e.target.value)}>
+            <option value="">Forma de Pagamento</option>
+            <option value="Pix">Pix</option>
+            <option value="Dinheiro">Dinheiro</option>
+            <option value="Cartão">Cartão</option>
+            <option value="Transferência">Transferência</option>
+          </select>
+
+          <select value={comoChegou} onChange={e => setComoChegou(e.target.value)}>
+            <option value="">Como chegou?</option>
+            <option value="Loja">Loja</option>
+            <option value="Indicação">Indicação</option>
+            <option value="Instagram">Instagram</option>
+            <option value="WhatsApp">WhatsApp</option>
+          </select>
+
+          <label>
+            <input
+              type="checkbox"
+              checked={brinde}
+              onChange={e => setBrinde(e.target.checked)}
+            />
+            Brinde
+          </label>
+
+          <label>
+            <input
+              type="checkbox"
+              checked={gasolina}
+              onChange={e => setGasolina(e.target.checked)}
+            />
+            Gasolina
+          </label>
+
+          <br /><br />
+
           <button className="btn-finalizar" onClick={finalizarVenda}>
             ✅ Finalizar Venda
           </button>
