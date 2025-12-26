@@ -27,23 +27,25 @@ const db = new Pool({
 });
 
 db.connect()
-  .then(() => console.log("DB OK"))
-  .catch(err => console.error("DB ERRO", err));
+  .then(() => console.log("✅ DB OK"))
+  .catch(err => console.error("❌ DB ERRO", err));
 
 /* ================= ROTAS ================= */
 
-// Health
+/* ---------- HEALTH ---------- */
 app.get("/health", (req, res) => {
   res.json({ status: "ok" });
 });
 
-// Login
+/* ---------- LOGIN ---------- */
 app.post("/login", async (req, res) => {
   const { username, password } = req.body;
 
   try {
     const r = await db.query(
-      "SELECT id, username, role, cidade FROM usuarios WHERE username=$1 AND password=$2",
+      `SELECT id, username, role, cidade
+       FROM usuarios
+       WHERE username = $1 AND password = $2`,
       [username, password]
     );
 
@@ -52,45 +54,32 @@ app.post("/login", async (req, res) => {
     }
 
     res.json(r.rows[0]);
-  } catch (e) {
-    console.error("Erro login:", e);
+  } catch (err) {
+    console.error("Erro login:", err);
     res.status(500).json({ message: "Erro servidor" });
   }
 });
 
-// Listar peças
+/* ---------- PEÇAS ---------- */
 app.get("/pecas", async (req, res) => {
-  const { role, cidade } = req.query;
-
   try {
-    let query = "SELECT id, nome, preco, estoque FROM pecas";
-    let params = [];
-
-    // 🔒 FILIAL vê só a própria cidade
-    if (role === "FILIAL") {
-      query += " WHERE cidade = $1";
-      params.push(cidade);
-    }
-
-    // 🏢 DIRETORIA vê tudo (sem WHERE)
-
-    const result = await db.query(query, params);
+    const result = await db.query(
+      "SELECT id, nome, preco, estoque FROM pecas ORDER BY nome"
+    );
     res.json(result.rows);
-
   } catch (err) {
     console.error("Erro peças:", err);
     res.status(500).json({ message: "Erro ao buscar peças" });
   }
 });
 
-
-
-// Listar motos
-// Listar motos (SEM ano)
+/* ---------- MOTOS ---------- */
 app.get("/motos", async (req, res) => {
   try {
     const result = await db.query(
-      "SELECT id, modelo, cor, chassi, filial, status FROM motos ORDER BY id"
+      `SELECT id, modelo, cor, chassi, filial, status
+       FROM motos
+       ORDER BY id`
     );
     res.json(result.rows);
   } catch (err) {
@@ -98,33 +87,8 @@ app.get("/motos", async (req, res) => {
     res.status(500).json({ message: "Erro ao buscar motos" });
   }
 });
-// 🔥 VENDER MOTO (muda status)
-app.post("/vender-moto", async (req, res) => {
-  const { moto_id } = req.body;
 
-  if (!moto_id) {
-    return res.status(400).json({ message: "ID da moto é obrigatório" });
-  }
-
-  try {
-    const result = await db.query(
-      "UPDATE motos SET status = 'VENDIDA' WHERE id = $1 AND status = 'DISPONIVEL' RETURNING id",
-      [moto_id]
-    );
-
-    if (result.rowCount === 0) {
-      return res.status(400).json({ message: "Moto não disponível" });
-    }
-
-    res.json({ message: "Moto vendida com sucesso" });
-  } catch (err) {
-    console.error("Erro vender moto:", err);
-    res.status(500).json({ message: "Erro ao vender moto" });
-  }
-});
-
-
-// 🔥 FINALIZAR VENDA (PEÇAS)
+/* ---------- VENDA DE PEÇAS ---------- */
 app.post("/finalizar-venda", async (req, res) => {
   const {
     cliente_nome,
@@ -147,7 +111,6 @@ app.post("/finalizar-venda", async (req, res) => {
   try {
     await client.query("BEGIN");
 
-    // 🔹 cria venda
     const vendaRes = await client.query(
       `INSERT INTO vendas
        (cliente_nome, cliente_cpf, forma_pagamento, total)
@@ -158,7 +121,6 @@ app.post("/finalizar-venda", async (req, res) => {
 
     const vendaId = vendaRes.rows[0].id;
 
-    // 🔹 itens + baixa estoque
     for (const item of itens) {
       await client.query(
         `INSERT INTO venda_itens
@@ -177,25 +139,21 @@ app.post("/finalizar-venda", async (req, res) => {
 
     await client.query("COMMIT");
 
-    res.json({
-      message: "Venda registrada com sucesso",
-      vendaId
-    });
-
+    res.json({ message: "Venda registrada com sucesso", vendaId });
   } catch (err) {
     await client.query("ROLLBACK");
-    console.error("Erro finalizar venda:", err);
+    console.error("Erro venda peças:", err);
     res.status(500).json({ message: "Erro ao finalizar venda" });
   } finally {
     client.release();
   }
 });
 
-// 🔥 LISTAR VENDAS
+/* ---------- LISTAR VENDAS DE PEÇAS ---------- */
 app.get("/vendas", async (req, res) => {
   try {
     const vendasRes = await db.query(
-      `SELECT id, total, created_at
+      `SELECT id, cliente_nome, total, created_at
        FROM vendas
        ORDER BY created_at DESC`
     );
@@ -204,10 +162,7 @@ app.get("/vendas", async (req, res) => {
 
     for (const v of vendasRes.rows) {
       const itensRes = await db.query(
-        `SELECT
-           vi.quantidade,
-           vi.preco_unitario,
-           p.nome
+        `SELECT vi.quantidade, vi.preco_unitario, p.nome
          FROM venda_itens vi
          JOIN pecas p ON p.id = vi.peca_id
          WHERE vi.venda_id = $1`,
@@ -215,9 +170,7 @@ app.get("/vendas", async (req, res) => {
       );
 
       vendas.push({
-        id: v.id,
-        total: v.total,
-        data: v.created_at,
+        ...v,
         itens: itensRes.rows
       });
     }
@@ -228,7 +181,8 @@ app.get("/vendas", async (req, res) => {
     res.status(500).json({ message: "Erro ao listar vendas" });
   }
 });
-// 🔥 VENDER MOTO
+
+/* ---------- VENDA DE MOTO + HISTÓRICO ---------- */
 app.post("/vender-moto", async (req, res) => {
   const {
     moto_id,
@@ -247,23 +201,19 @@ app.post("/vender-moto", async (req, res) => {
   try {
     await client.query("BEGIN");
 
-    // Buscar dados da moto
     const motoRes = await client.query(
       "SELECT modelo, cor, chassi, filial, status FROM motos WHERE id = $1",
       [moto_id]
     );
 
-    if (motoRes.rows.length === 0) {
+    if (motoRes.rows.length === 0)
       throw new Error("Moto não encontrada");
-    }
 
-    if (motoRes.rows[0].status !== "DISPONIVEL") {
+    if (motoRes.rows[0].status !== "DISPONIVEL")
       throw new Error("Moto já vendida");
-    }
 
     const moto = motoRes.rows[0];
 
-    // Inserir histórico
     await client.query(
       `INSERT INTO vendas_motos
        (moto_id, modelo, cor, chassi, filial,
@@ -287,30 +237,40 @@ app.post("/vender-moto", async (req, res) => {
       ]
     );
 
-    // Atualizar moto
     await client.query(
       "UPDATE motos SET status = 'VENDIDA' WHERE id = $1",
       [moto_id]
     );
 
     await client.query("COMMIT");
-    res.json({ message: "Moto vendida com sucesso" });
 
+    res.json({ message: "Moto vendida com sucesso" });
   } catch (err) {
     await client.query("ROLLBACK");
-    console.error(err);
+    console.error("Erro vender moto:", err);
     res.status(500).json({ message: err.message });
   } finally {
     client.release();
   }
 });
 
-
+/* ---------- HISTÓRICO DE VENDAS DE MOTOS ---------- */
+app.get("/vendas-motos", async (req, res) => {
+  try {
+    const result = await db.query(
+      `SELECT *
+       FROM vendas_motos
+       ORDER BY created_at DESC`
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error("Erro histórico motos:", err);
+    res.status(500).json({ message: "Erro ao buscar histórico de motos" });
+  }
+});
 
 /* ================= SERVER ================= */
 const PORT = process.env.PORT || 8080;
-
 app.listen(PORT, "0.0.0.0", () => {
-  console.log("API ON", PORT);
+  console.log("🚀 API ON na porta", PORT);
 });
-
