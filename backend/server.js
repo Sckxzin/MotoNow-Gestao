@@ -150,13 +150,19 @@ app.post("/finalizar-venda", async (req, res) => {
 });
 
 /* ---------- LISTAR VENDAS DE PEÇAS ---------- */
-app.get("/vendas", async (req, res) => {
+app.get("/vendas-motos", async (req, res) => {
   try {
-    const vendasRes = await db.query(
-      `SELECT id, cliente_nome, total, created_at
-       FROM vendas
-       ORDER BY created_at DESC`
+    const result = await db.query(
+      `SELECT *
+       FROM vendas_motos
+       ORDER BY data_venda DESC`
     );
+    res.json(result.rows);
+  } catch (err) {
+    console.error("Erro histórico motos:", err);
+    res.status(500).json({ message: "Erro ao buscar histórico de motos" });
+  }
+});
 
     const vendas = [];
 
