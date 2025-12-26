@@ -118,12 +118,23 @@ export default function Home() {
       </div>
 
       {/* TABS */}
-      <div className="tabs">
-        <button onClick={() => setTab("pecas")}>📦 Peças</button>
-        <button onClick={() => setTab("motos")}>🏍 Motos</button>
-        <button onClick={() => nav("/vendas")}>🧾 Vendas</button>
-        <button onClick={() => nav("/carrinho")}>🛒 Carrinho</button>
-      </div>
+<div className="tabs">
+  <button onClick={() => setTab("pecas")}>📦 Peças</button>
+  <button onClick={() => setTab("motos")}>🏍 Motos</button>
+
+  <button onClick={() => nav("/vendas")}>
+    🧾 Vendas (Peças)
+  </button>
+
+  <button onClick={() => nav("/vendas-motos")}>
+    🏍 Histórico Motos
+  </button>
+
+  <button onClick={() => nav("/carrinho")}>
+    🛒 Carrinho
+  </button>
+</div>
+
 
       {/* PEÇAS */}
       {tab === "pecas" && (
