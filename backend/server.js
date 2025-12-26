@@ -136,6 +136,44 @@ app.post("/finalizar-venda", async (req, res) => {
     client.release();
   }
 });
+// 🔥 LISTAR VENDAS
+app.get("/vendas", async (req, res) => {
+  try {
+    const vendasRes = await db.query(
+      `SELECT id, total, created_at
+       FROM vendas
+       ORDER BY created_at DESC`
+    );
+
+    const vendas = [];
+
+    for (const v of vendasRes.rows) {
+      const itensRes = await db.query(
+        `SELECT
+           vi.quantidade,
+           vi.preco_unitario,
+           p.nome
+         FROM venda_itens vi
+         JOIN pecas p ON p.id = vi.peca_id
+         WHERE vi.venda_id = $1`,
+        [v.id]
+      );
+
+      vendas.push({
+        id: v.id,
+        total: v.total,
+        data: v.created_at,
+        itens: itensRes.rows
+      });
+    }
+
+    res.json(vendas);
+  } catch (err) {
+    console.error("Erro listar vendas:", err);
+    res.status(500).json({ message: "Erro ao listar vendas" });
+  }
+});
+
 
 /* ================= SERVER ================= */
 const PORT = process.env.PORT || 8080;
