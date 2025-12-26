@@ -98,6 +98,31 @@ app.get("/motos", async (req, res) => {
     res.status(500).json({ message: "Erro ao buscar motos" });
   }
 });
+// 🔥 VENDER MOTO (muda status)
+app.post("/vender-moto", async (req, res) => {
+  const { moto_id } = req.body;
+
+  if (!moto_id) {
+    return res.status(400).json({ message: "ID da moto é obrigatório" });
+  }
+
+  try {
+    const result = await db.query(
+      "UPDATE motos SET status = 'VENDIDA' WHERE id = $1 AND status = 'DISPONIVEL' RETURNING id",
+      [moto_id]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(400).json({ message: "Moto não disponível" });
+    }
+
+    res.json({ message: "Moto vendida com sucesso" });
+  } catch (err) {
+    console.error("Erro vender moto:", err);
+    res.status(500).json({ message: "Erro ao vender moto" });
+  }
+});
+
 
 
 // 🔥 FINALIZAR VENDA
