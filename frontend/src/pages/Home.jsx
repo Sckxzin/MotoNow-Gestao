@@ -86,7 +86,7 @@ export default function Home() {
         nome_cliente: clienteNome,
         cpf: "",
         telefone:"",
-        valor: NumbervalorMoto,
+        valor: Number(valorMoto),
         forma_pagamento: formaPagamento,
         brinde,
         gasolina,
