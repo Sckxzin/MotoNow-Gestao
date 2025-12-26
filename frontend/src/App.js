@@ -8,7 +8,7 @@ import VendaPeca from "./pages/VendaPeca";
 import NotaFiscal from "./pages/NotaFiscal";
 import Vendas from "./pages/Vendas";
 import CadastroMoto from "./pages/CadastroMoto";
-import VenderMoto from "./pages/VenderMoto";
+import VendasMotos from "./pages/VendasMotos";
 import Carrinho from "./pages/Carrinho";
 
 export default function App() {
@@ -23,7 +23,7 @@ export default function App() {
         <Route path="/nota" element={<NotaFiscal />} />
         <Route path="/vendas" element={<Vendas />} />
         <Route path="/cadastro-moto" element={<CadastroMoto />} />
-        <Route path="/vender-moto/:id" element={<VenderMoto />} />
+        <Route path="/vendas-motos" element={<VendasMotos />} />
         <Route path="/carrinho" element={<Carrinho />} />
       </Routes>
     </BrowserRouter>
