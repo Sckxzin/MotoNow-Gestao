@@ -86,10 +86,11 @@ app.get("/pecas", async (req, res) => {
 
 
 // Listar motos
+// Listar motos (SEM ano)
 app.get("/motos", async (req, res) => {
   try {
     const result = await db.query(
-      "SELECT id, modelo, ano, cor, chassi, filial, status FROM motos"
+      "SELECT id, modelo, cor, chassi, filial, status FROM motos ORDER BY id"
     );
     res.json(result.rows);
   } catch (err) {
@@ -97,6 +98,7 @@ app.get("/motos", async (req, res) => {
     res.status(500).json({ message: "Erro ao buscar motos" });
   }
 });
+
 
 // 🔥 FINALIZAR VENDA
 app.post("/finalizar-venda", async (req, res) => {
