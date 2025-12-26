@@ -232,62 +232,64 @@ app.get("/vendas", async (req, res) => {
 app.post("/vender-moto", async (req, res) => {
   const {
     moto_id,
-    cliente_nome,
+    nome_cliente,
+    cpf,
+    telefone,
     valor,
+    forma_pagamento,
     brinde,
     gasolina,
-    forma_pagamento,
     como_chegou
   } = req.body;
-
-  if (!moto_id || !cliente_nome || !valor) {
-    return res.status(400).json({ message: "Dados obrigatórios ausentes" });
-  }
 
   const client = await db.connect();
 
   try {
     await client.query("BEGIN");
 
-    // buscar dados da moto
+    // Buscar dados da moto
     const motoRes = await client.query(
-      `SELECT modelo, cor, chassi
-       FROM motos
-       WHERE id = $1 AND status = 'DISPONIVEL'`,
+      "SELECT modelo, cor, chassi, filial, status FROM motos WHERE id = $1",
       [moto_id]
     );
 
     if (motoRes.rows.length === 0) {
-      throw new Error("Moto não disponível");
+      throw new Error("Moto não encontrada");
+    }
+
+    if (motoRes.rows[0].status !== "DISPONIVEL") {
+      throw new Error("Moto já vendida");
     }
 
     const moto = motoRes.rows[0];
 
-    // registrar venda
+    // Inserir histórico
     await client.query(
       `INSERT INTO vendas_motos
-       (moto_id, modelo, cor, chassi, cliente_nome, valor,
-        brinde, gasolina, forma_pagamento, como_chegou)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,
+       (moto_id, modelo, cor, chassi, filial,
+        nome_cliente, cpf, telefone,
+        valor, forma_pagamento, brinde, gasolina, como_chegou)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)`,
       [
         moto_id,
         moto.modelo,
         moto.cor,
         moto.chassi,
-        cliente_nome,
+        moto.filial,
+        nome_cliente,
+        cpf,
+        telefone,
         valor,
+        forma_pagamento,
         brinde,
         gasolina,
-        forma_pagamento,
         como_chegou
       ]
     );
 
-    // atualizar status da moto
+    // Atualizar moto
     await client.query(
-      `UPDATE motos
-       SET status = 'VENDIDA'
-       WHERE id = $1`,
+      "UPDATE motos SET status = 'VENDIDA' WHERE id = $1",
       [moto_id]
     );
 
@@ -296,8 +298,8 @@ app.post("/vender-moto", async (req, res) => {
 
   } catch (err) {
     await client.query("ROLLBACK");
-    console.error("Erro vender moto:", err);
-    res.status(500).json({ message: "Erro ao vender moto" });
+    console.error(err);
+    res.status(500).json({ message: err.message });
   } finally {
     client.release();
   }
