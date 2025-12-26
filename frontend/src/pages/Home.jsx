@@ -42,11 +42,15 @@ export default function Home() {
 
     setUser(data);
 
-    /* 🔥 PEÇAS */
-    api
-      .get("/pecas")
-      .then(res => setPecas(res.data || []))
-      .catch(() => setPecas([]));
+   api
+  .get("/pecas", {
+    params: {
+      cidade: data.filial
+    }
+  })
+  .then(res => setPecas(res.data || []))
+  .catch(() => setPecas([]));
+
 
     /* 🔥 MOTOS */
     api
