@@ -13,7 +13,6 @@ app.use(cors({
 }));
 app.options("*", cors());
 
-/* ================= MIDDLEWARE ================= */
 app.use(express.json());
 
 /* ================= DATABASE ================= */
@@ -55,7 +54,7 @@ app.post("/login", async (req, res) => {
 
     res.json(r.rows[0]);
   } catch (err) {
-    console.error("Erro login:", err);
+    console.error(err);
     res.status(500).json({ message: "Erro servidor" });
   }
 });
@@ -68,7 +67,6 @@ app.get("/pecas", async (req, res) => {
     );
     res.json(result.rows);
   } catch (err) {
-    console.error("Erro peças:", err);
     res.status(500).json({ message: "Erro ao buscar peças" });
   }
 });
@@ -83,104 +81,7 @@ app.get("/motos", async (req, res) => {
     );
     res.json(result.rows);
   } catch (err) {
-    console.error("Erro motos:", err);
     res.status(500).json({ message: "Erro ao buscar motos" });
-  }
-});
-
-/* ---------- VENDA DE PEÇAS ---------- */
-app.post("/finalizar-venda", async (req, res) => {
-  const {
-    cliente_nome,
-    cliente_cpf,
-    forma_pagamento,
-    itens,
-    total
-  } = req.body;
-
-  if (!cliente_nome || !cliente_cpf || !forma_pagamento) {
-    return res.status(400).json({ message: "Dados do cliente incompletos" });
-  }
-
-  if (!itens || itens.length === 0) {
-    return res.status(400).json({ message: "Carrinho vazio" });
-  }
-
-  const client = await db.connect();
-
-  try {
-    await client.query("BEGIN");
-
-    const vendaRes = await client.query(
-      `INSERT INTO vendas
-       (cliente_nome, cliente_cpf, forma_pagamento, total)
-       VALUES ($1, $2, $3, $4)
-       RETURNING id`,
-      [cliente_nome, cliente_cpf, forma_pagamento, total]
-    );
-
-    const vendaId = vendaRes.rows[0].id;
-
-    for (const item of itens) {
-      await client.query(
-        `INSERT INTO venda_itens
-         (venda_id, peca_id, quantidade, preco_unitario)
-         VALUES ($1, $2, $3, $4)`,
-        [vendaId, item.peca_id, item.quantidade, item.preco_unitario]
-      );
-
-      await client.query(
-        `UPDATE pecas
-         SET estoque = estoque - $1
-         WHERE id = $2`,
-        [item.quantidade, item.peca_id]
-      );
-    }
-
-    await client.query("COMMIT");
-
-    res.json({ message: "Venda registrada com sucesso", vendaId });
-  } catch (err) {
-    await client.query("ROLLBACK");
-    console.error("Erro venda peças:", err);
-    res.status(500).json({ message: "Erro ao finalizar venda" });
-  } finally {
-    client.release();
-  }
-});
-
-/* ---------- LISTAR VENDAS DE PEÇAS ---------- */
-app.get("/vendas-motos", async (req, res) => {
-  const result = await db.query(
-    `SELECT *
-     FROM vendas_motos
-     ORDER BY created_at DESC`
-  );
-  res.json(result.rows);
-});
-
-
-    const vendas = [];
-
-    for (const v of vendasRes.rows) {
-      const itensRes = await db.query(
-        `SELECT vi.quantidade, vi.preco_unitario, p.nome
-         FROM venda_itens vi
-         JOIN pecas p ON p.id = vi.peca_id
-         WHERE vi.venda_id = $1`,
-        [v.id]
-      );
-
-      vendas.push({
-        ...v,
-        itens: itensRes.rows
-      });
-    }
-
-    res.json(vendas);
-  } catch (err) {
-    console.error("Erro listar vendas:", err);
-    res.status(500).json({ message: "Erro ao listar vendas" });
   }
 });
 
@@ -245,11 +146,11 @@ app.post("/vender-moto", async (req, res) => {
     );
 
     await client.query("COMMIT");
-
     res.json({ message: "Moto vendida com sucesso" });
+
   } catch (err) {
     await client.query("ROLLBACK");
-    console.error("Erro vender moto:", err);
+    console.error(err);
     res.status(500).json({ message: err.message });
   } finally {
     client.release();
@@ -262,11 +163,11 @@ app.get("/vendas-motos", async (req, res) => {
     const result = await db.query(
       `SELECT *
        FROM vendas_motos
-       ORDER BY created_at DESC`
+       ORDER BY data_venda DESC`
     );
     res.json(result.rows);
   } catch (err) {
-    console.error("Erro histórico motos:", err);
+    console.error(err);
     res.status(500).json({ message: "Erro ao buscar histórico de motos" });
   }
 });
