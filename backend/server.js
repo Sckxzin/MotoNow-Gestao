@@ -63,27 +63,26 @@ app.get("/pecas", async (req, res) => {
   const { role, cidade } = req.query;
 
   try {
-    let query = `
-      SELECT id, nome, preco, estoque, cidade
-      FROM pecas
-    `;
+    let query = "SELECT id, nome, preco, estoque FROM pecas";
     let params = [];
 
-    // 👉 FILIAL vê só da própria cidade
+    // 🔒 FILIAL vê só a própria cidade
     if (role === "FILIAL") {
       query += " WHERE cidade = $1";
       params.push(cidade);
     }
 
-    // 👉 DIRETORIA vê tudo (sem WHERE)
-    const result = await db.query(query, params);
+    // 🏢 DIRETORIA vê tudo (sem WHERE)
 
+    const result = await db.query(query, params);
     res.json(result.rows);
+
   } catch (err) {
     console.error("Erro peças:", err);
     res.status(500).json({ message: "Erro ao buscar peças" });
   }
 });
+
 
 
 // Listar motos
