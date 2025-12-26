@@ -83,11 +83,13 @@ export default function Home() {
     try {
       await api.post("/vender-moto", {
         moto_id: motoSelecionada.id,
-        cliente_nome: clienteNome,
+        nome_cliente: clienteNome,
+        cpf: "",
+        telefone:"",
         valor: valorMoto,
+        forma_pagamento: formaPagamento,
         brinde,
         gasolina,
-        forma_pagamento: formaPagamento,
         como_chegou: comoChegou
       });
 
