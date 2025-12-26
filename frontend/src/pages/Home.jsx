@@ -96,6 +96,26 @@ export default function Home() {
   }
 
   if (!user) return null;
+  async function venderMoto(id) {
+  if (!window.confirm("Confirmar venda da moto?")) return;
+
+  try {
+    await api.post("/vender-moto", { moto_id: id });
+
+    // atualizar status local
+    setMotos(prev =>
+      prev.map(m =>
+        m.id === id ? { ...m, status: "VENDIDA" } : m
+      )
+    );
+
+    alert("Moto vendida com sucesso!");
+  } catch (err) {
+    console.error(err);
+    alert("Erro ao vender moto");
+  }
+}
+
 
   return (
     <div className="home-container">
