@@ -198,48 +198,44 @@ export default function Home() {
 
       {/* ================= MOTOS ================= */}
       {tab === "motos" && (
-        <>
-          <h3 className="section-title">🏍 Estoque de Motos</h3>
+  <>
+    <h3 className="section-title">🏍 Estoque de Motos</h3>
 
-          <select
-            className="select-filial"
-            value={filialFiltro}
-            onChange={e => setFilialFiltro(e.target.value)}
-          >
-            <option value="TODAS">Todas</option>
-            <option value="Escada">Escada</option>
-            <option value="Ipojuca">Ipojuca</option>
-            <option value="Ribeirão">Ribeirão</option>
-          </select>
-
-          <div className="table-container">
-            <table className="table">
-              <thead>
-                <tr>
-                  <th>Modelo</th>
-                  <th>Ano</th>
-                  <th>Cor</th>
-                  <th>Chassi</th>
-                  <th>Filial</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {motosFiltradas.map(m => (
-                  <tr key={m.id}>
-                    <td>{m.modelo}</td>
-                    <td>{m.ano}</td>
-                    <td>{m.cor}</td>
-                    <td>{m.chassi}</td>
-                    <td>{m.filial}</td>
-                    <td>{m.status}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </>
-      )}
+    <div className="table-container">
+      <table className="table">
+        <thead>
+          <tr>
+            <th>Modelo</th>
+            <th>Cor</th>
+            <th>Chassi</th>
+            <th>Filial</th>
+            <th>Status</th>
+            <th>Ação</th>
+          </tr>
+        </thead>
+        <tbody>
+          {motos.map(m => (
+            <tr key={m.id}>
+              <td>{m.modelo}</td>
+              <td>{m.cor}</td>
+              <td>{m.chassi}</td>
+              <td>{m.filial}</td>
+              <td>{m.status}</td>
+              <td>
+                {m.status === "DISPONIVEL" && (
+                  <button
+                    className="action-btn"
+                    onClick={() => venderMoto(m.id)}
+                  >
+                    Vender
+                  </button>
+                )}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
-  );
-}
+  </>
+)}
+
