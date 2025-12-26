@@ -45,6 +45,7 @@ export default function Home() {
    api
   .get("/pecas", {
     params: {
+      role: data.role,
       cidade: data.filial
     }
   })
