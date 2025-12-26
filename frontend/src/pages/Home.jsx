@@ -14,7 +14,6 @@ export default function Home() {
   const [motos, setMotos] = useState([]);
 
   const [busca, setBusca] = useState("");
-  const [filialFiltro, setFilialFiltro] = useState("TODAS");
 
   /* ================= LOAD SEGURO ================= */
   useEffect(() => {
@@ -42,22 +41,17 @@ export default function Home() {
 
     setUser(data);
 
-   api
-  .get("/pecas", {
-    params: {
-      cidade: data.filial
-    }
-  })
-  .then(res => setPecas(res.data || []))
-  .catch(() => setPecas([]));
+    // 🔥 PEÇAS
+    api
+      .get("/pecas")
+      .then(res => setPecas(res.data || []))
+      .catch(() => setPecas([]));
 
-
-    /* 🔥 MOTOS */
+    // 🔥 MOTOS
     api
       .get("/motos")
       .then(res => setMotos(res.data || []))
       .catch(() => setMotos([]));
-
   }, [nav]);
 
   function sair() {
@@ -65,13 +59,9 @@ export default function Home() {
     nav("/");
   }
 
-  /* ================= FILTROS ================= */
+  /* ================= FILTRO ================= */
   const pecasFiltradas = pecas.filter(p =>
     (p.nome || "").toLowerCase().includes(busca.toLowerCase())
-  );
-
-  const motosFiltradas = motos.filter(m =>
-    filialFiltro === "TODAS" ? true : m.filial === filialFiltro
   );
 
   /* ================= CARRINHO ================= */
@@ -95,36 +85,37 @@ export default function Home() {
     alert("Peça adicionada ao carrinho!");
   }
 
-  if (!user) return null;
+  /* ================= VENDER MOTO ================= */
   async function venderMoto(id) {
-  if (!window.confirm("Confirmar venda da moto?")) return;
+    if (!window.confirm("Confirmar venda da moto?")) return;
 
-  try {
-    await api.post("/vender-moto", { moto_id: id });
+    try {
+      await api.post("/vender-moto", { moto_id: id });
 
-    // atualizar status local
-    setMotos(prev =>
-      prev.map(m =>
-        m.id === id ? { ...m, status: "VENDIDA" } : m
-      )
-    );
+      setMotos(prev =>
+        prev.map(m =>
+          m.id === id ? { ...m, status: "VENDIDA" } : m
+        )
+      );
 
-    alert("Moto vendida com sucesso!");
-  } catch (err) {
-    console.error(err);
-    alert("Erro ao vender moto");
+      alert("Moto vendida com sucesso!");
+    } catch (err) {
+      console.error(err);
+      alert("Erro ao vender moto");
+    }
   }
-}
 
+  if (!user) return null;
 
   return (
     <div className="home-container">
-
       {/* ================= HEADER ================= */}
       <div className="home-header">
         <img src="/logo-shineray.png" alt="Shineray" className="logo-mini" />
         <h2>MotoNow • Gestão — {user.filial}</h2>
-        <button className="btn-sair" onClick={sair}>Sair</button>
+        <button className="btn-sair" onClick={sair}>
+          Sair
+        </button>
       </div>
 
       {/* ================= TABS ================= */}
@@ -179,7 +170,9 @@ export default function Home() {
                   <tr key={p.id}>
                     <td>{p.nome}</td>
                     <td>{p.estoque}</td>
-                    <td><strong>R$ {Number(p.preco).toFixed(2)}</strong></td>
+                    <td>
+                      <strong>R$ {Number(p.preco).toFixed(2)}</strong>
+                    </td>
                     <td>
                       <button
                         className="action-btn"
@@ -198,44 +191,46 @@ export default function Home() {
 
       {/* ================= MOTOS ================= */}
       {tab === "motos" && (
-  <>
-    <h3 className="section-title">🏍 Estoque de Motos</h3>
+        <>
+          <h3 className="section-title">🏍 Estoque de Motos</h3>
 
-    <div className="table-container">
-      <table className="table">
-        <thead>
-          <tr>
-            <th>Modelo</th>
-            <th>Cor</th>
-            <th>Chassi</th>
-            <th>Filial</th>
-            <th>Status</th>
-            <th>Ação</th>
-          </tr>
-        </thead>
-        <tbody>
-          {motos.map(m => (
-            <tr key={m.id}>
-              <td>{m.modelo}</td>
-              <td>{m.cor}</td>
-              <td>{m.chassi}</td>
-              <td>{m.filial}</td>
-              <td>{m.status}</td>
-              <td>
-                {m.status === "DISPONIVEL" && (
-                  <button
-                    className="action-btn"
-                    onClick={() => venderMoto(m.id)}
-                  >
-                    Vender
-                  </button>
-                )}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+          <div className="table-container">
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>Modelo</th>
+                  <th>Cor</th>
+                  <th>Chassi</th>
+                  <th>Filial</th>
+                  <th>Status</th>
+                  <th>Ação</th>
+                </tr>
+              </thead>
+              <tbody>
+                {motos.map(m => (
+                  <tr key={m.id}>
+                    <td>{m.modelo}</td>
+                    <td>{m.cor}</td>
+                    <td>{m.chassi}</td>
+                    <td>{m.filial}</td>
+                    <td>{m.status}</td>
+                    <td>
+                      {m.status === "DISPONIVEL" && (
+                        <button
+                          className="action-btn"
+                          onClick={() => venderMoto(m.id)}
+                        >
+                          Vender
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
     </div>
-  </>
-)}
-
+  );
+}
