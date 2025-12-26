@@ -60,24 +60,30 @@ app.post("/login", async (req, res) => {
 
 // Listar peças POR CIDADE
 app.get("/pecas", async (req, res) => {
-  const { cidade } = req.query;
-
-  if (!cidade) {
-    return res.status(400).json({ message: "Cidade não informada" });
-  }
+  const { role, cidade } = req.query;
 
   try {
-    const result = await db.query(
-      "SELECT id, nome, preco, estoque FROM pecas WHERE cidade = $1",
-      [cidade]
-    );
+    let sql = `
+      SELECT id, nome, preco, estoque
+      FROM pecas
+    `;
+    let params = [];
 
+    if (role !== "DIRETORIA") {
+      sql += " WHERE cidade = $1";
+      params.push(cidade);
+    }
+
+    sql += " ORDER BY nome";
+
+    const result = await db.query(sql, params);
     res.json(result.rows);
   } catch (err) {
     console.error("Erro peças:", err);
     res.status(500).json({ message: "Erro ao buscar peças" });
   }
 });
+
 
 
 // Listar motos
