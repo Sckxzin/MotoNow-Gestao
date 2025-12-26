@@ -124,10 +124,19 @@ app.post("/vender-moto", async (req, res) => {
 });
 
 
-
-// 🔥 FINALIZAR VENDA
+// 🔥 FINALIZAR VENDA (PEÇAS)
 app.post("/finalizar-venda", async (req, res) => {
-  const { itens } = req.body;
+  const {
+    cliente_nome,
+    cliente_cpf,
+    forma_pagamento,
+    itens,
+    total
+  } = req.body;
+
+  if (!cliente_nome || !cliente_cpf || !forma_pagamento) {
+    return res.status(400).json({ message: "Dados do cliente incompletos" });
+  }
 
   if (!itens || itens.length === 0) {
     return res.status(400).json({ message: "Carrinho vazio" });
@@ -138,18 +147,18 @@ app.post("/finalizar-venda", async (req, res) => {
   try {
     await client.query("BEGIN");
 
-    const total = itens.reduce(
-      (s, i) => s + i.quantidade * i.preco_unitario,
-      0
-    );
-
+    // 🔹 cria venda
     const vendaRes = await client.query(
-      "INSERT INTO vendas (total) VALUES ($1) RETURNING id",
-      [total]
+      `INSERT INTO vendas
+       (cliente_nome, cliente_cpf, forma_pagamento, total)
+       VALUES ($1, $2, $3, $4)
+       RETURNING id`,
+      [cliente_nome, cliente_cpf, forma_pagamento, total]
     );
 
     const vendaId = vendaRes.rows[0].id;
 
+    // 🔹 itens + baixa estoque
     for (const item of itens) {
       await client.query(
         `INSERT INTO venda_itens
@@ -167,7 +176,11 @@ app.post("/finalizar-venda", async (req, res) => {
     }
 
     await client.query("COMMIT");
-    res.json({ message: "Venda finalizada", vendaId });
+
+    res.json({
+      message: "Venda registrada com sucesso",
+      vendaId
+    });
 
   } catch (err) {
     await client.query("ROLLBACK");
@@ -177,6 +190,7 @@ app.post("/finalizar-venda", async (req, res) => {
     client.release();
   }
 });
+
 // 🔥 LISTAR VENDAS
 app.get("/vendas", async (req, res) => {
   try {
