@@ -58,18 +58,27 @@ app.post("/login", async (req, res) => {
   }
 });
 
-// Listar peças
+// Listar peças POR CIDADE
 app.get("/pecas", async (req, res) => {
+  const { cidade } = req.query;
+
+  if (!cidade) {
+    return res.status(400).json({ message: "Cidade não informada" });
+  }
+
   try {
     const result = await db.query(
-      "SELECT id, nome, preco, estoque FROM pecas"
+      "SELECT id, nome, preco, estoque FROM pecas WHERE cidade = $1",
+      [cidade]
     );
+
     res.json(result.rows);
   } catch (err) {
     console.error("Erro peças:", err);
     res.status(500).json({ message: "Erro ao buscar peças" });
   }
 });
+
 
 // Listar motos
 app.get("/motos", async (req, res) => {
