@@ -121,6 +121,39 @@ app.post("/finalizar-venda", async (req, res) => {
   }
 });
 
+/* ===== HISTÓRICO VENDAS DE PEÇAS (FALTAVA) ===== */
+app.get("/vendas", async (req, res) => {
+  try {
+    const vendasRes = await db.query(
+      `SELECT id, cliente_nome, total, created_at
+       FROM vendas
+       ORDER BY created_at DESC`
+    );
+
+    const vendas = [];
+
+    for (const v of vendasRes.rows) {
+      const itensRes = await db.query(
+        `SELECT vi.quantidade, vi.preco_unitario, p.nome
+         FROM venda_itens vi
+         JOIN pecas p ON p.id = vi.peca_id
+         WHERE vi.venda_id = $1`,
+        [v.id]
+      );
+
+      vendas.push({
+        ...v,
+        itens: itensRes.rows
+      });
+    }
+
+    res.json(vendas);
+  } catch (err) {
+    console.error("Erro listar vendas:", err);
+    res.status(500).json({ message: "Erro ao buscar vendas" });
+  }
+});
+
 /* ===== HISTÓRICO VENDAS MOTOS ===== */
 app.get("/vendas-motos", async (req, res) => {
   const result = await db.query(
@@ -185,4 +218,3 @@ const PORT = process.env.PORT || 8080;
 app.listen(PORT, "0.0.0.0", () => {
   console.log("🚀 API ON", PORT);
 });
-
