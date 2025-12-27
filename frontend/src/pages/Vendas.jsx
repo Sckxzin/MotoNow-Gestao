@@ -46,7 +46,7 @@ export default function Vendas() {
               <>
                 <tr key={v.id}>
                   <td>{v.id}</td>
-                  <td>{new Date(v.data_venda).toLocaleString()}</td>
+                  <td>{new Date(v.created_at).toLocaleString()}</td>
                   <td>
                     <strong>R$ {Number(v.total).toFixed(2)}</strong>
                   </td>
