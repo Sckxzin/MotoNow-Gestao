@@ -39,17 +39,21 @@ export default function Vendas() {
               <th>Data</th>
               <th>Total</th>
               <th>Detalhes</th>
+              <th>Cidade</th>
+              <th>Nota</th>
             </tr>
           </thead>
+
           <tbody>
             {vendas.map(v => (
-              <>
-                <tr key={v.id}>
+              <tbody key={v.id}>
+                <tr>
                   <td>{v.id}</td>
                   <td>{new Date(v.created_at).toLocaleString()}</td>
                   <td>
                     <strong>R$ {Number(v.total).toFixed(2)}</strong>
                   </td>
+
                   <td>
                     <button
                       className="btn-detalhes"
@@ -60,11 +64,21 @@ export default function Vendas() {
                       {aberta === v.id ? "▲" : "▼"}
                     </button>
                   </td>
+
+                  <td>{v.cidade || "-"}</td>
+
+                  <td>
+                    <button
+                      onClick={() => nav(`/nota?id=${v.id}`)}
+                    >
+                      🧾
+                    </button>
+                  </td>
                 </tr>
 
                 {aberta === v.id && (
                   <tr>
-                    <td colSpan="4">
+                    <td colSpan={6}>
                       <ul className="lista-itens">
                         {v.itens.map((i, idx) => (
                           <li key={idx}>
@@ -76,7 +90,7 @@ export default function Vendas() {
                     </td>
                   </tr>
                 )}
-              </>
+              </tbody>
             ))}
           </tbody>
         </table>
