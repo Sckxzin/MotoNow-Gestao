@@ -212,3 +212,21 @@
     padding: 8px 14px;
   }
 }
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start; /* 🔥 topo */
+  padding-top: 40px;       /* espaço do topo */
+  z-index: 1000;
+}
+
+.modal {
+  background: #fff;
+  width: 100%;
+  max-width: 600px;
+  border-radius: 6px;
+  padding: 20px;
+}
