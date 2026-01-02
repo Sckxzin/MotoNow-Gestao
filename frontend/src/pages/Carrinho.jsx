@@ -58,13 +58,18 @@ export default function Carrinho() {
     }
 
     try {
+      const user = JSON.parse(localStorage.getItem("user"));
+
       await api.post("/finalizar-venda", {
         tipo: "PECA",
         cliente_nome: nomeCliente,
         cliente_cpf: cpf,
         forma_pagamento: formaPagamento,
         total,
-        itens
+        itens,
+        cidade: user.cidade
+        
+        
       });
 
       localStorage.removeItem("carrinho");
