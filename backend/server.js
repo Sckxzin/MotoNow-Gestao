@@ -5,9 +5,12 @@ const { Pool } = require("pg");
 
 const app = express();
 
-/* ===== CORS ===== */
+/* ================= CORS ================= */
 app.use(cors({
-  origin: ["https://motonow-gestao-production.up.railway.app"],
+  origin: [
+    "http://localhost:3000",
+    "https://motonow-gestao-production.up.railway.app"
+  ],
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
@@ -15,7 +18,7 @@ app.options("*", cors());
 
 app.use(express.json());
 
-/* ===== DB ===== */
+/* ================= DB ================= */
 const db = new Pool({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
@@ -29,12 +32,12 @@ db.connect()
   .then(() => console.log("✅ DB OK"))
   .catch(err => console.error("❌ DB ERRO", err));
 
-/* ===== HEALTH ===== */
+/* ================= HEALTH ================= */
 app.get("/health", (req, res) => {
   res.json({ status: "ok" });
 });
 
-/* ===== LOGIN ===== */
+/* ================= LOGIN ================= */
 app.post("/login", async (req, res) => {
   const { username, password } = req.body;
 
@@ -52,32 +55,60 @@ app.post("/login", async (req, res) => {
   res.json(r.rows[0]);
 });
 
-/* ===== PEÇAS ===== */
+/* ================= PEÇAS ================= */
 app.get("/pecas", async (req, res) => {
-  const result = await db.query(
-    "SELECT id, nome, preco, estoque FROM pecas ORDER BY nome"
-  );
-  res.json(result.rows);
+  const { role, cidade } = req.query;
+
+  try {
+    let query = `
+      SELECT id, nome, preco, estoque, cidade, tipo_moto
+      FROM pecas
+    `;
+    const params = [];
+
+    if (role === "FILIAL") {
+      query += " WHERE cidade = $1";
+      params.push(cidade);
+    }
+
+    query += " ORDER BY nome";
+
+    const result = await db.query(query, params);
+    res.json(result.rows);
+
+  } catch (err) {
+    console.error("Erro ao buscar peças:", err);
+    res.status(500).json({ message: "Erro ao buscar peças" });
+  }
 });
 
-/* ===== MOTOS ===== */
+/* ================= MOTOS ================= */
 app.get("/motos", async (req, res) => {
   const result = await db.query(
-    "SELECT id, modelo, cor, chassi, filial, status FROM motos ORDER BY id"
+    `SELECT id, modelo, cor, chassi, filial, status, santander
+      CASE
+       WHEN santander = 'SIM' THEN true
+       ELSE false
+      END AS SANTANDER
+     FROM motos
+     ORDER BY id`
   );
   res.json(result.rows);
 });
 
-/* ===== FINALIZAR VENDA (PEÇAS) ===== */
+/* ================= FINALIZAR VENDA (PEÇAS) ================= */
 app.post("/finalizar-venda", async (req, res) => {
-  const { cliente_nome, cliente_cpf, forma_pagamento, itens, total } = req.body;
+  const {
+    cliente_nome,
+    cliente_cpf,
+    forma_pagamento,
+    itens,
+    total,
+    cidade
+  } = req.body;
 
-  if (!cliente_nome || !cliente_cpf || !forma_pagamento) {
-    return res.status(400).json({ message: "Dados do cliente incompletos" });
-  }
-
-  if (!itens || itens.length === 0) {
-    return res.status(400).json({ message: "Carrinho vazio" });
+  if (!cliente_nome || !cliente_cpf || !forma_pagamento || !cidade) {
+    return res.status(400).json({ message: "Dados incompletos" });
   }
 
   const client = await db.connect();
@@ -87,10 +118,10 @@ app.post("/finalizar-venda", async (req, res) => {
 
     const vendaRes = await client.query(
       `INSERT INTO vendas
-       (cliente_nome, cliente_cpf, forma_pagamento, total)
-       VALUES ($1,$2,$3,$4)
+       (cliente_nome, cliente_cpf, forma_pagamento, total, cidade)
+       VALUES ($1,$2,$3,$4,$5)
        RETURNING id`,
-      [cliente_nome, cliente_cpf, forma_pagamento, total]
+      [cliente_nome, cliente_cpf, forma_pagamento, total, cidade]
     );
 
     const vendaId = vendaRes.rows[0].id;
@@ -104,7 +135,9 @@ app.post("/finalizar-venda", async (req, res) => {
       );
 
       await client.query(
-        `UPDATE pecas SET estoque = estoque - $1 WHERE id = $2`,
+        `UPDATE pecas
+         SET estoque = estoque - $1
+         WHERE id = $2`,
         [item.quantidade, item.peca_id]
       );
     }
@@ -114,18 +147,53 @@ app.post("/finalizar-venda", async (req, res) => {
 
   } catch (err) {
     await client.query("ROLLBACK");
-    console.error(err);
+    console.error("ERRO FINALIZAR VENDA:", err);
     res.status(500).json({ message: "Erro ao finalizar venda" });
   } finally {
     client.release();
   }
 });
 
-/* ===== HISTÓRICO VENDAS DE PEÇAS (FALTAVA) ===== */
+/* ================= NOTA FISCAL (PEÇAS) ================= */
+app.get("/nota-fiscal/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const vendaRes = await db.query(
+      `SELECT id, cliente_nome, cliente_cpf, forma_pagamento,
+              total, cidade, created_at
+       FROM vendas
+       WHERE id = $1`,
+      [id]
+    );
+
+    if (vendaRes.rows.length === 0) {
+      return res.status(404).json({ message: "Venda não encontrada" });
+    }
+
+    const itensRes = await db.query(
+      `SELECT p.nome, vi.quantidade, vi.preco_unitario
+       FROM venda_itens vi
+       JOIN pecas p ON p.id = vi.peca_id
+       WHERE vi.venda_id = $1`,
+      [id]
+    );
+
+    res.json({
+      venda: vendaRes.rows[0],
+      itens: itensRes.rows
+    });
+  } catch (err) {
+    console.error("Erro nota fiscal:", err);
+    res.status(500).json({ message: "Erro ao gerar nota fiscal" });
+  }
+});
+
+/* ================= HISTÓRICO VENDAS (PEÇAS) ================= */
 app.get("/vendas", async (req, res) => {
   try {
     const vendasRes = await db.query(
-      `SELECT id, cliente_nome, total, created_at
+      `SELECT id, cliente_nome, total, created_at, cidade
        FROM vendas
        ORDER BY created_at DESC`
     );
@@ -154,20 +222,34 @@ app.get("/vendas", async (req, res) => {
   }
 });
 
-/* ===== HISTÓRICO VENDAS MOTOS ===== */
+/* ================= HISTÓRICO VENDAS MOTOS ================= */
 app.get("/vendas-motos", async (req, res) => {
   const result = await db.query(
-    "SELECT * FROM vendas_motos ORDER BY data_venda DESC"
+    `SELECT *
+     FROM vendas_motos
+     ORDER BY created_at DESC`
   );
   res.json(result.rows);
 });
 
-/* ===== VENDER MOTO ===== */
+/* ================= VENDER MOTO ================= */
 app.post("/vender-moto", async (req, res) => {
   const {
-    moto_id, nome_cliente, cpf, telefone,
-    valor, forma_pagamento, brinde, gasolina, como_chegou
+    moto_id,
+    nome_cliente,
+    cpf,
+    telefone,
+    valor,
+    forma_pagamento,
+    brinde,
+    gasolina,
+    como_chegou,
+    filial_venda
   } = req.body;
+
+  if (!filial_venda) {
+    return res.status(400).json({ message: "Filial da venda não informada" });
+  }
 
   const client = await db.connect();
 
@@ -179,21 +261,46 @@ app.post("/vender-moto", async (req, res) => {
       [moto_id]
     );
 
-    if (motoRes.rows.length === 0)
+    if (motoRes.rows.length === 0) {
       throw new Error("Moto indisponível");
+    }
 
     const moto = motoRes.rows[0];
 
     await client.query(
-      `INSERT INTO vendas_motos
-       (moto_id, modelo, cor, chassi, filial,
-        nome_cliente, cpf, telefone,
-        valor, forma_pagamento, brinde, gasolina, como_chegou)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)`,
+      `INSERT INTO vendas_motos (
+        moto_id,
+        modelo,
+        cor,
+        chassi,
+        filial_origem,
+        filial_venda,
+        nome_cliente,
+        cpf,
+        telefone,
+        valor,
+        forma_pagamento,
+        brinde,
+        gasolina,
+        como_chegou
+      ) VALUES (
+        $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14
+      )`,
       [
-        moto.id, moto.modelo, moto.cor, moto.chassi, moto.filial,
-        nome_cliente, cpf, telefone,
-        valor, forma_pagamento, brinde, gasolina, como_chegou
+        moto.id,
+        moto.modelo,
+        moto.cor,
+        moto.chassi,
+        moto.filial,
+        filial_venda,
+        nome_cliente,
+        cpf,
+        telefone,
+        valor,
+        forma_pagamento,
+        brinde,
+        gasolina,
+        como_chegou
       ]
     );
 
@@ -203,17 +310,18 @@ app.post("/vender-moto", async (req, res) => {
     );
 
     await client.query("COMMIT");
-    res.json({ message: "Moto vendida" });
+    res.json({ message: "Moto vendida com sucesso" });
 
   } catch (err) {
     await client.query("ROLLBACK");
+    console.error("ERRO VENDER MOTO:", err);
     res.status(500).json({ message: err.message });
   } finally {
     client.release();
   }
 });
 
-/* ===== SERVER ===== */
+/* ================= SERVER ================= */
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, "0.0.0.0", () => {
   console.log("🚀 API ON", PORT);
