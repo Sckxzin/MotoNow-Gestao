@@ -41,18 +41,23 @@ app.get("/health", (req, res) => {
 app.post("/login", async (req, res) => {
   const { username, password } = req.body;
 
-  const r = await db.query(
-    `SELECT id, username, role, cidade
-     FROM usuarios
-     WHERE username = $1 AND password = $2`,
-    [username, password]
-  );
+  try {
+    const r = await db.query(
+      `SELECT id, username, role, cidade
+       FROM usuarios
+       WHERE username = $1 AND password = $2`,
+      [username, password]
+    );
 
-  if (r.rows.length === 0) {
-    return res.status(401).json({ message: "Login inválido" });
+    if (r.rows.length === 0) {
+      return res.status(401).json({ message: "Login inválido" });
+    }
+
+    res.json(r.rows[0]);
+  } catch (err) {
+    console.error("Erro login:", err);
+    res.status(500).json({ message: "Erro no login" });
   }
-
-  res.json(r.rows[0]);
 });
 
 /* ================= PEÇAS ================= */
@@ -82,18 +87,30 @@ app.get("/pecas", async (req, res) => {
   }
 });
 
-/* ================= MOTOS ================= */
+/* ================= MOTOS (CORRIGIDO) ================= */
 app.get("/motos", async (req, res) => {
-  const result = await db.query(
-    `SELECT id, modelo, cor, chassi, filial, status, santander
-      CASE
-       WHEN santander = 'SIM' THEN true
-       ELSE false
-      END AS SANTANDER
-     FROM motos
-     ORDER BY id`
-  );
-  res.json(result.rows);
+  try {
+    const result = await db.query(`
+      SELECT 
+        id,
+        modelo,
+        cor,
+        chassi,
+        filial,
+        status,
+        CASE 
+          WHEN santander = 'SIM' THEN true
+          ELSE false
+        END AS santander
+      FROM motos
+      ORDER BY id
+    `);
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error("Erro ao buscar motos:", err);
+    res.status(500).json({ message: "Erro ao buscar motos" });
+  }
 });
 
 /* ================= FINALIZAR VENDA (PEÇAS) ================= */
@@ -224,12 +241,17 @@ app.get("/vendas", async (req, res) => {
 
 /* ================= HISTÓRICO VENDAS MOTOS ================= */
 app.get("/vendas-motos", async (req, res) => {
-  const result = await db.query(
-    `SELECT *
-     FROM vendas_motos
-     ORDER BY created_at DESC`
-  );
-  res.json(result.rows);
+  try {
+    const result = await db.query(
+      `SELECT *
+       FROM vendas_motos
+       ORDER BY created_at DESC`
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error("Erro vendas motos:", err);
+    res.status(500).json({ message: "Erro ao buscar vendas de motos" });
+  }
 });
 
 /* ================= VENDER MOTO ================= */
