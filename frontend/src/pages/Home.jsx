@@ -332,7 +332,7 @@ export default function Home() {
                 placeholder="Valor da gasolina (opcional)"
                 checked={gasolina}
                 onChange={e => setGasolina(e.target.value)}
-              /> Gasolina
+              />
             </label>
 
             <input
