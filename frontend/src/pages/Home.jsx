@@ -267,7 +267,7 @@ export default function Home() {
                     <td>{m.cor}</td>
                     <td>{m.chassi}</td>
                     <td>{m.filial}</td>
-                    <td>{m.santander}</td>
+                    <td>{m.santander === true ? "SIM" : "NÃO"}</td>
                     <td>{m.status}</td>
                     <td>
                       {m.status === "DISPONIVEL" && (
