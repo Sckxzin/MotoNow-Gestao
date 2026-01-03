@@ -152,7 +152,11 @@ export default function Home() {
         <button onClick={() => setTab("pecas")}>📦 Peças</button>
         <button onClick={() => setTab("motos")}>🏍 Motos</button>
         <button onClick={() => nav("/vendas")}>🧾 Vendas (Peças)</button>
-        <button onClick={() => nav("/vendas-motos")}>🏍 Histórico Motos</button>
+        {user.role === "DIRETORIA" && (
+          <button onClick={() => nav("/vendas-motos")}>
+            🏍 Histórico Motos
+          </button>
+        )}
         <button onClick={() => nav("/carrinho")}>🛒 Carrinho</button>
       </div>
 
