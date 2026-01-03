@@ -232,7 +232,7 @@ export default function Home() {
             ))}
           </div>
 
-          {user.role === "DIRETORIA" && (
+          
             <select
               value={cidadeFiltroMotos}
               onChange={e => setCidadeFiltroMotos(e.target.value)}
@@ -244,7 +244,7 @@ export default function Home() {
               <option value="SAO JOSE">São José</option>
               <option value="CATENDE">Catende</option>
             </select>
-          )}
+          
 
           <table className="table">
             <thead>
