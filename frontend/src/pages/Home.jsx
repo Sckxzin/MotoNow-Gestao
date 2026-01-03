@@ -15,11 +15,9 @@ export default function Home() {
 
   const [busca, setBusca] = useState("");
 
-  // 🔹 filtros
   const [cidadeFiltroPecas, setCidadeFiltroPecas] = useState("TODAS");
   const [cidadeFiltroMotos, setCidadeFiltroMotos] = useState("TODAS");
 
-  /* ===== MODAL VENDA MOTO ===== */
   const [motoSelecionada, setMotoSelecionada] = useState(null);
   const [clienteNome, setClienteNome] = useState("");
   const [valorMoto, setValorMoto] = useState("");
@@ -29,7 +27,6 @@ export default function Home() {
   const [comoChegou, setComoChegou] = useState("");
   const [filialVenda, setFilialVenda] = useState("");
 
-  /* ===== LOAD ===== */
   useEffect(() => {
     const raw = localStorage.getItem("user");
     if (!raw) return nav("/");
@@ -54,7 +51,6 @@ export default function Home() {
     nav("/");
   }
 
-  /* ===== RESUMO MOTOS ===== */
   function calcularResumoMotos(lista) {
     const resumo = {};
 
@@ -62,7 +58,6 @@ export default function Home() {
       if (!resumo[m.filial]) {
         resumo[m.filial] = { disponiveis: 0, vendidas: 0 };
       }
-
       if (m.status === "DISPONIVEL") resumo[m.filial].disponiveis++;
       if (m.status === "VENDIDA") resumo[m.filial].vendidas++;
     });
@@ -72,7 +67,6 @@ export default function Home() {
 
   const resumoMotos = calcularResumoMotos(motos);
 
-  /* ===== CARRINHO PEÇAS ===== */
   function adicionarCarrinho(peca) {
     const carrinho = JSON.parse(localStorage.getItem("carrinho")) || [];
     const existente = carrinho.find(i => i.peca_id === peca.id);
@@ -91,13 +85,12 @@ export default function Home() {
     alert("Peça adicionada ao carrinho!");
   }
 
-  /* ===== VENDA MOTO ===== */
   function abrirVendaMoto(moto) {
     setMotoSelecionada(moto);
     setClienteNome("");
     setValorMoto("");
     setBrinde(false);
-    setGasolina(false);
+    setGasolina("");
     setFormaPagamento("");
     setComoChegou("");
     setFilialVenda("");
@@ -141,22 +134,25 @@ export default function Home() {
 
   return (
     <div className="home-container">
-      {/* HEADER */}
       <div className="home-header">
         <h2>MotoNow • Gestão — {user.role}</h2>
         <button onClick={sair}>Sair</button>
       </div>
 
-      {/* TABS */}
       <div className="tabs">
         <button onClick={() => setTab("pecas")}>📦 Peças</button>
         <button onClick={() => setTab("motos")}>🏍 Motos</button>
         <button onClick={() => nav("/vendas")}>🧾 Vendas (Peças)</button>
-        <button onClick={() => nav("/vendas-motos")}>🏍 Histórico Motos</button>
+
+        {user.role === "DIRETORIA" && (
+          <button onClick={() => nav("/vendas-motos")}>
+            🏍 Histórico Motos
+          </button>
+        )}
+
         <button onClick={() => nav("/carrinho")}>🛒 Carrinho</button>
       </div>
 
-      {/* ===== PEÇAS ===== */}
       {tab === "pecas" && (
         <>
           <input
@@ -215,33 +211,8 @@ export default function Home() {
         </>
       )}
 
-      {/* ===== MOTOS ===== */}
       {tab === "motos" && (
         <>
-          <div className="resumo-motos">
-            {Object.entries(resumoMotos).map(([cidade, dados]) => (
-              <div key={cidade} className="resumo-card">
-                <strong>{cidade}</strong><br />
-                🟢 Disponíveis: {dados.disponiveis}<br />
-                🔴 Vendidas: {dados.vendidas}
-              </div>
-            ))}
-          </div>
-
-          {user.role === "DIRETORIA" && (
-            <select
-              value={cidadeFiltroMotos}
-              onChange={e => setCidadeFiltroMotos(e.target.value)}
-            >
-              <option value="TODAS">Todas</option>
-              <option value="ESCADA">Escada</option>
-              <option value="IPOJUCA">Ipojuca</option>
-              <option value="RIBEIRAO">Ribeirão</option>
-              <option value="SAO JOSE">São José</option>
-              <option value="CATENDE">Catende</option>
-            </select>
-          )}
-
           <table className="table">
             <thead>
               <tr>
@@ -255,98 +226,24 @@ export default function Home() {
               </tr>
             </thead>
             <tbody>
-              {motos
-                .filter(m =>
-                  cidadeFiltroMotos === "TODAS"
-                    ? true
-                    : m.filial === cidadeFiltroMotos
-                )
-                .map(m => (
-                  <tr key={m.id}>
-                    <td>{m.modelo}</td>
-                    <td>{m.cor}</td>
-                    <td>{m.chassi}</td>
-                    <td>{m.filial}</td>
-                    <td>{m.santander === true ? "SIM" : "NÃO"}</td>
-                    <td>{m.status}</td>
-                    <td>
-                      {m.status === "DISPONIVEL" && (
-                        <button onClick={() => abrirVendaMoto(m)}>
-                          Vender
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
+              {motos.map(m => (
+                <tr key={m.id}>
+                  <td>{m.modelo}</td>
+                  <td>{m.cor}</td>
+                  <td>{m.chassi}</td>
+                  <td>{m.filial}</td>
+                  <td>{m.santander ? "SIM" : "NÃO"}</td>
+                  <td>{m.status}</td>
+                  <td>
+                    {m.status === "DISPONIVEL" && (
+                      <button onClick={() => abrirVendaMoto(m)}>Vender</button>
+                    )}
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </>
-      )}
-
-      {/* ===== MODAL VENDA MOTO ===== */}
-      {motoSelecionada && (
-        <div className="modal-overlay">
-          <div className="modal">
-            <h3>Venda da Moto</h3>
-
-            <input
-              placeholder="Nome do cliente"
-              value={clienteNome}
-              onChange={e => setClienteNome(e.target.value)}
-            />
-
-            <input
-              placeholder="Valor"
-              type="number"
-              value={valorMoto}
-              onChange={e => setValorMoto(e.target.value)}
-            />
-
-            <select
-              value={filialVenda}
-              onChange={e => setFilialVenda(e.target.value)}
-            >
-              <option value="">Selecione a filial da venda</option>
-              <option value="ESCADA">ESCADA</option>
-              <option value="IPOJUCA">IPOJUCA</option>
-              <option value="RIBEIRAO">RIBEIRÃO</option>
-              <option value="SAO JOSE">SÃO JOSÉ</option>
-              <option value="CATENDE">CATENDE</option>
-            </select>
-
-            <label>
-              <input
-                type="checkbox"
-                checked={brinde}
-                onChange={e => setBrinde(e.target.checked)}
-              /> Brinde
-            </label>
-
-            <label>
-              <input
-                type="number"
-                placeholder="Valor da gasolina (opcional)"
-                checked={gasolina}
-                onChange={e => setGasolina(e.target.value)}
-              /> Gasolina
-            </label>
-
-            <input
-              placeholder="Forma de pagamento"
-              value={formaPagamento}
-              onChange={e => setFormaPagamento(e.target.value)}
-            />
-
-            <input
-              placeholder="Como chegou?"
-              value={comoChegou}
-              onChange={e => setComoChegou(e.target.value)}
-            />
-
-            <button onClick={confirmarVendaMoto}>Confirmar</button>
-            <button onClick={() => setMotoSelecionada(null)}>Cancelar</button>
-          </div>
-        </div>
       )}
     </div>
   );
