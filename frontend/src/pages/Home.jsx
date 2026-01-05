@@ -272,6 +272,7 @@ export default function Home() {
                 <th>Santander</th>
                 <th>Status</th>
                 <th>Ação</th>
+                <th>Brinde</th>
               </tr>
             </thead>
             <tbody>
@@ -289,6 +290,7 @@ export default function Home() {
                     <td>{m.filial}</td>
                     <td>{m.santander === true ? "SIM" : "NÃO"}</td>
                     <td>{m.status}</td>
+                    <td>{v.brinde ? "SIM" : "NÃO"}</td>
                     <td>
                       {m.status === "DISPONIVEL" && (
                         <button className="action-btn" onClick={() => abrirVendaMoto(m)}>
