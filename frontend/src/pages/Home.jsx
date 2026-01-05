@@ -277,7 +277,7 @@ export default function Home() {
             <tbody>
               {motos
                 .filter(m => cidadeFiltroMotos === "TODAS" || m.filial === cidadeFiltroMotos)
-                .filter(m => busca === "" mm ||
+                .filter(m => busca === "" ||
                 m.modelo?.toLowerCase().includes(busca.toLowerCase()) ||
                 m.chassi?.toLowerCase().includes(busca.toLowerCase()))
               
