@@ -304,9 +304,10 @@ app.post("/vender-moto", async (req, res) => {
         forma_pagamento,
         brinde,
         gasolina,
-        como_chegou
+        como_chegou,
+        santander
       ) VALUES (
-        $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14
+        $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15
       )`,
       [
         moto.id,
