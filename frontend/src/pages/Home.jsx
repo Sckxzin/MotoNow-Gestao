@@ -291,96 +291,50 @@ export default function Home() {
         </>
       )}
 
-      {/* ================= MODAL VENDA MOTO ================= */}
-{motoSelecionada && (
-  <div className="modal-overlay">
-    <div className="modal">
+      {/* ================= MODAL ================= */}
+      {motoSelecionada && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <h3>Venda da Moto</h3>
 
-      <h3>Venda da Moto</h3>
+            <input placeholder="Cliente" value={clienteNome}
+              onChange={e => setClienteNome(e.target.value)} />
 
-      {/* Cliente */}
-      <div className="form-group">
-        <label>Cliente</label>
-        <input
-          placeholder="Nome do cliente"
-          value={clienteNome}
-          onChange={e => setClienteNome(e.target.value)}
-        />
-      </div>
+            <input type="number" placeholder="Valor"
+              value={valorMoto} onChange={e => setValorMoto(e.target.value)} />
 
-      {/* Valor */}
-      <div className="form-group">
-        <label>Valor da venda</label>
-        <input
-          type="number"
-          placeholder="Ex: 8500"
-          value={valorMoto}
-          onChange={e => setValorMoto(e.target.value)}
-        />
-      </div>
+            <select value={filialVenda} onChange={e => setFilialVenda(e.target.value)}>
+              <option value="">Filial da venda</option>
+              <option value="ESCADA">ESCADA</option>
+              <option value="IPOJUCA">IPOJUCA</option>
+              <option value="RIBEIRAO">RIBEIRÃO</option>
+              <option value="SAO JOSE">SÃO JOSÉ</option>
+              <option value="CATENDE">CATENDE</option>
+            </select>
 
-      {/* Filial */}
-      <div className="form-group">
-        <label>Filial da venda</label>
-        <select
-          value={filialVenda}
-          onChange={e => setFilialVenda(e.target.value)}
-        >
-          <option value="">Selecione</option>
-          <option value="ESCADA">ESCADA</option>
-          <option value="IPOJUCA">IPOJUCA</option>
-          <option value="RIBEIRAO">RIBEIRÃO</option>
-          <option value="SAO JOSE">SÃO JOSÉ</option>
-          <option value="CATENDE">CATENDE</option>
-        </select>
-      </div>
+            <label>
+              <input type="checkbox" checked={brinde}
+                onChange={e => setBrinde(e.target.checked)} /> Brinde
+            </label>
 
-      {/* Brinde */}
-      <div className="form-group checkbox-group">
-        <label>
-          <input
-            type="checkbox"
-            checked={brinde}
-            onChange={e => setBrinde(e.target.checked)}
-          />
-          Brinde incluso
-        </label>
-      </div>
+            <input
+              type="number"
+              placeholder="Gasolina (opcional)"
+              value={gasolina}
+              onChange={e => setGasolina(e.target.value)}
+            />
 
-      {/* Gasolina */}
-      <div className="form-group">
-        <label>Gasolina (opcional)</label>
-        <input
-          type="number"
-          placeholder="Ex: 50"
-          value={gasolina}
-          onChange={e => setGasolina(e.target.value)}
-        />
-      </div>
+            <input
+              placeholder="Forma de pagamento"
+              value={formaPagamento}
+              onChange={e => setFormaPagamento(e.target.value)}
+            />
 
-      {/* Forma de pagamento */}
-      <div className="form-group">
-        <label>Forma de pagamento</label>
-        <input
-          placeholder="Ex: PIX, Cartão, Espécie"
-          value={formaPagamento}
-          onChange={e => setFormaPagamento(e.target.value)}
-        />
-      </div>
-
-      {/* BOTÕES */}
-      <div className="modal-actions">
-        <button className="btn-confirm" onClick={confirmarVendaMoto}>
-          Confirmar
-        </button>
-        <button
-          className="btn-cancel"
-          onClick={() => setMotoSelecionada(null)}
-        >
-          Cancelar
-        </button>
-      </div>
-
+            <button onClick={confirmarVendaMoto}>Confirmar</button>
+            <button onClick={() => setMotoSelecionada(null)}>Cancelar</button>
+          </div>
+        </div>
+      )}
     </div>
-  </div>
-)}
+  );
+}
