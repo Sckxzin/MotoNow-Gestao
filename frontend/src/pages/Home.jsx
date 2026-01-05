@@ -291,50 +291,98 @@ export default function Home() {
         </>
       )}
 
-      {/* ================= MODAL ================= */}
-      {motoSelecionada && (
-        <div className="modal-overlay">
-          <div className="modal">
-            <h3>Venda da Moto</h3>
+      {/* ================= MODAL VENDA MOTO ================= */}
+{motoSelecionada && (
+  <div className="modal-overlay">
+    <div className="modal">
 
-            <input placeholder="Cliente" value={clienteNome}
-              onChange={e => setClienteNome(e.target.value)} />
+      <h3>Venda da Moto</h3>
 
-            <input type="number" placeholder="Valor"
-              value={valorMoto} onChange={e => setValorMoto(e.target.value)} />
+      {/* Cliente */}
+      <div className="form-group">
+        <label>Cliente</label>
+        <input
+          placeholder="Nome do cliente"
+          value={clienteNome}
+          onChange={e => setClienteNome(e.target.value)}
+        />
+      </div>
 
-            <select value={filialVenda} onChange={e => setFilialVenda(e.target.value)}>
-              <option value="">Filial da venda</option>
-              <option value="ESCADA">ESCADA</option>
-              <option value="IPOJUCA">IPOJUCA</option>
-              <option value="RIBEIRAO">RIBEIRÃO</option>
-              <option value="SAO JOSE">SÃO JOSÉ</option>
-              <option value="CATENDE">CATENDE</option>
-            </select>
+      {/* Valor */}
+      <div className="form-group">
+        <label>Valor da venda</label>
+        <input
+          type="number"
+          placeholder="Ex: 8500"
+          value={valorMoto}
+          onChange={e => setValorMoto(e.target.value)}
+        />
+      </div>
 
-            <label>
-              <input type="checkbox" checked={brinde}
-                onChange={e => setBrinde(e.target.checked)} /> Brinde
-            </label>
+      {/* Filial */}
+      <div className="form-group">
+        <label>Filial da venda</label>
+        <select
+          value={filialVenda}
+          onChange={e => setFilialVenda(e.target.value)}
+        >
+          <option value="">Selecione</option>
+          <option value="ESCADA">ESCADA</option>
+          <option value="IPOJUCA">IPOJUCA</option>
+          <option value="RIBEIRAO">RIBEIRÃO</option>
+          <option value="SAO JOSE">SÃO JOSÉ</option>
+          <option value="CATENDE">CATENDE</option>
+        </select>
+      </div>
 
-            <input
-              type="number"
-              placeholder="Gasolina (opcional)"
-              value={gasolina}
-              onChange={e => setGasolina(e.target.value)}
-            />
+      {/* Brinde */}
+      <div className="form-group checkbox-group">
+        <label>
+          <input
+            type="checkbox"
+            checked={brinde}
+            onChange={e => setBrinde(e.target.checked)}
+          />
+          Brinde incluso
+        </label>
+      </div>
 
-            <input
-              placeholder="Forma de pagamento"
-              value={formaPagamento}
-              onChange={e => setFormaPagamento(e.target.value)}
-            />
+      {/* Gasolina */}
+      <div className="form-group">
+        <label>Gasolina (opcional)</label>
+        <input
+          type="number"
+          placeholder="Ex: 50"
+          value={gasolina}
+          onChange={e => setGasolina(e.target.value)}
+        />
+      </div>
 
-            <button onClick={confirmarVendaMoto}>Confirmar</button>
-            <button onClick={() => setMotoSelecionada(null)}>Cancelar</button>
-          </div>
-        </div>
-      )}
+      {/* Forma de pagamento */}
+      <div className="form-group">
+        <label>Forma de pagamento</label>
+        <input
+          placeholder="Ex: PIX, Cartão, Espécie"
+          value={formaPagamento}
+          onChange={e => setFormaPagamento(e.target.value)}
+        />
+      </div>
+
+      {/* BOTÕES */}
+      <div className="modal-actions">
+        <button className="btn-confirm" onClick={confirmarVendaMoto}>
+          Confirmar
+        </button>
+        <button
+          className="btn-cancel"
+          onClick={() => setMotoSelecionada(null)}
+        >
+          Cancelar
+        </button>
+      </div>
+
     </div>
+  </div>
   );
-}
+ }
+  
