@@ -241,6 +241,12 @@ export default function Home() {
               </div>
             ))}
           </div>
+         <input
+           className="input-busca"
+           placeholder="Buscar por modelo ou chassi..."
+           value={busca}
+           onChange={e => setBusca(e.target.value)}
+          />
 
           <select
             className="select-filial"
@@ -271,6 +277,10 @@ export default function Home() {
             <tbody>
               {motos
                 .filter(m => cidadeFiltroMotos === "TODAS" || m.filial === cidadeFiltroMotos)
+                .filter(m => busca === "" mm ||
+                m.modelo?.toLowerCase().includes(busca.toLowerCase()) ||
+                m.chassi?.toLowerCase().includes(busca.toLowerCase()))
+              
                 .map(m => (
                   <tr key={m.id}>
                     <td>{m.modelo}</td>
