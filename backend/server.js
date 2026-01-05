@@ -266,7 +266,7 @@ app.post("/vender-moto", async (req, res) => {
     brinde,
     gasolina,
     como_chegou,
-    filial_venda,
+    filial_venda
   } = req.body;
 
   if (!filial_venda) {
@@ -324,7 +324,6 @@ app.post("/vender-moto", async (req, res) => {
         brinde,
         gasolina,
         como_chegou
-        moto.santander
       ]
     );
 
