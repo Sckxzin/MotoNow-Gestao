@@ -117,6 +117,7 @@ export default function VendasMotos() {
               <th>Gasolina</th>
               <th>Filial</th>
               <th>Empresa</th>
+              <th>Brinde</th>
               <th>Data</th>
             </tr>
           </thead>
@@ -142,6 +143,8 @@ export default function VendasMotos() {
                 <td>{v.filial_venda}</td>
 
                 <td>{getEmpresa(v)}</td>
+
+                <td>{v.brinde ? "SIM" : "NÃO"}</td>
 
                 <td>
                   {new Date(v.created_at).toLocaleDateString("pt-BR")}
