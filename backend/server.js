@@ -323,7 +323,8 @@ app.post("/vender-moto", async (req, res) => {
         forma_pagamento,
         brinde,
         gasolina,
-        como_chegou
+        como_chegou,
+        moto.santander
       ]
     );
 
