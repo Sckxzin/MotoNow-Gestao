@@ -333,6 +333,36 @@ app.post("/vender-moto", async (req, res) => {
       [moto_id]
     );
 
+// 🔹 SE TEVE BRINDE → DAR BAIXA EM 1 CAPACETE
+if (brinde === true) {
+
+  const capaceteRes = await client.query(
+    `SELECT id, estoque
+     FROM pecas
+     WHERE nome ILIKE '%CAPACETE%'
+       AND cidade = $1
+     LIMIT 1`,
+    [filial_venda]
+  );
+
+  if (capaceteRes.rows.length === 0) {
+    throw new Error("Sem capacete em estoque para brinde");
+  }
+
+  const capacete = capaceteRes.rows[0];
+
+  if (capacete.estoque <= 0) {
+    throw new Error("Estoque de capacete zerado");
+  }
+
+  await client.query(
+    `UPDATE pecas
+     SET estoque = estoque - 1
+     WHERE id = $1`,
+    [capacete.id]
+  );
+}
+
     await client.query("COMMIT");
     res.json({ message: "Moto vendida com sucesso" });
 
