@@ -98,7 +98,10 @@ app.get("/motos", async (req, res) => {
         chassi,
         filial,
         status,
-        santander
+        CASE
+         WHEN santander = true THEN true
+         ELSE false
+        END AS santander
       FROM motos
       ORDER BY id
     `);
