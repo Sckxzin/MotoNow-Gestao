@@ -290,7 +290,7 @@ export default function Home() {
                     <td>{m.filial}</td>
                     <td>{m.santander === true ? "SIM" : "NÃO"}</td>
                     <td>{m.status}</td>
-                    <td>{v.brinde ? "SIM" : "NÃO"}</td>
+                    <td>{m.brinde ? "SIM" : "NÃO"}</td>
                     <td>
                       {m.status === "DISPONIVEL" && (
                         <button className="action-btn" onClick={() => abrirVendaMoto(m)}>
