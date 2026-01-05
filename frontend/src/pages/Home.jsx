@@ -173,6 +173,7 @@ export default function Home() {
                 <option value="RIBEIRAO">Ribeirão</option>
                 <option value="SAO JOSE">São José</option>
                 <option value="CATENDE">Catende</option>
+                <option value="XEXEU">Xexeu</option>
               </select>
             )}
 
@@ -252,6 +253,7 @@ export default function Home() {
             <option value="RIBEIRAO">Ribeirão</option>
             <option value="SAO JOSE">São José</option>
             <option value="CATENDE">Catende</option>
+            <option value="XEXEU">Xexeu</option>
           </select>
 
           <table className="table">
@@ -310,6 +312,7 @@ export default function Home() {
               <option value="RIBEIRAO">RIBEIRÃO</option>
               <option value="SAO JOSE">SÃO JOSÉ</option>
               <option value="CATENDE">CATENDE</option>
+              <option value="XEXEU">XEXEU</option>
             </select>
 
             <label>
