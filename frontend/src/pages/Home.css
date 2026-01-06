@@ -359,6 +359,22 @@
   color: #9c7a00;
   border: 1px solid #9c7a00;
 }
+/* ================= CIDADES ================= */
+.cidade-tag {
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: bold;
+  color: #fff;
+}
+
+/* Ajuste as cores como quiser */
+.cidade-tag.escada { background: #4b5563; }
+.cidade-tag.ipojuca { background: #2563eb; }
+.cidade-tag.ribeirao { background: #7c3aed; }
+.cidade-tag.sao\ jose { background: #059669; }
+.cidade-tag.catende { background: #ea580c; }
+.cidade-tag.xexeu { background: #0f766e; }
 
 /* ==============================
    MOBILE
