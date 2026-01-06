@@ -262,7 +262,7 @@ async function confirmarTransferencia() {
                     <td>{p.estoque}</td>
                     <td>R$ {Number(p.preco).toFixed(2)}</td>
                     <td>
-                      <td>
+                     <td style={{ display: "flex", gap: 6 }}>
   <button
     className="action-btn"
     onClick={() => adicionarCarrinho(p)}
