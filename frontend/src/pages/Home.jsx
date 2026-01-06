@@ -262,23 +262,24 @@ async function confirmarTransferencia() {
                     <td>{p.cidade}</td>
                     <td>{p.estoque}</td>
                     <td>R$ {Number(p.preco).toFixed(2)}</td>
-                    <td>
-                     <td style={{ display: "flex", gap: 6 }}>
-  <button
-    className="action-btn"
-    onClick={() => adicionarCarrinho(p)}
-  >
-    🛒
-  </button>
-
-  {user.role === "DIRETORIA" && (
+                    <<td>
+  <div style={{ display: "flex", gap: 6 }}>
     <button
       className="action-btn"
-      onClick={() => abrirTransferencia(p)}
+      onClick={() => adicionarCarrinho(p)}
     >
-      🔄
+      🛒
     </button>
-  )}
+
+    {user.role === "DIRETORIA" && (
+      <button
+        className="action-btn"
+        onClick={() => abrirTransferencia(p)}
+      >
+        🔄
+      </button>
+    )}
+  </div>
 </td>
 
                     </td>
