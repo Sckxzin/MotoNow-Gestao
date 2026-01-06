@@ -31,6 +31,11 @@ export default function Home() {
   const [comoChegou, setComoChegou] = useState("");
   const [filialVenda, setFilialVenda] = useState("");
 
+/* ===== TRANSFERIR PEÇA ===== */
+const [pecaTransferir, setPecaTransferir] = useState(null);
+const [quantidadeTransferir, setQuantidadeTransferir] = useState("");
+const [cidadeDestino, setCidadeDestino] = useState("");
+
   /* ================= LOAD ================= */
   useEffect(() => {
     const raw = localStorage.getItem("user");
