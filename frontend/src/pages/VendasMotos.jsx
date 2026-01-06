@@ -10,6 +10,8 @@ export default function VendasMotos() {
   // 🔹 filtros
   const [empresaFiltro, setEmpresaFiltro] = useState("TODAS");
   const [cidadeFiltro, setCidadeFiltro] = useState("TODAS");
+const [cidadeFiltro, setCidadeFiltro] = useState("TODAS");
+const [mesFiltro, setMesFiltro] = useState("");
 
   useEffect(() => {
     api
