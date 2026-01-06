@@ -361,12 +361,26 @@
 }
 /* ================= CIDADES ================= */
 .cidade-tag {
-  padding: 4px 8px;
-  border-radius: 6px;
+  padding: 4px 10px;
+  border-radius: 999px; /* pill style */
   font-size: 12px;
-  font-weight: bold;
+  font-weight: 600;
+  letter-spacing: 0.3px;
   color: #fff;
 }
+
+/* Cores por cidade */
+.cidade-tag.escada { background: #4b5563; }
+.cidade-tag.ipojuca { background: #2563eb; }
+.cidade-tag.ribeirao { background: #7c3aed; }
+
+/* ⭐ São José – mais clean e elegante */
+.cidade-tag.sao-jose {
+  background: linear-gradient(135deg, #059669, #10b981);
+}
+
+.cidade-tag.catende { background: #ea580c; }
+.cidade-tag.xexeu { background: #0f766e; }
 
 /* Ajuste as cores como quiser */
 .cidade-tag.escada { background: #4b5563; }
