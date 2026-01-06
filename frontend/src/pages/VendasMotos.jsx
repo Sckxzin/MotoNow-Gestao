@@ -10,7 +10,6 @@ export default function VendasMotos() {
   // 🔹 filtros
   const [empresaFiltro, setEmpresaFiltro] = useState("TODAS");
   const [cidadeFiltro, setCidadeFiltro] = useState("TODAS");
-const [cidadeFiltro, setCidadeFiltro] = useState("TODAS");
 const [mesFiltro, setMesFiltro] = useState("");
 
   useEffect(() => {
@@ -102,6 +101,28 @@ const [mesFiltro, setMesFiltro] = useState("");
           R$ {totalEmpresa.motonow.toFixed(2)}
         </div>
       </div>
+<div className="filtros-historico">
+  <select
+    className="select-filial"
+    value={cidadeFiltro}
+    onChange={e => setCidadeFiltro(e.target.value)}
+  >
+    <option value="TODAS">Todas as cidades</option>
+    <option value="ESCADA">Escada</option>
+    <option value="IPOJUCA">Ipojuca</option>
+    <option value="RIBEIRAO">Ribeirão</option>
+    <option value="SAO JOSE">São José</option>
+    <option value="CATENDE">Catende</option>
+    <option value="XEXEU">Xexeu</option>
+  </select>
+
+  <input
+    type="month"
+    className="input-busca"
+    value={mesFiltro}
+    onChange={e => setMesFiltro(e.target.value)}
+  />
+</div>
 
       {/* ===== TABELA ===== */}
       {vendasFiltradas.length === 0 ? (
