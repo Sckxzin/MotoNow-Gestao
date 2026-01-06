@@ -1,4 +1,5 @@
 
+
  /* eslint-disable no-unused-vars */
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -412,42 +413,6 @@ async function confirmarTransferencia() {
             <button onClick={confirmarVendaMoto}>Confirmar</button>
             <button onClick={() => setMotoSelecionada(null)}>Cancelar</button>
           </div>
-{/* ================= MODAL TRANSFERIR PEÇA ================= */}
-{pecaTransferir && (
-  <div className="modal-overlay">
-    <div className="modal">
-      <h3>🔄 Transferir Peça</h3>
-
-      <p><strong>{pecaTransferir.nome}</strong></p>
-      <p>Origem: {pecaTransferir.cidade}</p>
-
-      <input
-        type="number"
-        placeholder="Quantidade"
-        value={quantidadeTransferir}
-        onChange={e => setQuantidadeTransferir(e.target.value)}
-      />
-
-      <select
-        value={cidadeDestino}
-        onChange={e => setCidadeDestino(e.target.value)}
-      >
-        <option value="">Filial destino</option>
-        <option value="ESCADA">Escada</option>
-        <option value="IPOJUCA">Ipojuca</option>
-        <option value="RIBEIRAO">Ribeirão</option>
-        <option value="SAO JOSE">São José</option>
-        <option value="CATENDE">Catende</option>
-        <option value="XEXEU">Xexeu</option>
-      </select>
-
-      <div style={{ display: "flex", gap: 10, marginTop: 15 }}>
-        <button onClick={confirmarTransferencia}>Confirmar</button>
-        <button onClick={() => setPecaTransferir(null)}>Cancelar</button>
-      </div>
-    </div>
-  </div>
-)}
         </div>
       )}
     </div>
