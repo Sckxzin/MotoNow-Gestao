@@ -87,6 +87,98 @@ app.get("/pecas", async (req, res) => {
   }
 });
 
+
+/* ================= TRANSFERIR PEÇA ================= */
+app.post("/transferir-peca", async (req, res) => {
+  const {
+    peca_id,
+    filial_origem,
+    filial_destino,
+    quantidade
+  } = req.body;
+
+  if (!peca_id || !filial_origem || !filial_destino || !quantidade) {
+    return res.status(400).json({ message: "Dados incompletos" });
+  }
+
+  if (filial_origem === filial_destino) {
+    return res.status(400).json({ message: "Filiais iguais" });
+  }
+
+  const client = await db.connect();
+
+  try {
+    await client.query("BEGIN");
+
+    // 🔹 verifica estoque origem
+    const origemRes = await client.query(
+      `SELECT id, nome, estoque
+       FROM pecas
+       WHERE id = $1 AND cidade = $2`,
+      [peca_id, filial_origem]
+    );
+
+    if (origemRes.rows.length === 0) {
+      throw new Error("Peça não encontrada na filial origem");
+    }
+
+    if (origemRes.rows[0].estoque < quantidade) {
+      throw new Error("Estoque insuficiente na filial origem");
+    }
+
+    const nomePeca = origemRes.rows[0].nome;
+
+    // 🔻 baixa origem
+    await client.query(
+      `UPDATE pecas
+       SET estoque = estoque - $1
+       WHERE id = $2`,
+      [quantidade, peca_id]
+    );
+
+    // 🔺 verifica destino
+    const destinoRes = await client.query(
+      `SELECT id FROM pecas
+       WHERE nome = $1 AND cidade = $2`,
+      [nomePeca, filial_destino]
+    );
+
+    if (destinoRes.rows.length === 0) {
+      // cria peça no destino
+      await client.query(
+        `INSERT INTO pecas (nome, estoque, cidade)
+         VALUES ($1,$2,$3)`,
+        [nomePeca, quantidade, filial_destino]
+      );
+    } else {
+      // soma estoque
+      await client.query(
+        `UPDATE pecas
+         SET estoque = estoque + $1
+         WHERE id = $2`,
+        [quantidade, destinoRes.rows[0].id]
+      );
+    }
+
+    // 📜 histórico
+    await client.query(
+      `INSERT INTO transferencias_pecas
+       (peca_id, nome_peca, filial_origem, filial_destino, quantidade)
+       VALUES ($1,$2,$3,$4,$5)`,
+      [peca_id, nomePeca, filial_origem, filial_destino, quantidade]
+    );
+
+    await client.query("COMMIT");
+    res.json({ message: "Transferência realizada com sucesso" });
+
+  } catch (err) {
+    await client.query("ROLLBACK");
+    console.error("ERRO TRANSFERIR PEÇA:", err);
+    res.status(500).json({ message: err.message });
+  } finally {
+    client.release();
+  }
+});
 /* ================= MOTOS (CORRIGIDO) ================= */
 app.get("/motos", async (req, res) => {
   try {
