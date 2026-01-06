@@ -278,6 +278,7 @@ async function confirmarTransferencia() {
       🔄
     </button>
   )}
+</td>
 
                     </td>
                   </tr>
