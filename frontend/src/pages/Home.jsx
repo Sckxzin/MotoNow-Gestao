@@ -287,7 +287,7 @@ export default function Home() {
                     <td>{m.cor}</td>
                     <td>{m.chassi}</td>
                     <td>
-  <span className={`cidade-tag ${m.filial.toLowerCase.replace(/\s/g,"-"()}`}>
+  <span className={`cidade-tag ${m.filial.toLowerCase().replace(/\s/g, "-")}`}>
     {m.filial}
   </span>
 </td>
