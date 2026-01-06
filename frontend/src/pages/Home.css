@@ -333,6 +333,33 @@
   background: #9e0000;
 }
 
+/* ================= STATUS MOTOS ================= */
+.status {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.status.disponivel {
+  background: #e6f7ed;
+  color: #0f7b3a;
+  border: 1px solid #0f7b3a;
+}
+
+.status.vendida {
+  background: #fdeaea;
+  color: #b10000;
+  border: 1px solid #b10000;
+}
+
+.status.aguardando {
+  background: #fff6d6;
+  color: #9c7a00;
+  border: 1px solid #9c7a00;
+}
+
 /* ==============================
    MOBILE
 ============================== */
