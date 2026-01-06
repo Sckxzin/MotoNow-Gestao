@@ -286,7 +286,11 @@ export default function Home() {
                     <td>{m.modelo}</td>
                     <td>{m.cor}</td>
                     <td>{m.chassi}</td>
-                    <td>{m.filial}</td>
+                    <td>
+  <span className={`cidade-tag ${m.filial.toLowerCase()}`}>
+    {m.filial}
+  </span>
+</td>
                     <td>{m.santander === true ? "SIM" : "NÃO"}</td>
                     <td>
   <span className={`status ${m.status.toLowerCase()}`}>
