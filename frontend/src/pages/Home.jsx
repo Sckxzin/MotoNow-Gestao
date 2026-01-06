@@ -288,7 +288,11 @@ export default function Home() {
                     <td>{m.chassi}</td>
                     <td>{m.filial}</td>
                     <td>{m.santander === true ? "SIM" : "NÃO"}</td>
-                    <td>{m.status}</td>
+                    <td>
+  <span className={`status ${m.status.toLowerCase()}`}>
+    {m.status}
+  </span>
+</td>
                     <td>
                       {m.status === "DISPONIVEL" && (
                         <button className="action-btn" onClick={() => abrirVendaMoto(m)}>
