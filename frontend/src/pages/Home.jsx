@@ -280,7 +280,6 @@ async function confirmarTransferencia() {
       </button>
     )}
   </div>
-</td>
 
                     </td>
                   </tr>
