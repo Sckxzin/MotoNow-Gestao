@@ -9,8 +9,13 @@ export default function Vendas() {
   const [vendas, setVendas] = useState([]);
   const [aberta, setAberta] = useState(null);
 
+  // 🔹 filtros
+  const [cidadeFiltro, setCidadeFiltro] = useState("TODAS");
+  const [mesFiltro, setMesFiltro] = useState("");
+
   useEffect(() => {
-    api.get("/vendas")
+    api
+      .get("/vendas")
       .then(res => {
         setVendas(res.data || []);
       })
@@ -19,6 +24,25 @@ export default function Vendas() {
         setVendas([]);
       });
   }, []);
+
+  // 🔹 vendas filtradas
+  const vendasFiltradas = vendas.filter(v => {
+    const okCidade =
+      cidadeFiltro === "TODAS" || v.cidade === cidadeFiltro;
+
+    const okMes = (() => {
+      if (!mesFiltro) return true;
+
+      const data = new Date(v.created_at);
+      const mesVenda = `${data.getFullYear()}-${String(
+        data.getMonth() + 1
+      ).padStart(2, "0")}`;
+
+      return mesVenda === mesFiltro;
+    })();
+
+    return okCidade && okMes;
+  });
 
   return (
     <div className="vendas-container">
@@ -29,7 +53,30 @@ export default function Vendas() {
         </button>
       </div>
 
-      {vendas.length === 0 ? (
+      {/* ===== FILTROS ===== */}
+      <div className="filtros-historico">
+        <select
+          value={cidadeFiltro}
+          onChange={e => setCidadeFiltro(e.target.value)}
+        >
+          <option value="TODAS">Todas as cidades</option>
+          <option value="ESCADA">Escada</option>
+          <option value="IPOJUCA">Ipojuca</option>
+          <option value="RIBEIRAO">Ribeirão</option>
+          <option value="SAO JOSE">São José</option>
+          <option value="CATENDE">Catende</option>
+          <option value="XEXEU">Xexeu</option>
+        </select>
+
+        <input
+          type="month"
+          value={mesFiltro}
+          onChange={e => setMesFiltro(e.target.value)}
+        />
+      </div>
+
+      {/* ===== TABELA ===== */}
+      {vendasFiltradas.length === 0 ? (
         <p>Nenhuma venda registrada.</p>
       ) : (
         <table className="table">
@@ -45,11 +92,13 @@ export default function Vendas() {
           </thead>
 
           <tbody>
-            {vendas.map(v => (
-              <tbody key={v.id}>
-                <tr>
+            {vendasFiltradas.map(v => (
+              <>
+                <tr key={v.id}>
                   <td>{v.id}</td>
-                  <td>{new Date(v.created_at).toLocaleString()}</td>
+                  <td>
+                    {new Date(v.created_at).toLocaleString("pt-BR")}
+                  </td>
                   <td>
                     <strong>R$ {Number(v.total).toFixed(2)}</strong>
                   </td>
@@ -68,9 +117,7 @@ export default function Vendas() {
                   <td>{v.cidade || "-"}</td>
 
                   <td>
-                    <button
-                      onClick={() => nav(`/nota?id=${v.id}`)}
-                    >
+                    <button onClick={() => nav(`/nota?id=${v.id}`)}>
                       🧾
                     </button>
                   </td>
@@ -90,7 +137,7 @@ export default function Vendas() {
                     </td>
                   </tr>
                 )}
-              </tbody>
+              </>
             ))}
           </tbody>
         </table>
