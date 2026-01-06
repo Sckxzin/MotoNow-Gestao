@@ -262,7 +262,7 @@ async function confirmarTransferencia() {
                     <td>{p.cidade}</td>
                     <td>{p.estoque}</td>
                     <td>R$ {Number(p.preco).toFixed(2)}</td>
-                    <<td>
+                    <td>
   <div style={{ display: "flex", gap: 6 }}>
     <button
       className="action-btn"
