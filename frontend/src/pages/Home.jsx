@@ -262,9 +262,23 @@ async function confirmarTransferencia() {
                     <td>{p.estoque}</td>
                     <td>R$ {Number(p.preco).toFixed(2)}</td>
                     <td>
-                      <button className="action-btn" onClick={() => adicionarCarrinho(p)}>
-                        🛒
-                      </button>
+                      <td>
+  <button
+    className="action-btn"
+    onClick={() => adicionarCarrinho(p)}
+  >
+    🛒
+  </button>
+
+  {user.role === "DIRETORIA" && (
+    <button
+      className="action-btn"
+      onClick={() => abrirTransferencia(p)}
+    >
+      🔄
+    </button>
+  )}
+
                     </td>
                   </tr>
                 ))}
