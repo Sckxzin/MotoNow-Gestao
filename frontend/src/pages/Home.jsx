@@ -162,8 +162,8 @@ async function confirmarTransferencia() {
   await api.post("/transferir-peca", {
     peca_id: pecaTransferir.id,
     quantidade: Number(quantidadeTransferir),
-    cidade_origem: pecaTransferir.cidade,
-    cidade_destino: cidadeDestino
+    filial_origem: pecaTransferir.cidade,
+    filial_destino: cidadeDestino
   });
 
   // Atualiza estoque na tela
