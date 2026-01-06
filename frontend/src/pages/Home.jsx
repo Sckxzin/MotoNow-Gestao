@@ -140,6 +140,44 @@ const [cidadeDestino, setCidadeDestino] = useState("");
 
   if (!user) return null;
 
+
+function abrirTransferencia(peca) {
+  setPecaTransferir(peca);
+  setQuantidadeTransferir("");
+  setCidadeDestino("");
+}
+
+async function confirmarTransferencia() {
+  if (!quantidadeTransferir || !cidadeDestino) {
+    alert("Preencha quantidade e filial destino");
+    return;
+  }
+
+  if (Number(quantidadeTransferir) <= 0) {
+    alert("Quantidade inválida");
+    return;
+  }
+
+  await api.post("/transferir-peca", {
+    peca_id: pecaTransferir.id,
+    quantidade: Number(quantidadeTransferir),
+    cidade_origem: pecaTransferir.cidade,
+    cidade_destino: cidadeDestino
+  });
+
+  // Atualiza estoque na tela
+  setPecas(prev =>
+    prev.map(p =>
+      p.id === pecaTransferir.id
+        ? { ...p, estoque: p.estoque - Number(quantidadeTransferir) }
+        : p
+    )
+  );
+
+  setPecaTransferir(null);
+  alert("Transferência realizada com sucesso!");
+}
+
   /* ================= JSX ================= */
   return (
     <div className="home-container">
