@@ -413,7 +413,10 @@ async function confirmarTransferencia() {
             <button onClick={confirmarVendaMoto}>Confirmar</button>
             <button onClick={() => setMotoSelecionada(null)}>Cancelar</button>
 
-{pecaTransferir && (
+          </div>
+        </div>
+      )}
+     {pecaTransferir && (
   <div className="modal-overlay">
     <div className="modal">
       <h3>🔄 Transferir Peça</h3>
@@ -448,9 +451,6 @@ async function confirmarTransferencia() {
     </div>
   </div>
 )}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
