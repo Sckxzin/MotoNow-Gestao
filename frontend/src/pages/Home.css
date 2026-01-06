@@ -390,6 +390,15 @@
 .cidade-tag.catende { background: #ea580c; }
 .cidade-tag.xexeu { background: #0f766e; }
 
+.cidade-tag {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.cidade-tag:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+}
+
 /* ==============================
    MOBILE
 ============================== */
