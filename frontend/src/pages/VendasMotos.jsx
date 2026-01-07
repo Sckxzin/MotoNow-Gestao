@@ -33,18 +33,22 @@ const [mesFiltro, setMesFiltro] = useState("");
 
   // 🔹 vendas filtradas
   const vendasFiltradas = useMemo(() => {
-    return vendas.filter(v => {
-      const empresa = getEmpresa(v);
+  return vendas.filter(v => {
+    const empresa = getEmpresa(v);
 
-      const okEmpresa =
-        empresaFiltro === "TODAS" || empresa === empresaFiltro;
+    const okEmpresa =
+      empresaFiltro === "TODAS" || empresa === empresaFiltro;
 
-      const okCidade =
-        cidadeFiltro === "TODAS" || v.filial_venda === cidadeFiltro;
+    const okCidade =
+      cidadeFiltro === "TODAS" || v.filial_venda === cidadeFiltro;
 
-      return okEmpresa && okCidade;
-    });
-  }, [vendas, empresaFiltro, cidadeFiltro]);
+    const okMes =
+      !mesFiltro ||
+      new Date(v.created_at).toISOString().slice(0, 7) === mesFiltro;
+
+    return okEmpresa && okCidade && okMes;
+  });
+}, [vendas, empresaFiltro, cidadeFiltro, mesFiltro]);
 
   // 🔹 totais por empresa
   const totalEmpresa = useMemo(() => {
@@ -66,28 +70,37 @@ const [mesFiltro, setMesFiltro] = useState("");
       <button onClick={() => nav("/home")}>⬅ Voltar</button>
 
       {/* ===== FILTROS ===== */}
-      <div style={{ margin: "15px 0", display: "flex", gap: 10 }}>
-        <select
-          value={empresaFiltro}
-          onChange={e => setEmpresaFiltro(e.target.value)}
-        >
-          <option value="TODAS">Todas Empresas</option>
-          <option value="EMENEZES">Emenezes</option>
-          <option value="MOTONOW">MotoNow</option>
-        </select>
+      <div className="filtros-historico" style={{ display: "flex", gap: 10, marginBottom: 15 }}>
+  
+  <select
+    value={empresaFiltro}
+    onChange={e => setEmpresaFiltro(e.target.value)}
+  >
+    <option value="TODAS">Todas Empresas</option>
+    <option value="EMENEZES">Emenezes</option>
+    <option value="MOTONOW">MotoNow</option>
+  </select>
 
-        <select
-          value={cidadeFiltro}
-          onChange={e => setCidadeFiltro(e.target.value)}
-        >
-          <option value="TODAS">Todas Cidades</option>
-          <option value="ESCADA">Escada</option>
-          <option value="IPOJUCA">Ipojuca</option>
-          <option value="RIBEIRAO">Ribeirão</option>
-          <option value="SAO JOSE">São José</option>
-          <option value="CATENDE">Catende</option>
-        </select>
-      </div>
+  <select
+    value={cidadeFiltro}
+    onChange={e => setCidadeFiltro(e.target.value)}
+  >
+    <option value="TODAS">Todas Cidades</option>
+    <option value="ESCADA">Escada</option>
+    <option value="IPOJUCA">Ipojuca</option>
+    <option value="RIBEIRAO">Ribeirão</option>
+    <option value="SAO JOSE">São José</option>
+    <option value="CATENDE">Catende</option>
+    <option value="XEXEU">Xexeu</option>
+  </select>
+
+  <input
+    type="month"
+    value={mesFiltro}
+    onChange={e => setMesFiltro(e.target.value)}
+  />
+
+</div>
 
       {/* ===== TOTAIS ===== */}
       <div style={{ marginBottom: 20, display: "flex", gap: 20 }}>
