@@ -319,7 +319,7 @@ async function confirmarTransferencia() {
             <option value="SAO JOSE">São José</option>
             <option value="CATENDE">Catende</option>
             <option value="XEXEU">Xexeu</option>
-             <option valeu="IPOJUCA RICARDO">Ipojuca Ricardo</option>
+            <option value="IPOJUCA RICARDO">Ipojuca Ricardo</option>
           </select>
 
           <table className="table">
