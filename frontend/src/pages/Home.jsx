@@ -152,7 +152,7 @@ async function confirmarTransferencia() {
   if (!quantidadeTransferir || !cidadeDestino) {
     alert("Preencha quantidade e filial destino");
     return;
-  }}
+  }
 
   if (Number(quantidadeTransferir) <= 0) {
     alert("Quantidade inválida");
