@@ -98,15 +98,15 @@ function exportarCSV(nomeArquivo, headers, dados) {
       [
         "cliente",
         "cidade",
-        "detalhes",
         "total",
+        "detalhes",
         "data"
       ],
       vendasFiltradas.map(v => ({
         cliente: v.cliente_nome,
         cidade: v.cidade,
-        detalhes: v.detalhes,
         total: v.total,
+        detalhes: v.detalhes,
         data: new Date(v.created_at).toLocaleDateString("pt-BR")
       }))
     )
