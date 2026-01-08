@@ -81,6 +81,37 @@ const [cidadeDestino, setCidadeDestino] = useState("");
     )
   ];
 
+function exportarMotosDisponiveisPDF() {
+  const doc = new jsPDF();
+
+  const motosDisponiveis = motos
+    .filter(m => m.status === "DISPONIVEL")
+    .filter(m => cidadeFiltroMotos === "TODAS" || m.filial === cidadeFiltroMotos)
+    .filter(m =>
+      busca === "" ||
+      m.modelo?.toLowerCase().includes(busca.toLowerCase()) ||
+      m.chassi?.toLowerCase().includes(busca.toLowerCase())
+    );
+
+  const rows = motosDisponiveis.map(m => ([
+    m.modelo,
+    m.cor,
+    m.chassi,
+    m.filial,
+    m.santander ? "SIM" : "NÃO"
+  ]));
+
+  doc.text("MotoNow - Motos Disponíveis", 14, 15);
+
+  doc.autoTable({
+    startY: 20,
+    head: [["Modelo", "Cor", "Chassi", "Filial", "Santander"]],
+    body: rows
+  });
+
+  doc.save("motos-disponiveis.pdf");
+}
+
   /* ================= CARRINHO ================= */
   function adicionarCarrinho(peca) {
     const carrinho = JSON.parse(localStorage.getItem("carrinho")) || [];
@@ -321,6 +352,13 @@ async function confirmarTransferencia() {
             <option value="XEXEU">Xexeu</option>
             <option value="IPOJUCA RICARDO">Ipojuca Ricardo</option>
           </select>
+<button
+  className="btn-export"
+  onClick={exportarMotosDisponiveisPDF}
+  style={{ marginBottom: 10 }}
+>
+  📄 Exportar motos disponíveis
+</button>
 
           <table className="table">
             <thead>
