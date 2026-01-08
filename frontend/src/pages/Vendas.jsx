@@ -1,3 +1,5 @@
+
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api";
@@ -8,6 +10,21 @@ export default function Vendas() {
 
   const [vendas, setVendas] = useState([]);
   const [aberta, setAberta] = useState(null);
+
+function exportarCSV(nomeArquivo, headers, dados) {
+  const csv = [
+    headers.join(";"),
+    ...dados.map(row =>
+      headers.map(h => `"${row[h] ?? ""}"`).join(";")
+    )
+  ].join("\n");
+
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = nomeArquivo;
+  link.click();
+}
 
   // 🔹 filtros
   const [cidadeFiltro, setCidadeFiltro] = useState("TODAS");
