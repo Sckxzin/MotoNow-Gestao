@@ -80,6 +80,20 @@ const [cidadeDestino, setCidadeDestino] = useState("");
       new Set(pecas.map(p => p.tipo_moto).filter(Boolean))
     )
   ];
+function exportarCSV(nomeArquivo, headers, dados) {
+  const csv = [
+    headers.join(";"),
+    ...dados.map(row =>
+      headers.map(h => `"${row[h] ?? ""}"`).join(";")
+    )
+  ].join("\n");
+
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = nomeArquivo;
+  link.click();
+}
 
   /* ================= CARRINHO ================= */
   function adicionarCarrinho(peca) {
@@ -321,6 +335,35 @@ async function confirmarTransferencia() {
             <option value="XEXEU">Xexeu</option>
             <option value="IPOJUCA RICARDO">Ipojuca Ricardo</option>
           </select>
+<button
+  onClick={() =>
+    exportarCSV(
+      "motos_disponiveis.csv",
+      [
+        "modelo",
+        "cor",
+        "chassi",
+        "ano",
+        "valor",
+        "filial",
+        "status",
+        "created_at"
+      ],
+      motos.map(m => ({
+        modelo: m.modelo,
+        cor: m.cor,
+        chassi: m.chassi,
+        ano: m.ano,
+        valor: m.valor,
+        filial: m.filial,
+        status: m.status,
+        created_at: new Date(m.created_at).toLocaleDateString("pt-BR")
+      }))
+    )
+  }
+>
+  📥 Exportar Motos Disponíveis
+</button>
 
           <table className="table">
             <thead>
