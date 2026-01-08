@@ -152,6 +152,40 @@ const [mesFiltro, setMesFiltro] = useState("");
   />
 </div>
 
+<button
+  onClick={() =>
+    exportarCSV(
+      "historico_vendas_motos.csv",
+      [
+        "modelo",
+        "cor",
+        "chassi",
+        "nome_cliente",
+        "valor",
+        "forma_pagamento",
+        "filial_venda",
+        "empresa",
+        "brinde",
+        "created_at"
+      ],
+      vendasFiltradas.map(v => ({
+        modelo: v.modelo,
+        cor: v.cor,
+        chassi: v.chassi,
+        nome_cliente: v.nome_cliente,
+        valor: v.valor,
+        forma_pagamento: v.forma_pagamento,
+        filial_venda: v.filial_venda,
+        empresa: getEmpresa(v),
+        brinde: v.brinde ? "SIM" : "NÃO",
+        created_at: new Date(v.created_at).toLocaleDateString("pt-BR")
+      }))
+    )
+  }
+>
+  📥 Exportar Histórico de Motos
+</button>
+
       {/* ===== TABELA ===== */}
       {vendasFiltradas.length === 0 ? (
         <p>Nenhuma venda encontrada.</p>
