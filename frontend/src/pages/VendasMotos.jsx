@@ -126,12 +126,12 @@ const [mesFiltro, setMesFiltro] = useState("");
       <div style={{ marginBottom: 20, display: "flex", gap: 20 }}>
         <div>
           <strong>🏢 EMENEZES</strong><br />
-          R$ {totalEmpresa.emenezes.toFixed(2)}
+{formatarValor(totalEmpresa.emenezes)}
         </div>
 
         <div>
           <strong>🏢 MOTONOW</strong><br />
-          R$ {totalEmpresa.motonow.toFixed(2)}
+{formatarValor(totalEmpresa.motonow)}
         </div>
       </div>
 <div className="filtros-historico">
