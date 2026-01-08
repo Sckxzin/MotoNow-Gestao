@@ -1,4 +1,4 @@
-
+.
 
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -91,6 +91,27 @@ function exportarCSV(nomeArquivo, headers, dados) {
           onChange={e => setMesFiltro(e.target.value)}
         />
       </div>
+<button
+  onClick={() =>
+    exportarCSV(
+      "historico_vendas_pecas.csv",
+      [
+        "cliente",
+        "cidade",
+        "total",
+        "data"
+      ],
+      vendasFiltradas.map(v => ({
+        cliente: v.cliente_nome,
+        cidade: v.cidade,
+        total: v.total,
+        data: new Date(v.created_at).toLocaleDateString("pt-BR")
+      }))
+    )
+  }
+>
+  📥 Exportar Histórico de Vendas
+</button>
 
       {/* ===== TABELA ===== */}
       {vendasFiltradas.length === 0 ? (
