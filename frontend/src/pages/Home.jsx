@@ -177,7 +177,7 @@ async function confirmarTransferencia() {
 
   setPecaTransferir(null);
   alert("Transferência realizada com sucesso!");
-}
+}}
 
   /* ================= JSX ================= */
   return (
