@@ -146,10 +146,12 @@ app.post("/transferir-peca", async (req, res) => {
     if (destinoRes.rows.length === 0) {
       // cria peça no destino
       await client.query(
-        `INSERT INTO pecas (nome, estoque, cidade)
-         VALUES ($1,$2,$3)`,
-        [nomePeca, quantidade, filial_destino]
-      );
+  `INSERT INTO pecas (nome, preco, estoque, cidade, tipo_moto)
+   SELECT nome, preco, $1, $2, tipo_moto
+   FROM pecas
+   WHERE id = $3`,
+  [quantidade, filial_destino, peca_id]
+);
     } else {
       // soma estoque
       await client.query(
