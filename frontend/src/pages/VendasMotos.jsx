@@ -7,6 +7,21 @@ export default function VendasMotos() {
   const nav = useNavigate();
   const [vendas, setVendas] = useState([]);
 
+function exportarCSV(nomeArquivo, headers, dados) {
+  const csv = [
+    headers.join(";"),
+    ...dados.map(row =>
+      headers.map(h => `"${row[h] ?? ""}"`).join(";")
+    )
+  ].join("\n");
+
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = nomeArquivo;
+  link.click();
+}
+
   // 🔹 filtros
   const [empresaFiltro, setEmpresaFiltro] = useState("TODAS");
   const [cidadeFiltro, setCidadeFiltro] = useState("TODAS");
