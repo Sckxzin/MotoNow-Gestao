@@ -21,7 +21,12 @@ function exportarCSV(nomeArquivo, headers, dados) {
   link.download = nomeArquivo;
   link.click();
 }
-
+function formatarValor(valor) {
+  return Number(valor).toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL"
+  });
+}
   // 🔹 filtros
   const [empresaFiltro, setEmpresaFiltro] = useState("TODAS");
   const [cidadeFiltro, setCidadeFiltro] = useState("TODAS");
@@ -215,8 +220,7 @@ const [mesFiltro, setMesFiltro] = useState("");
                 <td>{v.chassi}</td>
                 <td>{v.nome_cliente}</td>
 
-                <td>R$ {Number(v.valor).toFixed(2)}</td>
-
+               <td>{formatarValor(v.valor)}</td>
                 <td>{v.forma_pagamento}</td>
 
                 <td>
