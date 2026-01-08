@@ -5,6 +5,8 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api";
 import "./Home.css";
+import jsPDF from "jspdf";
+import "jspdf-autotable";
 
 export default function Home() {
   const nav = useNavigate();
