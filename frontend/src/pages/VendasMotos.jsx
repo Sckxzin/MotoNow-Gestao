@@ -190,7 +190,7 @@ export default function VendasMotos() {
       {vendasFiltradas.length === 0 ? (
         <p>Nenhuma venda encontrada.</p>
       ) : (
-        <table className="table">
+        <table className="table" style={{ marginTop: 20 }}>
           <thead>
             <tr>
               <th>Modelo</th>
@@ -214,26 +214,18 @@ export default function VendasMotos() {
                 <td>{v.cor}</td>
                 <td>{v.chassi}</td>
                 <td>{v.nome_cliente}</td>
-
-               <td>{formatarValor(v.valor)}</td>
+                <td>{formatarValor(v.valor)}</td>
                 <td>{v.forma_pagamento}</td>
-
-                <td>
-                  {v.gasolina
-                    ? `R$ ${Number(v.gasolina).toFixed(2)}`
-                    : "-"}
-                </td>
-
+                <td>{v.gasolina ? `R$ ${Number(v.gasolina).toFixed(2)}` : "-"}</td>
                 <td>{v.filial_venda}</td>
-
                 <td>{getEmpresa(v)}</td>
-
                 <td>{v.brinde ? "SIM" : "NÃO"}</td>
-
-                <td>
-          ))}
-        </tbody>
-      </table>
+                <td>{new Date(v.created_at).toLocaleDateString("pt-BR")}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
     </div>
   );
 }
