@@ -458,41 +458,8 @@ if (brinde === true) {
 }
 
     await client.query("COMMIT");
+    res.json({ message: "Moto vendida com sucesso" });
 
-/* ====== MENSAGEM WHATSAPP ====== */
-const mensagemWhatsapp = `
-🏍 *VENDA DE MOTO REALIZADA*
-
-📍 Filial: ${filial_venda}
-🏍 Modelo: ${moto.modelo}
-🎨 Cor: ${moto.cor}
-🔢 Chassi: ${moto.chassi}
-
-👤 Cliente: ${nome_cliente}
-💰 Valor: ${Number(valor).toLocaleString("pt-BR", {
-  style: "currency",
-  currency: "BRL"
-})}
-💳 Pagamento: ${forma_pagamento}
-
-🎁 Brinde: ${brinde ? "SIM" : "NÃO"}
-⛽ Gasolina: ${
-  gasolina && Number(gasolina) > 0
-    ? Number(gasolina).toLocaleString("pt-BR", {
-        style: "currency",
-        currency: "BRL"
-      })
-    : "NÃO"
-}
-
-📅 Data: ${new Date().toLocaleString("pt-BR")}
-`;
-
-res.json({
-  message: "Moto vendida com sucesso",
-  whatsapp: encodeURIComponent(mensagemWhatsapp)
-});
-});
   } catch (err) {
     await client.query("ROLLBACK");
     console.error("ERRO VENDER MOTO:", err);
