@@ -127,31 +127,42 @@ function exportarCSV(nomeArquivo, headers, dados) {
   }
 
   async function confirmarVendaMoto() {
-    if (!clienteNome || !valorMoto || !filialVenda) {
-      alert("Preencha cliente, valor e filial");
-      return;
-    }
-
-    await api.post("/vender-moto", {
-      moto_id: motoSelecionada.id,
-      nome_cliente: clienteNome,
-      valor: Number(valorMoto),
-      forma_pagamento: formaPagamento,
-      brinde,
-      gasolina: gasolina ? Number(gasolina) : null,
-      como_chegou: comoChegou,
-      filial_venda: filialVenda
-    });
-
-    setMotos(prev =>
-      prev.map(m =>
-        m.id === motoSelecionada.id ? { ...m, status: "VENDIDA" } : m
-      )
-    );
-
-    setMotoSelecionada(null);
-    alert("Moto vendida com sucesso!");
+  if (!clienteNome || !valorMoto || !filialVenda) {
+    alert("Preencha cliente, valor e filial");
+    return;
   }
+
+  // 🔹 chama o backend
+  const res = await api.post("/vender-moto", {
+    moto_id: motoSelecionada.id,
+    nome_cliente: clienteNome,
+    valor: Number(valorMoto),
+    forma_pagamento: formaPagamento,
+    brinde,
+    gasolina: gasolina ? Number(gasolina) : null,
+    como_chegou: comoChegou,
+    filial_venda: filialVenda
+  });
+
+  // 🔹 atualiza tela
+  setMotos(prev =>
+    prev.map(m =>
+      m.id === motoSelecionada.id ? { ...m, status: "VENDIDA" } : m
+    )
+  );
+
+  setMotoSelecionada(null);
+
+  // 🔹 ABRE WHATSAPP (mensagem vem pronta do backend)
+  if (res.data?.whatsapp) {
+    window.open(
+      `https://wa.me/?text=${res.data.whatsapp}`,
+      "_blank"
+    );
+  }
+
+  alert("Moto vendida com sucesso!");
+}
 
   if (!user) return null;
 
