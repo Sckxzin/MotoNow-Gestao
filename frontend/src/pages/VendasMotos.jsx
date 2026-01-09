@@ -187,27 +187,50 @@ export default function VendasMotos() {
       </button>
 
       {/* ===== TABELA ===== */}
-      <table className="table" style={{ marginTop: 20 }}>
-        <thead>
-          <tr>
-            <th>Modelo</th>
-            <th>Cliente</th>
-            <th>Valor</th>
-            <th>Filial</th>
-            <th>Empresa</th>
-            <th>Data</th>
-          </tr>
-        </thead>
-        <tbody>
-          {vendasFiltradas.map(v => (
-            <tr key={v.id}>
-              <td>{v.modelo}</td>
-              <td>{v.nome_cliente}</td>
-              <td>{formatarValor(v.valor)}</td>
-              <td>{v.filial_venda}</td>
-              <td>{getEmpresa(v)}</td>
-              <td>{new Date(v.created_at).toLocaleDateString("pt-BR")}</td>
+      {vendasFiltradas.length === 0 ? (
+        <p>Nenhuma venda encontrada.</p>
+      ) : (
+        <table className="table">
+          <thead>
+            <tr>
+              <th>Modelo</th>
+              <th>Cor</th>
+              <th>Chassi</th>
+              <th>Cliente</th>
+              <th>Valor</th>
+              <th>Pagamento</th>
+              <th>Gasolina</th>
+              <th>Filial</th>
+              <th>Empresa</th>
+              <th>Brinde</th>
+              <th>Data</th>
             </tr>
+          </thead>
+
+          <tbody>
+            {vendasFiltradas.map(v => (
+              <tr key={v.id}>
+                <td>{v.modelo}</td>
+                <td>{v.cor}</td>
+                <td>{v.chassi}</td>
+                <td>{v.nome_cliente}</td>
+
+               <td>{formatarValor(v.valor)}</td>
+                <td>{v.forma_pagamento}</td>
+
+                <td>
+                  {v.gasolina
+                    ? `R$ ${Number(v.gasolina).toFixed(2)}`
+                    : "-"}
+                </td>
+
+                <td>{v.filial_venda}</td>
+
+                <td>{getEmpresa(v)}</td>
+
+                <td>{v.brinde ? "SIM" : "NÃO"}</td>
+
+                <td>
           ))}
         </tbody>
       </table>
