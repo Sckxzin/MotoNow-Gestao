@@ -32,6 +32,13 @@ db.connect()
   .then(() => console.log("✅ DB OK"))
   .catch(err => console.error("❌ DB ERRO", err));
 
+/* ================= FUNÇÃO WHATSAPP ================= */
+function notificarWhatsApp(telefone, mensagem) {
+  const texto = encodeURIComponent(mensagem);
+  const numero = telefone.replace(/\D/g, "");
+  return `https://wa.me/55${numero}?text=${texto}`;
+}
+
 /* ================= HEALTH ================= */
 app.get("/health", (req, res) => {
   res.json({ status: "ok" });
@@ -87,15 +94,9 @@ app.get("/pecas", async (req, res) => {
   }
 });
 
-
 /* ================= TRANSFERIR PEÇA ================= */
 app.post("/transferir-peca", async (req, res) => {
-  const {
-    peca_id,
-    filial_origem,
-    filial_destino,
-    quantidade
-  } = req.body;
+  const { peca_id, filial_origem, filial_destino, quantidade } = req.body;
 
   if (!peca_id || !filial_origem || !filial_destino || !quantidade) {
     return res.status(400).json({ message: "Dados incompletos" });
@@ -110,7 +111,6 @@ app.post("/transferir-peca", async (req, res) => {
   try {
     await client.query("BEGIN");
 
-    // 🔹 verifica estoque origem
     const origemRes = await client.query(
       `SELECT id, nome, estoque
        FROM pecas
@@ -123,228 +123,43 @@ app.post("/transferir-peca", async (req, res) => {
     }
 
     if (origemRes.rows[0].estoque < quantidade) {
-      throw new Error("Estoque insuficiente na filial origem");
+      throw new Error("Estoque insuficiente");
     }
 
     const nomePeca = origemRes.rows[0].nome;
 
-    // 🔻 baixa origem
     await client.query(
-      `UPDATE pecas
-       SET estoque = estoque - $1
-       WHERE id = $2`,
+      `UPDATE pecas SET estoque = estoque - $1 WHERE id = $2`,
       [quantidade, peca_id]
     );
 
-    // 🔺 verifica destino
     const destinoRes = await client.query(
-      `SELECT id FROM pecas
-       WHERE nome = $1 AND cidade = $2`,
+      `SELECT id FROM pecas WHERE nome = $1 AND cidade = $2`,
       [nomePeca, filial_destino]
     );
 
     if (destinoRes.rows.length === 0) {
-      // cria peça no destino
       await client.query(
-  `INSERT INTO pecas (nome, preco, estoque, cidade, tipo_moto)
-   SELECT nome, preco, $1, $2, tipo_moto
-   FROM pecas
-   WHERE id = $3`,
-  [quantidade, filial_destino, peca_id]
-);
+        `INSERT INTO pecas (nome, preco, estoque, cidade, tipo_moto)
+         SELECT nome, preco, $1, $2, tipo_moto
+         FROM pecas WHERE id = $3`,
+        [quantidade, filial_destino, peca_id]
+      );
     } else {
-      // soma estoque
       await client.query(
-        `UPDATE pecas
-         SET estoque = estoque + $1
-         WHERE id = $2`,
+        `UPDATE pecas SET estoque = estoque + $1 WHERE id = $2`,
         [quantidade, destinoRes.rows[0].id]
       );
     }
-
-    // 📜 histórico
-    await client.query(
-      `INSERT INTO transferencias_pecas
-       (peca_id, nome_peca, filial_origem, filial_destino, quantidade)
-       VALUES ($1,$2,$3,$4,$5)`,
-      [peca_id, nomePeca, filial_origem, filial_destino, quantidade]
-    );
 
     await client.query("COMMIT");
     res.json({ message: "Transferência realizada com sucesso" });
 
   } catch (err) {
     await client.query("ROLLBACK");
-    console.error("ERRO TRANSFERIR PEÇA:", err);
     res.status(500).json({ message: err.message });
   } finally {
     client.release();
-  }
-});
-/* ================= MOTOS (CORRIGIDO) ================= */
-app.get("/motos", async (req, res) => {
-  try {
-    const result = await db.query(`
-      SELECT 
-        id,
-        modelo,
-        cor,
-        chassi,
-        filial,
-        status,
-        CASE
-         WHEN santander = true THEN true
-         ELSE false
-        END AS santander
-      FROM motos
-      ORDER BY id
-    `);
-
-    res.json(result.rows);
-  } catch (err) {
-    console.error("Erro ao buscar motos:", err);
-    res.status(500).json({ message: "Erro ao buscar motos" });
-  }
-});
-
-/* ================= FINALIZAR VENDA (PEÇAS) ================= */
-app.post("/finalizar-venda", async (req, res) => {
-  const {
-    cliente_nome,
-    cliente_cpf,
-    forma_pagamento,
-    itens,
-    total,
-    cidade
-  } = req.body;
-
-  if (!cliente_nome || !cliente_cpf || !forma_pagamento || !cidade) {
-    return res.status(400).json({ message: "Dados incompletos" });
-  }
-
-  const client = await db.connect();
-
-  try {
-    await client.query("BEGIN");
-
-    const vendaRes = await client.query(
-      `INSERT INTO vendas
-       (cliente_nome, cliente_cpf, forma_pagamento, total, cidade)
-       VALUES ($1,$2,$3,$4,$5)
-       RETURNING id`,
-      [cliente_nome, cliente_cpf, forma_pagamento, total, cidade]
-    );
-
-    const vendaId = vendaRes.rows[0].id;
-
-    for (const item of itens) {
-      await client.query(
-        `INSERT INTO venda_itens
-         (venda_id, peca_id, quantidade, preco_unitario)
-         VALUES ($1,$2,$3,$4)`,
-        [vendaId, item.peca_id, item.quantidade, item.preco_unitario]
-      );
-
-      await client.query(
-        `UPDATE pecas
-         SET estoque = estoque - $1
-         WHERE id = $2`,
-        [item.quantidade, item.peca_id]
-      );
-    }
-
-    await client.query("COMMIT");
-    res.json({ message: "Venda realizada", vendaId });
-
-  } catch (err) {
-    await client.query("ROLLBACK");
-    console.error("ERRO FINALIZAR VENDA:", err);
-    res.status(500).json({ message: "Erro ao finalizar venda" });
-  } finally {
-    client.release();
-  }
-});
-
-/* ================= NOTA FISCAL (PEÇAS) ================= */
-app.get("/nota-fiscal/:id", async (req, res) => {
-  const { id } = req.params;
-
-  try {
-    const vendaRes = await db.query(
-      `SELECT id, cliente_nome, cliente_cpf, forma_pagamento,
-              total, cidade, created_at
-       FROM vendas
-       WHERE id = $1`,
-      [id]
-    );
-
-    if (vendaRes.rows.length === 0) {
-      return res.status(404).json({ message: "Venda não encontrada" });
-    }
-
-    const itensRes = await db.query(
-      `SELECT p.nome, vi.quantidade, vi.preco_unitario
-       FROM venda_itens vi
-       JOIN pecas p ON p.id = vi.peca_id
-       WHERE vi.venda_id = $1`,
-      [id]
-    );
-
-    res.json({
-      venda: vendaRes.rows[0],
-      itens: itensRes.rows
-    });
-  } catch (err) {
-    console.error("Erro nota fiscal:", err);
-    res.status(500).json({ message: "Erro ao gerar nota fiscal" });
-  }
-});
-
-/* ================= HISTÓRICO VENDAS (PEÇAS) ================= */
-app.get("/vendas", async (req, res) => {
-  try {
-    const vendasRes = await db.query(
-      `SELECT id, cliente_nome, total, created_at, cidade
-       FROM vendas
-       ORDER BY created_at DESC`
-    );
-
-    const vendas = [];
-
-    for (const v of vendasRes.rows) {
-      const itensRes = await db.query(
-        `SELECT vi.quantidade, vi.preco_unitario, p.nome
-         FROM venda_itens vi
-         JOIN pecas p ON p.id = vi.peca_id
-         WHERE vi.venda_id = $1`,
-        [v.id]
-      );
-
-      vendas.push({
-        ...v,
-        itens: itensRes.rows
-      });
-    }
-
-    res.json(vendas);
-  } catch (err) {
-    console.error("Erro listar vendas:", err);
-    res.status(500).json({ message: "Erro ao buscar vendas" });
-  }
-});
-
-/* ================= HISTÓRICO VENDAS MOTOS ================= */
-app.get("/vendas-motos", async (req, res) => {
-  try {
-    const result = await db.query(
-      `SELECT *
-       FROM vendas_motos
-       ORDER BY created_at DESC`
-    );
-    res.json(result.rows);
-  } catch (err) {
-    console.error("Erro vendas motos:", err);
-    res.status(500).json({ message: "Erro ao buscar vendas de motos" });
   }
 });
 
@@ -362,10 +177,6 @@ app.post("/vender-moto", async (req, res) => {
     como_chegou,
     filial_venda
   } = req.body;
-
-  if (!filial_venda) {
-    return res.status(400).json({ message: "Filial da venda não informada" });
-  }
 
   const client = await db.connect();
 
@@ -385,21 +196,9 @@ app.post("/vender-moto", async (req, res) => {
 
     await client.query(
       `INSERT INTO vendas_motos (
-        moto_id,
-        modelo,
-        cor,
-        chassi,
-        filial_origem,
-        filial_venda,
-        nome_cliente,
-        cpf,
-        telefone,
-        valor,
-        forma_pagamento,
-        brinde,
-        gasolina,
-        como_chegou,
-        santander
+        moto_id, modelo, cor, chassi, filial_origem, filial_venda,
+        nome_cliente, cpf, telefone, valor, forma_pagamento,
+        brinde, gasolina, como_chegou, santander
       ) VALUES (
         $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15
       )`,
@@ -427,42 +226,43 @@ app.post("/vender-moto", async (req, res) => {
       [moto_id]
     );
 
-// 🔹 SE TEVE BRINDE → DAR BAIXA EM 1 CAPACETE
-if (brinde === true) {
+    if (brinde === true) {
+      const capaceteRes = await client.query(
+        `SELECT id, estoque FROM pecas
+         WHERE nome ILIKE '%CAPACETE%' AND cidade = $1 LIMIT 1`,
+        [filial_venda]
+      );
 
-  const capaceteRes = await client.query(
-    `SELECT id, estoque
-     FROM pecas
-     WHERE nome ILIKE '%CAPACETE%'
-       AND cidade = $1
-     LIMIT 1`,
-    [filial_venda]
-  );
+      if (capaceteRes.rows.length === 0 || capaceteRes.rows[0].estoque <= 0) {
+        throw new Error("Sem capacete para brinde");
+      }
 
-  if (capaceteRes.rows.length === 0) {
-    throw new Error("Sem capacete em estoque para brinde");
-  }
+      await client.query(
+        `UPDATE pecas SET estoque = estoque - 1 WHERE id = $1`,
+        [capaceteRes.rows[0].id]
+      );
+    }
 
-  const capacete = capaceteRes.rows[0];
+    const mensagem = `
+🛵 *Venda de Moto*
+Cliente: ${nome_cliente}
+Modelo: ${moto.modelo}
+Valor: R$ ${valor}
+Pagamento: ${forma_pagamento}
+Filial: ${filial_venda}
+    `;
 
-  if (capacete.estoque <= 0) {
-    throw new Error("Estoque de capacete zerado");
-  }
-
-  await client.query(
-    `UPDATE pecas
-     SET estoque = estoque - 1
-     WHERE id = $1`,
-    [capacete.id]
-  );
-}
+    const whatsapp = notificarWhatsApp(telefone, mensagem);
 
     await client.query("COMMIT");
-    res.json({ message: "Moto vendida com sucesso" });
+
+    res.json({
+      message: "Moto vendida com sucesso",
+      whatsapp
+    });
 
   } catch (err) {
     await client.query("ROLLBACK");
-    console.error("ERRO VENDER MOTO:", err);
     res.status(500).json({ message: err.message });
   } finally {
     client.release();
