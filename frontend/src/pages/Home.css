@@ -374,6 +374,7 @@
 .cidade-tag.ipojuca { background: #2563eb; }
 .cidade-tag.ribeirao { background: #7c3aed; }
 .cidade-tag.ipojuca-ricardo { background: #6495ed; }
+.cidade-tag.maragogi { background: #FF0000; }
 
 /* ⭐ São José – mais clean e elegante */
 .cidade-tag.sao-jose {
@@ -391,6 +392,7 @@
 .cidade-tag.catende { background: #ea580c; }
 .cidade-tag.xexeu { background: #0f766e; }
 .cidade-tag.ipojuca\ ricardo { background: #6495ed; }
+.cidade-tag.maragogi { background: #FF0000; }
 
 .cidade-tag {
   transition: transform 0.15s ease, box-shadow 0.15s ease;
