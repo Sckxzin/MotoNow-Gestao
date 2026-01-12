@@ -232,7 +232,6 @@ async function confirmarTransferencia() {
                 <option value="SAO JOSE">São José</option>
                 <option value="CATENDE">Catende</option>
                 <option value="XEXEU">Xexeu</option>
-                <option value="MARAGOGI">Maragogi</option>
               </select>
             )}
 
@@ -335,8 +334,6 @@ async function confirmarTransferencia() {
             <option value="CATENDE">Catende</option>
             <option value="XEXEU">Xexeu</option>
             <option value="IPOJUCA RICARDO">Ipojuca Ricardo</option>
-
-            <option value="MARAGOGI">MARAGOGI</option>
           </select>
 <button
   onClick={() =>
@@ -437,7 +434,6 @@ async function confirmarTransferencia() {
               <option value="SAO JOSE">SÃO JOSÉ</option>
               <option value="CATENDE">CATENDE</option>
               <option value="XEXEU">XEXEU</option>
-              <option value="MARAGOGI">MARAGOGI</option>
             </select>
 
             <label>
