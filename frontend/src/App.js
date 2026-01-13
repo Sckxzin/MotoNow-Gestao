@@ -17,6 +17,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/home" element={<Home />} />
+
         <Route path="/cadastro-peca" element={<CadastroPeca />} />
         <Route path="/vender/:id" element={<VendaPeca />} />
         <Route path="/nota" element={<NotaFiscal />} />
