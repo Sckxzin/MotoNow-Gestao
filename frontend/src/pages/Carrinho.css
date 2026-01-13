@@ -1,69 +1,121 @@
 .carrinho-container {
-  padding: 25px;
-  font-family: Arial, sans-serif;
+  padding: 30px;
+  font-family: "Segoe UI", Arial, sans-serif;
+  background: #f4f6f8;
+  border-radius: 12px;
 }
 
+/* ================= TABELA ================= */
 .carrinho-table {
   width: 100%;
-  background: white;
+  background: #ffffff;
   border-collapse: collapse;
-  margin-bottom: 20px;
+  margin-bottom: 25px;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
 }
 
 .carrinho-table th {
-  background: #d90404;
+  background: linear-gradient(135deg, #d90404, #a80000);
   color: white;
-  padding: 10px;
+  padding: 14px;
+  text-align: left;
+  font-size: 14px;
+  letter-spacing: 0.5px;
 }
 
 .carrinho-table td {
-  padding: 10px;
-  border-bottom: 1px solid #ddd;
+  padding: 14px;
+  border-bottom: 1px solid #eee;
+  font-size: 14px;
 }
 
+.carrinho-table tr:hover td {
+  background: #fafafa;
+}
+
+/* ================= INPUTS ================= */
 .input-qtd,
 .input-preco {
-  width: 70px;
-}
-
-.btn-remover {
-  background: #a00000;
-  color: white;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.btn-finalizar {
-  margin-top: 20px;
-  padding: 12px 25px;
-  background: #028402;
-  color: white;
-  border: none;
+  width: 80px;
+  padding: 6px;
   border-radius: 6px;
-  font-size: 18px;
+  border: 1px solid #ccc;
+  text-align: center;
+  transition: border 0.2s, box-shadow 0.2s;
+}
+
+.input-qtd:focus,
+.input-preco:focus {
+  outline: none;
+  border-color: #d90404;
+  box-shadow: 0 0 0 2px rgba(217, 4, 4, 0.15);
+}
+
+/* ================= BOTÕES ================= */
+.btn-remover {
+  background: linear-gradient(135deg, #a00000, #7a0000);
+  color: white;
+  border: none;
+  padding: 7px 14px;
+  border-radius: 6px;
   cursor: pointer;
+  font-size: 13px;
+  transition: transform 0.15s, box-shadow 0.15s, background 0.2s;
+}
+
+.btn-remover:hover {
+  background: #7a0000;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(160, 0, 0, 0.3);
+}
+
+/* ================= FINALIZAR ================= */
+.btn-finalizar {
+  margin-top: 25px;
+  padding: 14px 32px;
+  background: linear-gradient(135deg, #028402, #016801);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .btn-finalizar:hover {
-  background: #016801;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(2, 132, 2, 0.35);
 }
 
+/* ================= TOTAL ================= */
 .total-final {
-  font-size: 20px;
-  margin-top: 10px;
+  font-size: 22px;
+  font-weight: bold;
+  margin-top: 15px;
+  color: #333;
 }
 
+/* ================= CLIENTE ================= */
 .cliente-box {
-  margin-top: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  margin-top: 25px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
 }
 
 .cliente-box input {
-  padding: 10px;
-  border: 2px solid #ccc;
-  border-radius: 6px;
+  padding: 12px;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: border 0.2s, box-shadow 0.2s;
+}
+
+.cliente-box input:focus {
+  outline: none;
+  border-color: #028402;
+  box-shadow: 0 0 0 2px rgba(2, 132, 2, 0.15);
 }
