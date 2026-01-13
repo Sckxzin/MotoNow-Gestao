@@ -1,104 +1,155 @@
+/* ================= CONTAINER ================= */
 .vendas-motos-container {
-  padding: 30px;
-  background: #f4f6f8;
-  font-family: "Segoe UI", Arial, sans-serif;
+  padding: 24px;
+  background: #f5f7fa;
+  min-height: 100vh;
+  font-family: "Inter", Arial, sans-serif;
 }
 
-/* TÍTULO */
+/* ================= TÍTULO ================= */
 .vendas-motos-container h2 {
-  color: #b00000;
-  margin-bottom: 10px;
+  margin-bottom: 16px;
+  color: #1f2933;
+  font-size: 22px;
+  font-weight: 600;
 }
 
-/* BOTÃO VOLTAR */
+/* ================= BOTÃO VOLTAR ================= */
 .btn-voltar {
-  background: #eee;
+  background: #111827;
+  color: #fff;
   border: none;
   padding: 8px 14px;
   border-radius: 8px;
   cursor: pointer;
-  margin-bottom: 15px;
+  margin-bottom: 16px;
+  font-size: 14px;
 }
 
 .btn-voltar:hover {
-  background: #ddd;
+  opacity: 0.9;
 }
 
-/* FILTROS */
-.filtros,
-.botoes-rapidos {
+/* ================= FILTROS ================= */
+.filtros {
   display: flex;
-  gap: 10px;
   flex-wrap: wrap;
-  margin-top: 15px;
+  gap: 10px;
+  margin-bottom: 14px;
 }
 
 .filtros select,
 .filtros input {
-  padding: 8px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-}
-
-/* RESUMO */
-.resumo {
-  margin-top: 20px;
-  display: flex;
-  gap: 30px;
-  font-size: 16px;
-}
-
-/* EXPORTAR */
-.btn-exportar {
-  margin-top: 15px;
-  background: #028402;
-  color: white;
-  border: none;
-  padding: 10px 18px;
+  padding: 8px 10px;
   border-radius: 8px;
+  border: 1px solid #d1d5db;
+  background: #fff;
+  font-size: 14px;
+}
+
+/* ================= BOTÕES RÁPIDOS ================= */
+.botoes-rapidos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.botoes-rapidos button {
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  padding: 7px 12px;
+  border-radius: 8px;
+  font-size: 13px;
   cursor: pointer;
 }
 
-.btn-exportar:hover {
-  background: #016801;
+.botoes-rapidos button:hover {
+  opacity: 0.9;
 }
 
-/* TABELA */
+/* ================= RESUMO ================= */
+.resumo {
+  display: flex;
+  gap: 24px;
+  background: #fff;
+  padding: 14px 18px;
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+  margin-bottom: 16px;
+  font-size: 15px;
+  color: #111827;
+}
+
+/* ================= EXPORTAR ================= */
+.btn-exportar {
+  background: #059669;
+  color: #fff;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+.btn-exportar:hover {
+  opacity: 0.9;
+}
+
+/* ================= TABELA ================= */
 .table-container {
-  margin-top: 25px;
-  background: white;
+  background: #fff;
   border-radius: 14px;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.08);
   overflow-x: auto;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.08);
 }
 
 .table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 1200px;
+  min-width: 1100px;
 }
 
 .table th {
-  background: linear-gradient(135deg, #d90404, #a80000);
-  color: white;
-  padding: 12px;
+  background: #111827;
+  color: #fff;
+  padding: 12px 8px;
   font-size: 13px;
+  font-weight: 600;
   text-transform: uppercase;
+  position: sticky;
+  top: 0;
+  z-index: 1;
 }
 
 .table td {
-  padding: 12px;
-  border-bottom: 1px solid #eee;
+  padding: 10px 8px;
+  border-bottom: 1px solid #e5e7eb;
   font-size: 13px;
   text-align: center;
+  color: #1f2933;
 }
 
-.table tr:hover td {
-  background: #fafafa;
+.table tr:hover {
+  background: #f1f5f9;
 }
 
-/* VALOR DESTACADO */
-.table td:nth-child(5) {
-  font-weight: bold;
-  color: #028402;
+/* ================= STATUS VISUAL ================= */
+.table td:nth-child(9) {
+  font-weight: 600;
+}
+
+/* ================= RESPONSIVO ================= */
+@media (max-width: 768px) {
+  .resumo {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .filtros,
+  .botoes-rapidos {
+    flex-direction: column;
+  }
 }
