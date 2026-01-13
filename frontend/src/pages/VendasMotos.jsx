@@ -125,12 +125,13 @@ export default function VendasMotos() {
 
   /* ================= UI ================= */
   return (
-    <div style={{ padding: 20 }}>
+     <div className="vendas-motos-container">
       <h2>🏍 Histórico de Vendas de Motos</h2>
-      <button onClick={() => nav("/home")}>⬅ Voltar</button>
+      <button className="btn-voltar" onClick={() => nav("/home")}>
 
       {/* ===== FILTROS ===== */}
-      <div style={{ display: "flex", gap: 10, marginTop: 15, flexWrap: "wrap" }}>
+      <div className="filtros">
+
         <select value={empresaFiltro} onChange={e => setEmpresaFiltro(e.target.value)}>
           <option value="TODAS">Todas Empresas</option>
           <option value="EMENEZES">Emenezes</option>
@@ -152,7 +153,7 @@ export default function VendasMotos() {
       </div>
 
       {/* ===== BOTÕES RÁPIDOS ===== */}
-      <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
+      <div className="botoes-rapidos">
         <button onClick={aplicarHoje}>Hoje</button>
         <button onClick={aplicar7Dias}>Últimos 7 dias</button>
         <button onClick={aplicar30Dias}>Últimos 30 dias</button>
@@ -161,13 +162,13 @@ export default function VendasMotos() {
       </div>
 
       {/* ===== TOTAIS ===== */}
-      <div style={{ display: "flex", gap: 20, marginTop: 20 }}>
+      <div className="resumo">
         <strong>🏢 EMENEZES: {formatarValor(totalEmpresa.emenezes)}</strong>
         <strong>🏢 MOTONOW: {formatarValor(totalEmpresa.motonow)}</strong>
       </div>
 
       {/* ===== EXPORTAR ===== */}
-      <button style={{ marginTop: 15 }}
+      <button className="btn-exportar" onClick={...}>
         onClick={() =>
           exportarCSV(
             "historico_vendas_motos.csv",
@@ -190,7 +191,9 @@ export default function VendasMotos() {
       {vendasFiltradas.length === 0 ? (
         <p>Nenhuma venda encontrada.</p>
       ) : (
-        <table className="table" style={{ marginTop: 20 }}>
+        <div className="table-container">
+          <table className="table">
+
           <thead>
             <tr>
               <th>Modelo</th>
