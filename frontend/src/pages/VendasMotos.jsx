@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import api from "../api";
 import { useNavigate } from "react-router-dom";
+import "./VendasMotos.css";
 
 export default function VendasMotos() {
   const nav = useNavigate();
@@ -125,13 +126,15 @@ export default function VendasMotos() {
 
   /* ================= UI ================= */
   return (
-     <div className="vendas-motos-container">
+    <div className="vendas-motos-container">
       <h2>🏍 Histórico de Vendas de Motos</h2>
+
       <button className="btn-voltar" onClick={() => nav("/home")}>
+        ⬅ Voltar
+      </button>
 
       {/* ===== FILTROS ===== */}
       <div className="filtros">
-
         <select value={empresaFiltro} onChange={e => setEmpresaFiltro(e.target.value)}>
           <option value="TODAS">Todas Empresas</option>
           <option value="EMENEZES">Emenezes</option>
@@ -168,7 +171,8 @@ export default function VendasMotos() {
       </div>
 
       {/* ===== EXPORTAR ===== */}
-      <button className="btn-exportar" onClick={...}>
+      <button
+        className="btn-exportar"
         onClick={() =>
           exportarCSV(
             "historico_vendas_motos.csv",
@@ -193,41 +197,41 @@ export default function VendasMotos() {
       ) : (
         <div className="table-container">
           <table className="table">
-
-          <thead>
-            <tr>
-              <th>Modelo</th>
-              <th>Cor</th>
-              <th>Chassi</th>
-              <th>Cliente</th>
-              <th>Valor</th>
-              <th>Pagamento</th>
-              <th>Gasolina</th>
-              <th>Filial</th>
-              <th>Empresa</th>
-              <th>Brinde</th>
-              <th>Data</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {vendasFiltradas.map(v => (
-              <tr key={v.id}>
-                <td>{v.modelo}</td>
-                <td>{v.cor}</td>
-                <td>{v.chassi}</td>
-                <td>{v.nome_cliente}</td>
-                <td>{formatarValor(v.valor)}</td>
-                <td>{v.forma_pagamento}</td>
-                <td>{v.gasolina ? `R$ ${Number(v.gasolina).toFixed(2)}` : "-"}</td>
-                <td>{v.filial_venda}</td>
-                <td>{getEmpresa(v)}</td>
-                <td>{v.brinde ? "SIM" : "NÃO"}</td>
-                <td>{new Date(v.created_at).toLocaleDateString("pt-BR")}</td>
+            <thead>
+              <tr>
+                <th>Modelo</th>
+                <th>Cor</th>
+                <th>Chassi</th>
+                <th>Cliente</th>
+                <th>Valor</th>
+                <th>Pagamento</th>
+                <th>Gasolina</th>
+                <th>Filial</th>
+                <th>Empresa</th>
+                <th>Brinde</th>
+                <th>Data</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+
+            <tbody>
+              {vendasFiltradas.map(v => (
+                <tr key={v.id}>
+                  <td>{v.modelo}</td>
+                  <td>{v.cor}</td>
+                  <td>{v.chassi}</td>
+                  <td>{v.nome_cliente}</td>
+                  <td>{formatarValor(v.valor)}</td>
+                  <td>{v.forma_pagamento}</td>
+                  <td>{v.gasolina ? `R$ ${Number(v.gasolina).toFixed(2)}` : "-"}</td>
+                  <td>{v.filial_venda}</td>
+                  <td>{getEmpresa(v)}</td>
+                  <td>{v.brinde ? "SIM" : "NÃO"}</td>
+                  <td>{new Date(v.created_at).toLocaleDateString("pt-BR")}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );
