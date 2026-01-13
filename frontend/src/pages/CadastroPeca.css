@@ -1,26 +1,53 @@
-.cadastrar-peca {
-  max-width: 420px;
-  margin: 40px auto;
-  background: #fff;
-  padding: 20px;
-  border-radius: 6px;
+:root {
+  --red: #d40000;
+  --red-dark: #a30000;
+  --black: #1a1a1a;
 }
 
-.cadastrar-peca h2 {
+.cadastro-container {
+  height: 100vh;
+  background: var(--light);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.cadastro-box {
+  background: white;
+  padding: 40px;
+  width: 380px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+h2 {
+  text-align: center;
   margin-bottom: 20px;
 }
 
-.cadastrar-peca input {
+.input {
   width: 100%;
-  padding: 8px;
-  margin-bottom: 10px;
+  padding: 12px;
+  margin-top: 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 16px;
 }
 
-.cadastrar-peca button {
+.btn-salvar {
   width: 100%;
-  padding: 10px;
-  background: #000;
-  color: #fff;
+  padding: 12px;
+  background: var(--red);
+  color: white;
+  font-size: 18px;
+  border-radius: 8px;
+  margin-top: 20px;
   border: none;
   cursor: pointer;
+  font-weight: bold;
+  transition: 0.2s;
+}
+
+.btn-salvar:hover {
+  background: var(--red-dark);
 }
