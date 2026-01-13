@@ -456,21 +456,9 @@ if (brinde === true) {
     [capacete.id]
   );
 }
-const mensagem = `
-🛵 VENDA DE MOTO
-Cliente: ${nome_cliente}
-Modelo: ${moto.modelo}
-Valor: R$ ${valor}
-Pagamento: ${forma_pagamento}
-Filial: ${filial_venda}
-`;
-
-const linkWhatsApp = gerarLinkWhatsApp(telefone, mensagem);
 
     await client.query("COMMIT");
-    res.json({ message: "Moto vendida com sucesso",
-whatsapp: linkWhatsApp
- });
+    res.json({ message: "Moto vendida com sucesso" });
 
   } catch (err) {
     await client.query("ROLLBACK");
@@ -480,11 +468,6 @@ whatsapp: linkWhatsApp
     client.release();
   }
 });
-function gerarLinkWhatsApp(telefone, mensagem) {
-  const numero = telefone.replace(/\D/g, "");
-  const texto = encodeURIComponent(mensagem);
-  return `https://wa.me/5581985206212?text=${texto}`;
-}
 
 /* ================= SERVER ================= */
 const PORT = process.env.PORT || 8080;
