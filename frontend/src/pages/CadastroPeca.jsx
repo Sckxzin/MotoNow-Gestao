@@ -1,71 +1,140 @@
 import { useState } from "react";
-import "./CadastrarPeca.css";
+import { useNavigate } from "react-router-dom";
+import api from "../api";
 
-export default function CadastrarPeca() {
-  const [form, setForm] = useState({
-    nome: "",
-    preco: "",
-    estoque: "",
-    cidade: "",
-    aplicacao: "",
-    tipo_moto: ""
-  });
+export default function CadastroPeca() {
+  const nav = useNavigate();
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
+  const [nome, setNome] = useState("");
+  const [codigo, setCodigo] = useState("");
+  const [quantidade, setQuantidade] = useState(0);
+  const [valor, setValor] = useState("");
+  const [categoria, setCategoria] = useState("");
+  const [modeloMoto, setModeloMoto] = useState("");
+  const [filialEscolhida, setFilialEscolhida] = useState("");
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const user = JSON.parse(localStorage.getItem("user"));
 
-    const token = localStorage.getItem("token");
-    if (!token) {
-      alert("Não autenticado");
-      return;
+  const modelosDisponiveis = ["Jet", "Phoenix", "Shi", "JEF"];
+
+  const filiais = [
+    "Escada",
+    "Matriz",
+    "Ipojuca",
+    "Ribeirão",
+    "Catende",
+    "Xexeu",
+    "São Jose"
+  ];
+
+  async function salvar() {
+    if (!nome || !codigo || quantidade <= 0 || valor <= 0) {
+      return alert("Preencha nome, código, quantidade e valor!");
     }
 
-    const res = await fetch("http://localhost:3333/cadastrar-peca", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`
-      },
-      body: JSON.stringify({
-        ...form,
-        preco: Number(form.preco),
-        estoque: Number(form.estoque)
-      })
-    });
+    if (user.role === "Diretoria" && !filialEscolhida) {
+      return alert("Selecione a filial!");
+    }
 
-    const json = await res.json();
-    alert(json.message);
+    const filialFinal =
+      user.role === "Diretoria" ? filialEscolhida : user.filial;
 
-    if (res.ok) {
-      setForm({
-        nome: "",
-        preco: "",
-        estoque: "",
-        cidade: "",
-        aplicacao: "",
-        tipo_moto: ""
+    try {
+      await api.post("/pecas", {
+        nome,
+        codigo,
+        quantidade,
+        valor: Number(valor),
+        filial_atual: filialFinal
       });
+
+      alert("Peça cadastrada com sucesso!");
+      nav("/home");
+    } catch (err) {
+      console.error(err);
+      alert("Erro ao cadastrar peça!");
     }
-  };
+  }
 
   return (
-    <div className="cadastrar-peca">
-      <h2>Cadastrar Peça (Diretoria)</h2>
+    <div style={{ padding: 30 }}>
+      <h2>Cadastro de Peça</h2>
 
-      <form onSubmit={handleSubmit}>
-        <input name="nome" placeholder="Nome" value={form.nome} onChange={handleChange} required />
-        <input name="preco" type="number" step="0.01" placeholder="Preço" value={form.preco} onChange={handleChange} required />
-        <input name="estoque" type="number" placeholder="Estoque" value={form.estoque} onChange={handleChange} required />
-        <input name="cidade" placeholder="Cidade" value={form.cidade} onChange={handleChange} required />
-        <input name="aplicacao" placeholder="Aplicação (opcional)" value={form.aplicacao} onChange={handleChange} />
-        <input name="tipo_moto" placeholder="Tipo de moto (opcional)" value={form.tipo_moto} onChange={handleChange} />
+      <input
+        placeholder="Nome da peça"
+        onChange={(e) => setNome(e.target.value)}
+      />
+      <br /><br />
 
-        <button type="submit">Cadastrar</button>
-      </form>
+      <input
+        placeholder="Código"
+        onChange={(e) => setCodigo(e.target.value)}
+      />
+      <br /><br />
+
+      <input
+        type="number"
+        placeholder="Quantidade"
+        onChange={(e) => setQuantidade(Number(e.target.value))}
+      />
+      <br /><br />
+
+      <input
+        type="number"
+        placeholder="Valor (R$)"
+        step="0.01"
+        onChange={(e) => setValor(e.target.value)}
+      />
+      <br /><br />
+
+      <label><b>Categoria:</b></label><br />
+      <select value={categoria} onChange={(e) => setCategoria(e.target.value)}>
+        <option value="">Selecione...</option>
+        <option value="Óleo">Óleo</option>
+        <option value="Capacete">Capacete</option>
+        <option value="Acessório">Acessório</option>
+        <option value="Motor">Motor</option>
+        <option value="Elétrica">Elétrica</option>
+        <option value="Moto">Peça de Moto</option>
+      </select>
+
+      <br /><br />
+
+      {categoria === "Moto" && (
+        <>
+          <label><b>Modelo da Moto:</b></label><br />
+          <select
+            value={modeloMoto}
+            onChange={(e) => setModeloMoto(e.target.value)}
+          >
+            <option value="">Selecione...</option>
+            {modelosDisponiveis.map((m) => (
+              <option key={m} value={m}>{m}</option>
+            ))}
+          </select>
+          <br /><br />
+        </>
+      )}
+
+      {user.role === "Diretoria" && (
+        <>
+          <label><b>Filial:</b></label><br />
+          <select
+            value={filialEscolhida}
+            onChange={(e) => setFilialEscolhida(e.target.value)}
+          >
+            <option value="">Selecione...</option>
+            {filiais.map((f) => (
+              <option key={f} value={f}>{f}</option>
+            ))}
+          </select>
+          <br /><br />
+        </>
+      )}
+
+      <button onClick={salvar} style={{ padding: 10 }}>
+        Salvar
+      </button>
     </div>
   );
 }
