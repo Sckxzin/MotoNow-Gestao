@@ -25,7 +25,6 @@ export default function App() {
         <Route path="/cadastro-moto" element={<CadastroMoto />} />
         <Route path="/vendas-motos" element={<VendasMotos />} />
         <Route path="/carrinho" element={<Carrinho />} />
-        <Route path="/cadastro-peca" element={<CadastroPeca />} />
       </Routes>
     </BrowserRouter>
   );
