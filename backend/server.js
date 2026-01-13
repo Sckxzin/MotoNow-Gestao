@@ -87,50 +87,6 @@ app.get("/pecas", async (req, res) => {
   }
 });
 
-app.post("/cadastrar-peca", auth, async (req, res) => {
-  if (req.user.role !== "DIRETORIA") {
-    return res.status(403).json({ message: "Acesso negado" });
-  }
-
-  const {
-    nome,
-    preco,
-    estoque,
-    cidade,
-    aplicacao,
-    tipo_moto
-  } = req.body;
-
-  if (!nome || preco == null || estoque == null || !cidade) {
-    return res.status(400).json({ message: "Dados obrigatórios não informados" });
-  }
-
-  try {
-    const result = await db.query(
-      `INSERT INTO pecas (
-        nome, preco, estoque, cidade, aplicacao, tipo_moto
-      ) VALUES (
-        $1, $2, $3, $4, $5, $6
-      ) RETURNING *`,
-      [
-        nome.toUpperCase(),
-        preco,
-        estoque,
-        cidade.toUpperCase(),
-        aplicacao || "UNIVERSAL",
-        tipo_moto || null
-      ]
-    );
-
-    res.json(result.rows[0]);
-
-  } catch (err) {
-    console.error("ERRO CADASTRAR PEÇA:", err);
-    res.status(500).json({ message: "Erro ao cadastrar peça" });
-  }
-});
-
-
 
 /* ================= TRANSFERIR PEÇA ================= */
 app.post("/transferir-peca", async (req, res) => {
