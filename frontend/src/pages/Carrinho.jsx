@@ -69,7 +69,8 @@ export default function Carrinho() {
         forma_pagamento: formaPagamento,
         total,
         itens,
-        cidade: user.cidade
+        cidade: user.cidade,
+        observacao
         
         
       });
