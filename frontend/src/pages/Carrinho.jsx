@@ -12,6 +12,8 @@ export default function Carrinho() {
   const [nomeCliente, setNomeCliente] = useState("");
   const [cpf, setCpf] = useState("");
   const [formaPagamento, setFormaPagamento] = useState("");
+  const [observacao, setObservacao] = useState("");
+
 
   /* ================= LOAD CARRINHO ================= */
   useEffect(() => {
@@ -152,6 +154,13 @@ export default function Carrinho() {
             value={formaPagamento}
             onChange={e => setFormaPagamento(e.target.value)}
           />
+          <textarea
+  placeholder="Observações da venda (ex: desconto, troca, cliente voltou depois...)"
+  value={observacao}
+  onChange={e => setObservacao(e.target.value)}
+  rows={4}
+/>
+
 
           <br /><br />
 
