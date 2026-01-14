@@ -415,7 +415,8 @@ value="MARAGOGI">Maragogi</option>         </select>
                           Vender
                         </button>
                
-  <div style={{ display: "flex", gap: 6 }}>
+  <td>
+  <div style={{ display: "flex", gap: 6, justifyContent: "center" }}>
     {m.status === "DISPONIVEL" && (
       <button
         className="action-btn"
@@ -434,10 +435,8 @@ value="MARAGOGI">Maragogi</option>         </select>
       </button>
     )}
   </div>
+</td>
 
-
-                      )}
-                    </td>
                   </tr>
                 ))}
             </tbody>
