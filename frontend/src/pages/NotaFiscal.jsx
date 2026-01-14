@@ -82,6 +82,16 @@ export default function NotaFiscal() {
           {new Date(venda.created_at).toLocaleString("pt-BR")}
         </p>
       </div>
+      {/* OBSERVAÇÕES */}
+{venda.observacao && (
+  <>
+    <div className="nf-section">OBSERVAÇÕES</div>
+    <div className="nf-box">
+      <p>{venda.observacao}</p>
+    </div>
+  </>
+)}
+
 
       {/* AÇÕES */}
       <button className="nf-print" onClick={() => window.print()}>
