@@ -160,6 +160,32 @@ function exportarCSV(nomeArquivo, headers, dados) {
 
   if (!user) return null;
 
+ async function confirmarTransferenciaMoto() {
+  if (!filialDestinoMoto) {
+    alert("Selecione a filial destino");
+    return;
+  }
+
+  await api.post("/transferir-moto", {
+    moto_id: motoTransferir.id,
+    filial_origem: motoTransferir.filial,
+    filial_destino: filialDestinoMoto
+  });
+
+  setMotos(prev =>
+    prev.map(m =>
+      m.id === motoTransferir.id
+        ? { ...m, filial: filialDestinoMoto }
+        : m
+    )
+  );
+
+  setMotoTransferir(null);
+  setFilialDestinoMoto("");
+  alert("Moto transferida com sucesso!");
+}
+
+
 
 function abrirTransferencia(peca) {
   setPecaTransferir(peca);
