@@ -142,3 +142,15 @@
   text-align: left;
   padding-left: 12px;
 }
+.nf-box p {
+  margin: 4px 0;
+  font-size: 14px;
+}
+
+.nf-section {
+  margin-top: 18px;
+  font-weight: bold;
+  font-size: 14px;
+  border-bottom: 1px solid #000;
+  padding-bottom: 4px;
+}
