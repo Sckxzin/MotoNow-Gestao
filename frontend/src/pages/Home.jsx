@@ -32,6 +32,11 @@ export default function Home() {
   const [comoChegou, setComoChegou] = useState("");
   const [filialVenda, setFilialVenda] = useState("");
 
+ /* ===== TRANSFERIR MOTO ===== */
+const [motoTransferir, setMotoTransferir] = useState(null);
+const [filialDestinoMoto, setFilialDestinoMoto] = useState("");
+
+
 /* ===== TRANSFERIR PEÇA ===== */
 const [pecaTransferir, setPecaTransferir] = useState(null);
 const [quantidadeTransferir, setQuantidadeTransferir] = useState("");
@@ -409,6 +414,28 @@ value="MARAGOGI">Maragogi</option>         </select>
                         <button className="action-btn" onClick={() => abrirVendaMoto(m)}>
                           Vender
                         </button>
+                   <td>
+  <div style={{ display: "flex", gap: 6 }}>
+    {m.status === "DISPONIVEL" && (
+      <button
+        className="action-btn"
+        onClick={() => abrirVendaMoto(m)}
+      >
+        Vender
+      </button>
+    )}
+
+    {user.role === "DIRETORIA" && m.status === "DISPONIVEL" && (
+      <button
+        className="action-btn"
+        onClick={() => setMotoTransferir(m)}
+      >
+        🔄
+      </button>
+    )}
+  </div>
+</td>
+
                       )}
                     </td>
                   </tr>
@@ -503,6 +530,37 @@ value="MARAGOGI">MARAGOGI</option>
     </div>
   </div>
 )}
+     {motoTransferir && (
+  <div className="modal-overlay">
+    <div className="modal">
+      <h3>🔄 Transferir Moto</h3>
+
+      <p><strong>{motoTransferir.modelo}</strong></p>
+      <p>Chassi: {motoTransferir.chassi}</p>
+      <p>Origem: {motoTransferir.filial}</p>
+
+      <select
+        value={filialDestinoMoto}
+        onChange={e => setFilialDestinoMoto(e.target.value)}
+      >
+        <option value="">Filial destino</option>
+        <option value="ESCADA">Escada</option>
+        <option value="IPOJUCA">Ipojuca</option>
+        <option value="RIBEIRAO">Ribeirão</option>
+        <option value="SAO JOSE">São José</option>
+        <option value="CATENDE">Catende</option>
+        <option value="XEXEU">Xexeu</option>
+        <option value="MARAGOGI">Maragogi</option>
+      </select>
+
+      <div style={{ display: "flex", gap: 10, marginTop: 15 }}>
+        <button onClick={confirmarTransferenciaMoto}>Confirmar</button>
+        <button onClick={() => setMotoTransferir(null)}>Cancelar</button>
+      </div>
+    </div>
+  </div>
+)}
+
     </div>
   );
 }
