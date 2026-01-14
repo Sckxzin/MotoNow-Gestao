@@ -272,7 +272,7 @@ app.get("/nota-fiscal/:id", async (req, res) => {
 
   try {
     const vendaRes = await db.query(
-      `SELECT id, cliente_nome, cliente_cpf, forma_pagamento, observacao
+      `SELECT id, cliente_nome, cliente_cpf, forma_pagamento, observacao,
               total, cidade, created_at
        FROM vendas
        WHERE id = $1`,
