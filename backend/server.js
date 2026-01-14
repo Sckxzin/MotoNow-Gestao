@@ -215,7 +215,8 @@ app.post("/finalizar-venda", async (req, res) => {
     forma_pagamento,
     itens,
     total,
-    cidade
+    cidade,
+    observacao
   } = req.body;
 
   if (!cliente_nome || !cliente_cpf || !forma_pagamento || !cidade) {
