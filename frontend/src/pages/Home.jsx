@@ -414,7 +414,7 @@ value="MARAGOGI">Maragogi</option>         </select>
                         <button className="action-btn" onClick={() => abrirVendaMoto(m)}>
                           Vender
                         </button>
-                   <td>
+                   
   <div style={{ display: "flex", gap: 6 }}>
     {m.status === "DISPONIVEL" && (
       <button
