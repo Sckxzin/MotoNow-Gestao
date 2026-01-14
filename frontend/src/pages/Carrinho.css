@@ -119,3 +119,24 @@
   border-color: #028402;
   box-shadow: 0 0 0 2px rgba(2, 132, 2, 0.15);
 }
+.carrinho-container textarea {
+  width: 100%;
+  padding: 12px;
+  margin-top: 10px;
+  border-radius: 8px;
+  border: 1px solid #333;
+  background: #111;
+  color: #fff;
+  font-size: 14px;
+  resize: none;
+}
+
+.carrinho-container textarea::placeholder {
+  color: #aaa;
+}
+
+.carrinho-container textarea:focus {
+  outline: none;
+  border-color: #e10600;
+  box-shadow: 0 0 0 1px #e10600;
+}
