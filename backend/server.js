@@ -206,6 +206,77 @@ app.get("/motos", async (req, res) => {
     res.status(500).json({ message: "Erro ao buscar motos" });
   }
 });
+/* ================= TRANSFERIR MOTO ================= */
+app.post("/transferir-moto", async (req, res) => {
+  const { moto_id, filial_destino } = req.body;
+
+  if (!moto_id || !filial_destino) {
+    return res.status(400).json({ message: "Dados incompletos" });
+  }
+
+  const client = await db.connect();
+
+  try {
+    await client.query("BEGIN");
+
+    // 🔍 busca moto
+    const motoRes = await client.query(
+      `SELECT id, modelo, chassi, filial, status
+       FROM motos
+       WHERE id = $1`,
+      [moto_id]
+    );
+
+    if (motoRes.rows.length === 0) {
+      throw new Error("Moto não encontrada");
+    }
+
+    const moto = motoRes.rows[0];
+
+    // ❌ não pode transferir vendida
+    if (moto.status !== "DISPONIVEL") {
+      throw new Error("Moto não está disponível para transferência");
+    }
+
+    // ❌ mesma filial
+    if (moto.filial === filial_destino) {
+      throw new Error("Filial de destino é igual à origem");
+    }
+
+    // 🔄 atualiza filial
+    await client.query(
+      `UPDATE motos
+       SET filial = $1
+       WHERE id = $2`,
+      [filial_destino, moto_id]
+    );
+
+    // 🧾 histórico
+    await client.query(
+      `INSERT INTO transferencias_motos
+       (moto_id, modelo, chassi, filial_origem, filial_destino)
+       VALUES ($1,$2,$3,$4,$5)`,
+      [
+        moto.id,
+        moto.modelo,
+        moto.chassi,
+        moto.filial,
+        filial_destino
+      ]
+    );
+
+    await client.query("COMMIT");
+    res.json({ message: "Moto transferida com sucesso" });
+
+  } catch (err) {
+    await client.query("ROLLBACK");
+    console.error("ERRO TRANSFERIR MOTO:", err);
+    res.status(500).json({ message: err.message });
+  } finally {
+    client.release();
+  }
+});
+
 
 /* ================= FINALIZAR VENDA (PEÇAS) ================= */
 app.post("/finalizar-venda", async (req, res) => {
