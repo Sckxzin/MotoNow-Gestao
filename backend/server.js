@@ -230,10 +230,10 @@ app.post("/finalizar-venda", async (req, res) => {
 
     const vendaRes = await client.query(
       `INSERT INTO vendas
-       (cliente_nome, cliente_cpf, forma_pagamento, total, cidade)
-       VALUES ($1,$2,$3,$4,$5)
+       (cliente_nome, cliente_cpf, forma_pagamento, total, cidade, observacao)
+       VALUES ($1,$2,$3,$4,$5,$6)
        RETURNING id`,
-      [cliente_nome, cliente_cpf, forma_pagamento, total, cidade]
+      [cliente_nome, cliente_cpf, forma_pagamento, total, cidade, observacao]
     );
 
     const vendaId = vendaRes.rows[0].id;
