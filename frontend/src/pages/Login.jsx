@@ -9,40 +9,38 @@ export default function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   async function handleLogin() {
     if (!username || !password) {
-      alert("Preencha usuário e senha");
+      setError("Informe usuário e senha");
       return;
     }
 
     setLoading(true);
+    setError("");
 
     try {
       const res = await api.post("/login", {
         username,
-        password
+        password,
       });
 
-      // ✅ valida exatamente o que o backend retorna
       if (!res.data || !res.data.role || !res.data.cidade) {
         throw new Error("Resposta inválida da API");
       }
 
-      // ✅ salvar usuário
       localStorage.setItem(
         "user",
         JSON.stringify({
           ...res.data,
-          filial: res.data.cidade
+          filial: res.data.cidade,
         })
-        );
+      );
 
-      // ✅ ir para home
       nav("/home");
     } catch (err) {
-      console.error("Erro no login:", err);
-      alert("Usuário ou senha inválidos");
+      setError("Usuário ou senha inválidos");
     } finally {
       setLoading(false);
     }
@@ -57,7 +55,10 @@ export default function Login() {
           className="login-logo"
         />
 
-        <h2 className="login-title">MotoNow • Gestão</h2>
+        <h2 className="login-title">MotoNow</h2>
+        <p className="login-subtitle">Sistema de Gestão</p>
+
+        {error && <span className="login-error">{error}</span>}
 
         <input
           type="text"
@@ -76,12 +77,16 @@ export default function Login() {
         />
 
         <button
-          className="login-btn"
+          className={`login-btn ${loading ? "loading" : ""}`}
           onClick={handleLogin}
           disabled={loading}
         >
-          {loading ? "Entrando..." : "Entrar"}
+          {loading ? <span className="spinner" /> : "Entrar"}
         </button>
+
+        <footer className="login-footer">
+          © MotoNow • Uso interno
+        </footer>
       </div>
     </div>
   );
