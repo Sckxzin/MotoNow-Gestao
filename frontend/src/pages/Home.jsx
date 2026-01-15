@@ -229,7 +229,10 @@ async function confirmarTransferencia() {
     <div className="home-container">
       {/* HEADER */}
       <div className="home-header">
-        <h2>MotoNow • Gestão — {user.role}</h2>
+       <h2>
+  MotoNow <span>Gestão</span>
+</h2>
+<span className="user-role">{user.role} • {user.cidade}</span>
         <button className="btn-sair" onClick={sair}>Sair</button>
       </div>
 
