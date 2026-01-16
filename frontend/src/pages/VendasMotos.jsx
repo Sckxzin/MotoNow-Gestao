@@ -149,6 +149,7 @@ export default function VendasMotos() {
           <option value="SAO JOSE">São José</option>
           <option value="CATENDE">Catende</option>
           <option value="XEXEU">Xexeu</option>
+          <option value="MARAGOGI">Maragogi</option>
         </select>
 
         <input type="date" value={dataInicio} onChange={e => setDataInicio(e.target.value)} />
