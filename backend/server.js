@@ -428,16 +428,17 @@ app.get("/vendas-motos", async (req, res) => {
         santander,
         created_at,
 
-        -- ✅ EMPRESA
         CASE
           WHEN santander = true THEN 'EMENEZES'
           ELSE 'MOTONOW'
         END AS empresa,
 
-        -- ✅ CNPJ (SÓ 2 PRIMEIROS DÍGITOS)
         CASE
-          WHEN santander = true THEN NULL
-          ELSE LEFT(cnpj_empresa, 2)
+          WHEN santander = false 
+           AND cnpj_empresa IS NOT NULL 
+           AND cnpj_empresa <> ''
+            THEN LEFT(cnpj_empresa, 2)
+          ELSE NULL
         END AS cnpj
 
       FROM vendas_motos
