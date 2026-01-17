@@ -408,11 +408,42 @@ app.get("/vendas", async (req, res) => {
 /* ================= HISTÓRICO VENDAS MOTOS ================= */
 app.get("/vendas-motos", async (req, res) => {
   try {
-    const result = await db.query(
-      `SELECT *
-       FROM vendas_motos
-       ORDER BY created_at DESC`
-    );
+    const result = await db.query(`
+      SELECT
+        id,
+        moto_id,
+        modelo,
+        cor,
+        chassi,
+        filial_origem,
+        filial_venda,
+        nome_cliente,
+        cpf,
+        telefone,
+        valor,
+        forma_pagamento,
+        brinde,
+        gasolina,
+        como_chegou,
+        santander,
+        created_at,
+
+        -- 🏢 EMPRESA
+        CASE
+          WHEN santander = true THEN 'EMENEZES'
+          ELSE 'MOTONOW'
+        END AS nome_empresa,
+
+        -- 🧾 CNPJ (APENAS 2 PRIMEIROS DÍGITOS)
+        CASE
+          WHEN santander = true THEN NULL
+          ELSE '12' -- ⬅️ coloque aqui os 2 dígitos que você quiser
+        END AS cnpj_empresa
+
+      FROM vendas_motos
+      ORDER BY created_at DESC
+    `);
+
     res.json(result.rows);
   } catch (err) {
     console.error("Erro vendas motos:", err);
