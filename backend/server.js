@@ -486,9 +486,18 @@ app.post("/vender-moto", async (req, res) => {
       throw new Error("Moto indisponível");
     }
 
-    const moto = motoRes.rows[0];
+    const motoRes = await client.query(
+  "SELECT * FROM motos WHERE id = $1",
+  [moto_id]
+);
 
-  await client.query(
+const moto = motoRes.rows[0];
+
+const cnpj2Digitos = moto.cnpj_empresa
+  ? moto.cnpj_empresa.replace(/\D/g, "").substring(0, 2)
+  : null;
+
+await client.query(
   `INSERT INTO vendas_motos (
     moto_id,
     modelo,
@@ -529,18 +538,6 @@ app.post("/vender-moto", async (req, res) => {
   ]
 );
 
-
-// 🔹 SE TEVE BRINDE → DAR BAIXA EM 1 CAPACETE
-if (brinde === true) {
-
-  const capaceteRes = await client.query(
-    `SELECT id, estoque
-     FROM pecas
-     WHERE nome ILIKE '%CAPACETE%'
-       AND cidade = $1
-     LIMIT 1`,
-    [filial_venda]
-  );
 
   if (capaceteRes.rows.length === 0) {
     throw new Error("Sem capacete em estoque para brinde");
