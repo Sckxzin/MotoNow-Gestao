@@ -190,7 +190,7 @@ function getCNPJ(v) {
               cliente: v.nome_cliente,
               valor: v.valor,
               filial: v.filial_venda,
-              empresa: getEmpresa(v),
+              empresa: v.Empresa,
               data: new Date(v.created_at).toLocaleDateString("pt-BR")
             }))
           )
@@ -233,7 +233,7 @@ function getCNPJ(v) {
                   <td>{v.forma_pagamento}</td>
                   <td>{v.gasolina ? `R$ ${Number(v.gasolina).toFixed(2)}` : "-"}</td>
                   <td>{v.filial_venda}</td>
-                  <td>{getEmpresa(v)}</td>
+                  <td>{v.empresa}</td>
 <td>{getCNPJ(v)}</td>
 <td>{v.brinde ? "SIM" : "NÃO"}</td>
 
