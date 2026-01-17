@@ -234,7 +234,7 @@ function getCNPJ(v) {
                   <td>{v.gasolina ? `R$ ${Number(v.gasolina).toFixed(2)}` : "-"}</td>
                   <td>{v.filial_venda}</td>
                   <td>{v.empresa}</td>
-<td>{getCNPJ(v)}</td>
+<td>{v.cnpj}</td>
 <td>{v.brinde ? "SIM" : "NÃO"}</td>
 
                   <td>{new Date(v.created_at).toLocaleDateString("pt-BR")}</td>
