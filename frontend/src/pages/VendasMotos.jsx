@@ -49,6 +49,13 @@ export default function VendasMotos() {
       ? "EMENEZES"
       : "MOTONOW";
   }
+function getCNPJ(v) {
+  if (v.santander === true || v.santander === "SIM") {
+    return "-";
+  }
+
+  return v.cnpj_empresa || "-";
+}
 
   /* ================= BOTÕES RÁPIDOS ================= */
   function aplicarHoje() {
@@ -209,6 +216,7 @@ export default function VendasMotos() {
                 <th>Gasolina</th>
                 <th>Filial</th>
                 <th>Empresa</th>
+                <th>CNPJ</th>
                 <th>Brinde</th>
                 <th>Data</th>
               </tr>
@@ -226,7 +234,9 @@ export default function VendasMotos() {
                   <td>{v.gasolina ? `R$ ${Number(v.gasolina).toFixed(2)}` : "-"}</td>
                   <td>{v.filial_venda}</td>
                   <td>{getEmpresa(v)}</td>
-                  <td>{v.brinde ? "SIM" : "NÃO"}</td>
+<td>{getCNPJ(v)}</td>
+<td>{v.brinde ? "SIM" : "NÃO"}</td>
+
                   <td>{new Date(v.created_at).toLocaleDateString("pt-BR")}</td>
                 </tr>
               ))}
