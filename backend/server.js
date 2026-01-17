@@ -405,7 +405,6 @@ app.get("/vendas", async (req, res) => {
   }
 });
 
-
 /* ================= HISTÓRICO VENDAS MOTOS ================= */
 app.get("/vendas-motos", async (req, res) => {
   try {
@@ -427,7 +426,15 @@ app.get("/vendas-motos", async (req, res) => {
         gasolina,
         como_chegou,
         santander,
-        created_at
+        created_at,
+
+        -- 🔒 ESCONDE EMPRESA E CNPJ SE FOR SANTANDER
+
+        CASE
+          WHEN santander = true THEN NULL
+          ELSE cnpj_empresa
+        END AS cnpj_empresa
+
       FROM vendas_motos
       ORDER BY created_at DESC
     `);
