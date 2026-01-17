@@ -408,50 +408,17 @@ app.get("/vendas", async (req, res) => {
 /* ================= HISTÓRICO VENDAS MOTOS ================= */
 app.get("/vendas-motos", async (req, res) => {
   try {
-    const result = await db.query(`
-      SELECT
-        id,
-        moto_id,
-        modelo,
-        cor,
-        chassi,
-        filial_origem,
-        filial_venda,
-        nome_cliente,
-        cpf,
-        telefone,
-        valor,
-        forma_pagamento,
-        brinde,
-        gasolina,
-        como_chegou,
-        santander,
-        created_at,
-
-        CASE
-          WHEN santander = true THEN 'EMENEZES'
-          ELSE 'MOTONOW'
-        END AS empresa,
-
-        CASE
-          WHEN santander = false 
-           AND cnpj_empresa IS NOT NULL 
-           AND cnpj_empresa <> ''
-            THEN LEFT(cnpj_empresa, 2)
-          ELSE NULL
-        END AS cnpj
-
-      FROM vendas_motos
-      ORDER BY created_at DESC
-    `);
-
+    const result = await db.query(
+      `SELECT *
+       FROM vendas_motos
+       ORDER BY created_at DESC`
+    );
     res.json(result.rows);
   } catch (err) {
     console.error("Erro vendas motos:", err);
     res.status(500).json({ message: "Erro ao buscar vendas de motos" });
   }
 });
-
 
 /* ================= VENDER MOTO ================= */
 app.post("/vender-moto", async (req, res) => {
@@ -486,58 +453,63 @@ app.post("/vender-moto", async (req, res) => {
       throw new Error("Moto indisponível");
     }
 
-    const motoRes = await client.query(
-  "SELECT * FROM motos WHERE id = $1",
-  [moto_id]
-);
+    const moto = motoRes.rows[0];
 
-const moto = motoRes.rows[0];
+    await client.query(
+      `INSERT INTO vendas_motos (
+        moto_id,
+        modelo,
+        cor,
+        chassi,
+        filial_origem,
+        filial_venda,
+        nome_cliente,
+        cpf,
+        telefone,
+        valor,
+        forma_pagamento,
+        brinde,
+        gasolina,
+        como_chegou,
+        santander
+      ) VALUES (
+        $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15
+      )`,
+      [
+        moto.id,
+        moto.modelo,
+        moto.cor,
+        moto.chassi,
+        moto.filial,
+        filial_venda,
+        nome_cliente,
+        cpf,
+        telefone,
+        valor,
+        forma_pagamento,
+        brinde,
+        gasolina,
+        como_chegou,
+        moto.santander
+      ]
+    );
 
-const cnpj2Digitos = moto.cnpj_empresa
-  ? moto.cnpj_empresa.replace(/\D/g, "").substring(0, 2)
-  : null;
+    await client.query(
+      "UPDATE motos SET status = 'VENDIDA' WHERE id = $1",
+      [moto_id]
+    );
 
-await client.query(
-  `INSERT INTO vendas_motos (
-    moto_id,
-    modelo,
-    cor,
-    chassi,
-    filial_origem,
-    filial_venda,
-    nome_cliente,
-    cpf,
-    telefone,
-    valor,
-    forma_pagamento,
-    brinde,
-    gasolina,
-    como_chegou,
-    santander,
-    cnpj_empresa
-  ) VALUES (
-    $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16
-  )`,
-  [
-    moto.id,
-    moto.modelo,
-    moto.cor,
-    moto.chassi,
-    moto.filial,
-    filial_venda,
-    nome_cliente,
-    cpf,
-    telefone,
-    valor,
-    forma_pagamento,
-    brinde,
-    gasolina,
-    como_chegou,
-    moto.santander,
-    cnpj2Digitos
-  ]
-);
+// 🔹 SE TEVE BRINDE → DAR BAIXA EM 1 CAPACETE
+if (brinde === true) {
 
+  const capaceteRes = await client.query(
+    `SELECT id, estoque
+     FROM pecas
+     WHERE nome ILIKE '%CAPACETE%'
+       AND cidade = $1
+     LIMIT 1`,
+    [filial_venda]
+  );
 
   if (capaceteRes.rows.length === 0) {
     throw new Error("Sem capacete em estoque para brinde");
