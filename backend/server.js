@@ -488,49 +488,47 @@ app.post("/vender-moto", async (req, res) => {
 
     const moto = motoRes.rows[0];
 
-    await client.query(
-      `INSERT INTO vendas_motos (
-        moto_id,
-        modelo,
-        cor,
-        chassi,
-        filial_origem,
-        filial_venda,
-        nome_cliente,
-        cpf,
-        telefone,
-        valor,
-        forma_pagamento,
-        brinde,
-        gasolina,
-        como_chegou,
-        santander
-      ) VALUES (
-        $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15
-      )`,
-      [
-        moto.id,
-        moto.modelo,
-        moto.cor,
-        moto.chassi,
-        moto.filial,
-        filial_venda,
-        nome_cliente,
-        cpf,
-        telefone,
-        valor,
-        forma_pagamento,
-        brinde,
-        gasolina,
-        como_chegou,
-        moto.santander
-      ]
-    );
+  await client.query(
+  `INSERT INTO vendas_motos (
+    moto_id,
+    modelo,
+    cor,
+    chassi,
+    filial_origem,
+    filial_venda,
+    nome_cliente,
+    cpf,
+    telefone,
+    valor,
+    forma_pagamento,
+    brinde,
+    gasolina,
+    como_chegou,
+    santander,
+    cnpj_empresa
+  ) VALUES (
+    $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16
+  )`,
+  [
+    moto.id,
+    moto.modelo,
+    moto.cor,
+    moto.chassi,
+    moto.filial,
+    filial_venda,
+    nome_cliente,
+    cpf,
+    telefone,
+    valor,
+    forma_pagamento,
+    brinde,
+    gasolina,
+    como_chegou,
+    moto.santander,
+    cnpj2Digitos
+  ]
+);
 
-    await client.query(
-      "UPDATE motos SET status = 'VENDIDA' WHERE id = $1",
-      [moto_id]
-    );
 
 // 🔹 SE TEVE BRINDE → DAR BAIXA EM 1 CAPACETE
 if (brinde === true) {
