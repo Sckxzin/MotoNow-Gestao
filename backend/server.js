@@ -428,17 +428,17 @@ app.get("/vendas-motos", async (req, res) => {
         santander,
         created_at,
 
-        -- 🏢 EMPRESA
+        -- ✅ EMPRESA
         CASE
           WHEN santander = true THEN 'EMENEZES'
           ELSE 'MOTONOW'
-        END AS nome_empresa,
+        END AS empresa,
 
-        -- 🧾 CNPJ (APENAS 2 PRIMEIROS DÍGITOS)
+        -- ✅ CNPJ (SÓ 2 PRIMEIROS DÍGITOS)
         CASE
           WHEN santander = true THEN NULL
-          ELSE '12' -- ⬅️ coloque aqui os 2 dígitos que você quiser
-        END AS cnpj_empresa
+          ELSE LEFT(cnpj_empresa, 2)
+        END AS cnpj
 
       FROM vendas_motos
       ORDER BY created_at DESC
@@ -450,6 +450,7 @@ app.get("/vendas-motos", async (req, res) => {
     res.status(500).json({ message: "Erro ao buscar vendas de motos" });
   }
 });
+
 
 /* ================= VENDER MOTO ================= */
 app.post("/vender-moto", async (req, res) => {
