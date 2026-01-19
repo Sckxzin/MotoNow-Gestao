@@ -408,17 +408,49 @@ app.get("/vendas", async (req, res) => {
 /* ================= HISTÓRICO VENDAS MOTOS ================= */
 app.get("/vendas-motos", async (req, res) => {
   try {
-    const result = await db.query(
-      `SELECT *
-       FROM vendas_motos
-       ORDER BY created_at DESC`
-    );
+    const result = await db.query(`
+      SELECT
+        id,
+        moto_id,
+        modelo,
+        cor,
+        chassi,
+        filial_origem,
+        filial_venda,
+        nome_cliente,
+        cpf,
+        telefone,
+        valor,
+        forma_pagamento,
+        brinde,
+        gasolina,
+        como_chegou,
+        santander,
+        created_at,
+
+        -- ✅ EMPRESA
+        CASE
+          WHEN santander = true THEN 'EMENEZES'
+          ELSE 'MOTONOW'
+        END AS empresa,
+
+        -- ✅ CNPJ (SÓ 2 PRIMEIROS DÍGITOS)
+        CASE
+          WHEN santander = true THEN NULL
+          ELSE LEFT(cnpj_empresa, 2)
+        END AS cnpj
+
+      FROM vendas_motos
+      ORDER BY created_at DESC
+    `);
+
     res.json(result.rows);
   } catch (err) {
     console.error("Erro vendas motos:", err);
     res.status(500).json({ message: "Erro ao buscar vendas de motos" });
   }
 });
+
 
 /* ================= VENDER MOTO ================= */
 app.post("/vender-moto", async (req, res) => {
