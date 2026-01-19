@@ -47,6 +47,31 @@
   background: #fff;
   font-size: 14px;
 }
+ .filtros,
+  .botoes-rapidos {
+    flex-direction: column;
+  }
+}
+.resumo-cidades {
+  margin-top: 15px;
+  padding: 10px;
+  background: #f6f6f6;
+  border-radius: 8px;
+}
+
+.resumo-cidades h4 {
+  margin-bottom: 8px;
+}
+
+.resumo-cidades ul {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 8px 0;
+}
+
+.resumo-cidades li {
+  margin-bottom: 4px;
+}
 
 /* ================= BOTÕES RÁPIDOS ================= */
 .botoes-rapidos {
@@ -148,30 +173,4 @@
     flex-direction: column;
     gap: 8px;
   }
-
-  .filtros,
-  .botoes-rapidos {
-    flex-direction: column;
-  }
-}
-.resumo-cidades {
-  margin-top: 15px;
-  padding: 10px;
-  background: #f6f6f6;
-  border-radius: 8px;
-}
-
-.resumo-cidades h4 {
-  margin-bottom: 8px;
-}
-
-.resumo-cidades ul {
-  list-style: none;
-  padding: 0;
-  margin: 0 0 8px 0;
-}
-
-.resumo-cidades li {
-  margin-bottom: 4px;
-}
 
