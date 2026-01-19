@@ -490,7 +490,7 @@ value="MARAGOGI">Maragogi</option>         </select>
               <option value="XEXEU">XEXEU</option>
               <option 
 value="MARAGOGI">MARAGOGI</option>
-             <option value="IPOJUCA RICARDO">IPOJUCA RICARDO</option>
+             <option value="IPOJUCA RICARDO">Ipojuca Ricardo</option>
             </select>
 
             <label>
@@ -545,7 +545,7 @@ value="MARAGOGI">MARAGOGI</option>
         <option value="XEXEU">Xexeu</option>
 <option 
 value="MARAGOGI">MARAGOGI</option>
-       <option value="IPOJUCA RICARDO">IPOJUCA RICARDO</option>
+       <option value="IPOJUCA RICARDO">Ipojuca Ricardo</option>
       </select>
 
       <div style={{ display: "flex", gap: 10, marginTop: 15 }}>
@@ -576,7 +576,7 @@ value="MARAGOGI">MARAGOGI</option>
         <option value="CATENDE">Catende</option>
         <option value="XEXEU">Xexeu</option>
         <option value="MARAGOGI">Maragogi</option>
-       <option value="IPOJUCA RICARDO">IPOJUCA RICARDO</option>
+       <option value="IPOJUCA RICARDO">Ipojuca Ricardo</option>
       </select>
 
       <div style={{ display: "flex", gap: 10, marginTop: 15 }}>
