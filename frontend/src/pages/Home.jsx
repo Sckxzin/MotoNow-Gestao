@@ -490,6 +490,7 @@ value="MARAGOGI">Maragogi</option>         </select>
               <option value="XEXEU">XEXEU</option>
               <option 
 value="MARAGOGI">MARAGOGI</option>
+             <option value="IPOJUCA RICARDO">IPOJUCA RICARDO</option>
             </select>
 
             <label>
@@ -544,6 +545,7 @@ value="MARAGOGI">MARAGOGI</option>
         <option value="XEXEU">Xexeu</option>
 <option 
 value="MARAGOGI">MARAGOGI</option>
+       <option value="IPOJUCA RICARDO">IPOJUCA RICARDO</option>
       </select>
 
       <div style={{ display: "flex", gap: 10, marginTop: 15 }}>
