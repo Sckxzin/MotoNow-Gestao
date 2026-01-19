@@ -130,6 +130,21 @@ function getCNPJ(v) {
 
     return { emenezes, motonow };
   }, [vendasFiltradas]);
+  
+  const totalPorCidade = useMemo(() => {
+  const contagem = {};
+
+  vendasFiltradas.forEach(v => {
+    const cidade = v.filial_venda || "SEM CIDADE";
+    contagem[cidade] = (contagem[cidade] || 0) + 1;
+  });
+
+  return contagem;
+}, [vendasFiltradas]);
+
+const totalGeralMotos = useMemo(() => {
+  return vendasFiltradas.length;
+}, [vendasFiltradas]);
 
   /* ================= UI ================= */
   return (
@@ -177,6 +192,20 @@ function getCNPJ(v) {
         <strong>🏢 EMENEZES: {formatarValor(totalEmpresa.emenezes)}</strong>
         <strong>🏢 MOTONOW: {formatarValor(totalEmpresa.motonow)}</strong>
       </div>
+      <div className="resumo-cidades">
+  <h4>📍 Motos vendidas por cidade</h4>
+
+  <ul>
+    {Object.entries(totalPorCidade).map(([cidade, total]) => (
+      <li key={cidade}>
+        {cidade}: <strong>{total}</strong>
+      </li>
+    ))}
+  </ul>
+
+  <strong>🧮 Total geral: {totalGeralMotos} motos</strong>
+</div>
+
 
       {/* ===== EXPORTAR ===== */}
       <button
