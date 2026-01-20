@@ -240,6 +240,7 @@ const totalGeralMotos = useMemo(() => {
                 <th>Cor</th>
                 <th>Chassi</th>
                 <th>Cliente</th>
+                <th>Como chegou?</th>
                 <th>Valor</th>
                 <th>Pagamento</th>
                 <th>Gasolina</th>
