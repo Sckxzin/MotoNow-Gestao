@@ -240,6 +240,7 @@ const totalGeralMotos = useMemo(() => {
                 <th>Cor</th>
                 <th>Chassi</th>
                 <th>Cliente</th>
+                <th>Como chegou?</th>
                 <th>Valor</th>
                 <th>Pagamento</th>
                 <th>Gasolina</th>
@@ -258,6 +259,7 @@ const totalGeralMotos = useMemo(() => {
                   <td>{v.cor}</td>
                   <td>{v.chassi}</td>
                   <td>{v.nome_cliente}</td>
+                  <td>{v.como_chegou}</td>
                   <td>{formatarValor(v.valor)}</td>
                   <td>{v.forma_pagamento}</td>
                   <td>{v.gasolina ? `R$ ${Number(v.gasolina).toFixed(2)}` : "-"}</td>
