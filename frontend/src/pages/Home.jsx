@@ -536,6 +536,18 @@ value="MARAGOGI">MARAGOGI</option>
               value={formaPagamento}
               onChange={e => setFormaPagamento(e.target.value)}
             />
+           <select
+        value={comoChegou}
+        onChange={e => setComoChegou(e.target.value)}
+      >
+        <option value="">Como o cliente chegou?</option>
+        <option value="Instagram">Instagram</option>
+        <option value="Google">Google</option>
+        <option value="Indicação">Indicação</option>
+        <option value="Passou na porta">Passou na porta</option>
+        <option value="WhatsApp">WhatsApp</option>
+        <option value="Outro">Outro</option>
+      </select>
 
             <button onClick={confirmarVendaMoto}>Confirmar</button>
             <button onClick={() => setMotoSelecionada(null)}>Cancelar</button>
