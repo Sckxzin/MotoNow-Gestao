@@ -448,7 +448,7 @@ value="MARAGOGI">Maragogi</option>         </select>
 
   .map(m => (
               
-                .map(m => (
+               
                   <tr key={m.id}>
                     <td>{m.modelo}</td>
                     <td>{m.cor}</td>
