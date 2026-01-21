@@ -541,11 +541,9 @@ value="MARAGOGI">MARAGOGI</option>
         onChange={e => setComoChegou(e.target.value)}
       >
         <option value="">Como o cliente chegou?</option>
-        <option value="Instagram">Instagram</option>
-        <option value="Google">Google</option>
-        <option value="Indicação">Indicação</option>
-        <option value="Passou na porta">Passou na porta</option>
-        <option value="WhatsApp">WhatsApp</option>
+        <option value="Tenda">Tenda</option>
+        <option value="Veio em loja">Veio em loja</option>
+        <option value="Leads">Leads</option>
         <option value="Outro">Outro</option>
       </select>
 
