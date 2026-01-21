@@ -287,7 +287,9 @@ app.post("/finalizar-venda", async (req, res) => {
     itens,
     total,
     cidade,
-    observacao
+    observacao,
+    modelo_moto,
+    chassi_moto
   } = req.body;
 
   if (!cliente_nome || !cliente_cpf || !forma_pagamento || !cidade) {
@@ -301,10 +303,10 @@ app.post("/finalizar-venda", async (req, res) => {
 
     const vendaRes = await client.query(
       `INSERT INTO vendas
-       (cliente_nome, cliente_cpf, forma_pagamento, total, cidade, observacao)
-       VALUES ($1,$2,$3,$4,$5,$6)
+       (cliente_nome, cliente_cpf, forma_pagamento, total, cidade, observacao, modelo_moto, chassi_moto)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
        RETURNING id`,
-      [cliente_nome, cliente_cpf, forma_pagamento, total, cidade, observacao]
+      [cliente_nome, cliente_cpf, forma_pagamento, total, cidade, observacao, modelo_moto, chassi_moto]
     );
 
     const vendaId = vendaRes.rows[0].id;
