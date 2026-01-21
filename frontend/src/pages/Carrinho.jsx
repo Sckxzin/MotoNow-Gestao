@@ -13,6 +13,9 @@ export default function Carrinho() {
   const [cpf, setCpf] = useState("");
   const [formaPagamento, setFormaPagamento] = useState("");
   const [observacao, setObservacao] = useState("");
+  const [modeloMoto, setModeloMoto] = useState("");
+  const [chassiMoto, setChassiMoto] = useState("");
+
 
 
   /* ================= LOAD CARRINHO ================= */
@@ -70,7 +73,9 @@ export default function Carrinho() {
         total,
         itens,
         cidade: user.cidade,
-        observacao
+        observacao,
+        modelo_moto: modeloMoto || null,
+        chassi_moto: chassiMoto || null
         
         
       });
@@ -137,6 +142,21 @@ export default function Carrinho() {
 
           {/* ================= DADOS DO CLIENTE ================= */}
           <h3>👤 Dados do Cliente</h3>
+
+          <h3>🏍 Dados da Moto (opcional)</h3>
+
+<input
+  placeholder="Modelo da moto (ex: CG 160, Factor 125...)"
+  value={modeloMoto}
+  onChange={e => setModeloMoto(e.target.value)}
+/>
+
+<input
+  placeholder="Chassi da moto"
+  value={chassiMoto}
+  onChange={e => setChassiMoto(e.target.value)}
+/>
+
 
           <input
             placeholder="Nome do cliente"
