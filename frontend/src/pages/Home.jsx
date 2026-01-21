@@ -21,6 +21,8 @@ export default function Home() {
   const [cidadeFiltroPecas, setCidadeFiltroPecas] = useState("TODAS");
   const [cidadeFiltroMotos, setCidadeFiltroMotos] = useState("TODAS");
   const [tipoFiltroPecas, setTipoFiltroPecas] = useState("TODOS");
+  const [santanderFiltro, setSantanderFiltro] = useState("TODOS");
+
 
   /* ===== MODAL VENDA MOTO ===== */
   const [motoSelecionada, setMotoSelecionada] = useState(null);
@@ -356,6 +358,18 @@ value="MARAGOGI">Maragogi</option>
            value={busca}
            onChange={e => setBusca(e.target.value)}
           />
+         {user.role === "DIRETORIA" && (
+  <select
+    className="select-filial"
+    value={santanderFiltro}
+    onChange={e => setSantanderFiltro(e.target.value)}
+  >
+    <option value="TODOS">Todos (Santander)</option>
+    <option value="SIM">Somente Santander</option>
+    <option value="NAO">Somente Não Santander</option>
+  </select>
+)}
+
 
           <select
             className="select-filial"
@@ -417,10 +431,22 @@ value="MARAGOGI">Maragogi</option>         </select>
             </thead>
             <tbody>
               {motos
-                .filter(m => cidadeFiltroMotos === "TODAS" || m.filial === cidadeFiltroMotos)
-                .filter(m => busca === "" ||
-                m.modelo?.toLowerCase().includes(busca.toLowerCase()) ||
-                m.chassi?.toLowerCase().includes(busca.toLowerCase()))
+  .filter(m => cidadeFiltroMotos === "TODAS" || m.filial === cidadeFiltroMotos)
+
+  .filter(m => {
+    if (santanderFiltro === "TODOS") return true;
+    if (santanderFiltro === "SIM") return m.santander === true;
+    if (santanderFiltro === "NAO") return m.santander === false || m.santander == null;
+    return true;
+  })
+
+  .filter(m =>
+    busca === "" ||
+    m.modelo?.toLowerCase().includes(busca.toLowerCase()) ||
+    m.chassi?.toLowerCase().includes(busca.toLowerCase())
+  )
+
+  .map(m => (
               
                 .map(m => (
                   <tr key={m.id}>
