@@ -146,7 +146,7 @@ export default function Carrinho() {
           <h3>🏍 Dados da Moto (opcional)</h3>
 
 <input
-  placeholder="Modelo da moto (ex: CG 160, Factor 125...)"
+  placeholder="Modelo da moto (ex: SHI, JET.....)"
   value={modeloMoto}
   onChange={e => setModeloMoto(e.target.value)}
 />
