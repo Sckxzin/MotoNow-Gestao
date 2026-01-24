@@ -425,6 +425,7 @@ value="MARAGOGI">Maragogi</option>         </select>
                 <th>Chassi</th>
                 <th>Filial</th>
                 <th>Santander</th>
+                <th>CNPJ</th>
                 <th>Status</th>
                 <th>Ação</th>
               </tr>
@@ -459,6 +460,7 @@ value="MARAGOGI">Maragogi</option>         </select>
   </span>
 </td>
                     <td>{m.santander === true ? "SIM" : "NÃO"}</td>
+                    <td>{m.cnpj_empresa}</td>
                     <td>
   <span className={`status ${m.status.toLowerCase()}`}>
     {m.status}
