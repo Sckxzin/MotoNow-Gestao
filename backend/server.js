@@ -192,6 +192,7 @@ app.get("/motos", async (req, res) => {
         chassi,
         filial,
         status,
+        cnpj_empresa,
         CASE
          WHEN santander = true THEN true
          ELSE false
