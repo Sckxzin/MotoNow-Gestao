@@ -47,7 +47,7 @@ export default function NotaFiscal() {
         <p><strong>Nome:</strong> {venda.cliente_nome}</p>
         <p><strong>CPF:</strong> {venda.cliente_cpf || "-"}</p>
         <p><strong>Telefone:</strong> {venda.cliente_telefone || "-"}</p>
-        <p><strong>Chassi:</strong> {venda.chassi || "-"}</p>
+        <p><strong>Chassi:</strong> {venda.chassi_moto || "-"}</p>
       </div>
 
       {/* ITENS */}
