@@ -23,14 +23,14 @@ export default function NotaFiscal() {
 
   /* ================= FILIAIS ================= */
   const filiais = {
-    Escada: {
+    ESCADA: {
       nome: "MOTONOW COMÉRCIO DE MOTOCICLETAS LTDA",
       endereco: "Av. Comendador José Pereira, 695",
       cidade: "Escada - PE",
       telefone: "(81) 99302-4733",
       cnpj: "12.345.678/0001-90",
     },
-    Ipojuca: {
+    IPOJUCA: {
       nome: "MOTONOW COMÉRCIO MOTOS",
       endereco: "R. Um, 67 - Nossa Sra. do O",
       cidade: "Ipojuca - PE",
