@@ -358,7 +358,7 @@ app.get("/nota-fiscal/:id", async (req, res) => {
     }
 
     const itensRes = await db.query(
-      `SELECT p.nome, vi.quantidade, vi.preco_unitario, vi.chassi_moto
+      `SELECT p.nome, vi.quantidade, vi.preco_unitario
        FROM venda_itens vi
        JOIN pecas p ON p.id = vi.peca_id
        WHERE vi.venda_id = $1`,
