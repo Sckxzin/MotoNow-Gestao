@@ -388,7 +388,7 @@ app.get("/vendas", async (req, res) => {
 
     for (const v of vendasRes.rows) {
       const itensRes = await db.query(
-        `SELECT vi.quantidade, vi.preco_unitario, p.nome
+        `SELECT vi.quantidade, vi.preco_unitario, p.nome, vi.chassi_moto
          FROM venda_itens vi
          JOIN pecas p ON p.id = vi.peca_id
          WHERE vi.venda_id = $1`,
