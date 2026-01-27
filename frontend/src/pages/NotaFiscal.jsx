@@ -21,6 +21,28 @@ export default function NotaFiscal() {
 
   const { venda, itens } = nota;
 
+  /* ================= FILIAIS ================= */
+  const filiais = {
+    Escada: {
+      nome: "MOTONOW COMÉRCIO DE MOTOCICLETAS LTDA",
+      endereco: "Av. Comendador José Pereira, 695",
+      cidade: "Escada - PE",
+      telefone: "(81) 99302-4733",
+      cnpj: "12.345.678/0001-90",
+    },
+    Ipojuca: {
+      nome: "MOTONOW COMÉRCIO MOTOS",
+      endereco: "R. Um, 67 - Nossa Sra. do O",
+      cidade: "Ipojuca - PE",
+      telefone: "(81) 99245-9495",
+      cnpj: "58.021.497/0001-04",
+    },
+  };
+
+  // normaliza para evitar erro por espaço ou maiúscula/minúscula
+  const chaveFilial = (venda.cidade || "").trim();
+  const filialInfo = filiais[chaveFilial] || filiais.Escada;
+
   return (
     <div className="nf-container">
       {/* HEADER */}
@@ -30,12 +52,13 @@ export default function NotaFiscal() {
         </div>
 
         <div className="nf-title">
-          MOTONOW COMÉRCIO DE MOTOCICLETAS LTDA
+          {filialInfo.nome}
         </div>
 
         <div className="nf-text">
-          Av. Comendador José Pereira, 695<br />
-          Escada - PE • Tel: (81) 99302-4733
+          {filialInfo.endereco}<br />
+          {filialInfo.cidade} • Tel: {filialInfo.telefone}<br />
+          CNPJ: {filialInfo.cnpj}
         </div>
       </div>
 
@@ -82,16 +105,16 @@ export default function NotaFiscal() {
           {new Date(venda.created_at).toLocaleString("pt-BR")}
         </p>
       </div>
-      {/* OBSERVAÇÕES */}
-{venda.observacao && (
-  <>
-    <div className="nf-section">OBSERVAÇÕES</div>
-    <div className="nf-box">
-      <p>{venda.observacao}</p>
-    </div>
-  </>
-)}
 
+      {/* OBSERVAÇÕES */}
+      {venda.observacao && (
+        <>
+          <div className="nf-section">OBSERVAÇÕES</div>
+          <div className="nf-box">
+            <p>{venda.observacao}</p>
+          </div>
+        </>
+      )}
 
       {/* AÇÕES */}
       <button className="nf-print" onClick={() => window.print()}>
