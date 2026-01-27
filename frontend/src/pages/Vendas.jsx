@@ -107,8 +107,6 @@ function exportarCSV(nomeArquivo, headers, dados) {
         cidade: v.cidade,
         total: v.total,
         detalhes: v.detalhes,
-        chassi: v.chassi_motos,
-      
         data: new Date(v.created_at).toLocaleDateString("pt-BR")
       }))
     )
