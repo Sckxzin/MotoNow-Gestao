@@ -172,6 +172,7 @@ const totalGeralMotos = useMemo(() => {
           <option value="CATENDE">Catende</option>
           <option value="XEXEU">Xexeu</option>
           <option value="MARAGOGI">Maragogi</option>
+          <option value="IPOJUCA RICARDO">Ipojuca Ricardo</option>
         </select>
 
         <input type="date" value={dataInicio} onChange={e => setDataInicio(e.target.value)} />
