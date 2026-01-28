@@ -59,6 +59,94 @@ app.post("/login", async (req, res) => {
     res.status(500).json({ message: "Erro no login" });
   }
 });
+/* ================= CADASTRAR MOTO ================= */
+app.post("/motos", async (req, res) => {
+  const {
+    modelo,
+    cor,
+    chassi,
+    filial,
+    santander,
+    cnpj_empresa
+  } = req.body;
+
+  if (!modelo || !cor || !chassi || !filial) {
+    return res.status(400).json({ message: "Dados incompletos" });
+  }
+
+  try {
+    // 🔍 verifica chassi duplicado
+    const existe = await db.query(
+      `SELECT id FROM motos WHERE chassi = $1`,
+      [chassi]
+    );
+
+    if (existe.rows.length > 0) {
+      return res.status(409).json({ message: "Moto com esse chassi já cadastrada" });
+    }
+
+    await db.query(
+      `INSERT INTO motos
+       (modelo, cor, chassi, filial, status, santander, cnpj_empresa)
+       VALUES ($1,$2,$3,$4,'DISPONIVEL',$5,$6)`,
+      [
+        modelo,
+        cor,
+        chassi,
+        filial,
+        santander === true,
+        cnpj_empresa || null
+      ]
+    );
+
+    res.json({ message: "Moto cadastrada com sucesso" });
+
+  } catch (err) {
+    console.error("Erro cadastrar moto:", err);
+    res.status(500).json({ message: "Erro ao cadastrar moto" });
+  }
+});
+
+
+/* ================= CADASTRAR PEÇA ================= */
+app.post("/pecas", async (req, res) => {
+  const {
+    nome,
+    preco,
+    estoque,
+    cidade,
+    tipo_moto
+  } = req.body;
+
+  if (!nome || preco == null || estoque == null || !cidade) {
+    return res.status(400).json({ message: "Dados incompletos" });
+  }
+
+  try {
+    // 🔍 verifica duplicidade
+    const existe = await db.query(
+      `SELECT id FROM pecas WHERE nome = $1 AND cidade = $2`,
+      [nome, cidade]
+    );
+
+    if (existe.rows.length > 0) {
+      return res.status(409).json({ message: "Peça já cadastrada nessa filial" });
+    }
+
+    await db.query(
+      `INSERT INTO pecas (nome, preco, estoque, cidade, tipo_moto)
+       VALUES ($1,$2,$3,$4,$5)`,
+      [nome, preco, estoque, cidade, tipo_moto]
+    );
+
+    res.json({ message: "Peça cadastrada com sucesso" });
+
+  } catch (err) {
+    console.error("Erro cadastrar peça:", err);
+    res.status(500).json({ message: "Erro ao cadastrar peça" });
+  }
+});
+
 
 /* ================= PEÇAS ================= */
 app.get("/pecas", async (req, res) => {
