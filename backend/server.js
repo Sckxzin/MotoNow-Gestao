@@ -429,6 +429,7 @@ app.get("/vendas-motos", async (req, res) => {
         gasolina,
         como_chegou,
         santander,
+        numero_cliente,
         created_at,
 
         -- ✅ EMPRESA
@@ -467,7 +468,8 @@ app.post("/vender-moto", async (req, res) => {
     brinde,
     gasolina,
     como_chegou,
-    filial_venda
+    filial_venda,
+    numero_cliente
   } = req.body;
 
   if (!filial_venda) {
@@ -506,9 +508,10 @@ app.post("/vender-moto", async (req, res) => {
         brinde,
         gasolina,
         como_chegou,
-        santander
+        santander,
+        numero_cliente
       ) VALUES (
-        $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15
+        $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16
       )`,
       [
         moto.id,
@@ -525,7 +528,8 @@ app.post("/vender-moto", async (req, res) => {
         brinde,
         gasolina,
         como_chegou,
-        moto.santander
+        moto.santander,
+        numero_cliente
       ]
     );
 
