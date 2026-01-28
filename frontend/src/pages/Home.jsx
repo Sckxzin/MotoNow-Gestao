@@ -249,7 +249,7 @@ async function confirmarTransferencia() {
         <button className="tab-btn" onClick={() => setTab("motos")}>🏍 Motos</button>
         <button className="tab-btn" onClick={() => nav("/vendas")}>🧾 Vendas</button>
         {user.role === "DIRETORIA" && (
-       <button className="tab-btn" onClick={() => setTab("cadastar")}> Cadastrar Peças</button>
+       <button className="tab-btn" onClick={() => setTab("Cadastar")}> Cadastrar Peças</button>
         )}
         {user.role === "DIRETORIA" && (
           <button className="tab-btn" onClick={() => nav("/vendas-motos")}>
