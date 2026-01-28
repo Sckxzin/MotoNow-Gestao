@@ -657,7 +657,7 @@ value="MARAGOGI">MARAGOGI</option>
         <option value="Tenda">Tenda</option>
         <option value="Veio em loja">Veio em loja</option>
         <option value="Leads">Leads</option>
-        <option value="Outro">Outro</option>
+        
       </select>
 
             <button onClick={confirmarVendaMoto}>Confirmar</button>
