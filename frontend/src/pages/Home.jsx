@@ -149,7 +149,7 @@ function exportarCSV(nomeArquivo, headers, dados) {
       brinde,
       gasolina: gasolina ? Number(gasolina) : null,
       como_chegou: comoChegou,
-      filial_venda: filialVenda
+      filial_venda: filialVenda,
       numero_cliente: numeroCliente
     });
 
