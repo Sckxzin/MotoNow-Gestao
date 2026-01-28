@@ -22,7 +22,12 @@ export default function Home() {
   const [cidadeFiltroMotos, setCidadeFiltroMotos] = useState("TODAS");
   const [tipoFiltroPecas, setTipoFiltroPecas] = useState("TODOS");
   const [santanderFiltro, setSantanderFiltro] = useState("TODOS");
+  
   const [modalCadastrar, setModalCadastrar] = useState(false);
+  const [nomePeca, setNomePeca] = useState("");
+  const [valorPeca, setValorPeca] = useState("");
+  const [filialPeca, setFilialPeca] = useState("");
+
 
 
 
@@ -164,6 +169,28 @@ function exportarCSV(nomeArquivo, headers, dados) {
     setMotoSelecionada(null);
     alert("Moto vendida com sucesso!");
   }
+ async function cadastrarPeca() {
+  if (!nomePeca || !valorPeca || !filialPeca) {
+    alert("Preencha todos os campos");
+    return;
+  }
+
+  const res = await api.post("/pecas", {
+    nome: nomePeca,
+    preco: Number(valorPeca),
+    cidade: filialPeca
+  });
+
+  setPecas(prev => [...prev, res.data]); // atualiza tabela
+  setModalCadastrar(false);
+
+  setNomePeca("");
+  setValorPeca("");
+  setFilialPeca("");
+
+  alert("Peça cadastrada com sucesso!");
+}
+
 
   if (!user) return null;
 
@@ -654,9 +681,32 @@ value="MARAGOGI">MARAGOGI</option>
     <div className="modal">
       <h3>Cadastrar</h3>
 
-      <input placeholder="Nome" />
-      <input placeholder="Valor" />
-      <input placeholder="Filial" />
+     <input
+  placeholder="Nome"
+  value={nomePeca}
+  onChange={e => setNomePeca(e.target.value)}
+/>
+
+<input
+  type="number"
+  placeholder="Valor"
+  value={valorPeca}
+  onChange={e => setValorPeca(e.target.value)}
+/>
+
+<select
+  value={filialPeca}
+  onChange={e => setFilialPeca(e.target.value)}
+>
+  <option value="">Filial</option>
+  <option value="ESCADA">Escada</option>
+  <option value="IPOJUCA">Ipojuca</option>
+  <option value="RIBEIRAO">Ribeirão</option>
+  <option value="SAO JOSE">São José</option>
+  <option value="CATENDE">Catende</option>
+  <option value="XEXEU">Xexeu</option>
+</select>
+
 
       <div style={{ display: "flex", gap: 10 }}>
         <button onClick={() => alert("Cadastrar aqui")}>
