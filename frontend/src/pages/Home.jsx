@@ -22,6 +22,8 @@ export default function Home() {
   const [cidadeFiltroMotos, setCidadeFiltroMotos] = useState("TODAS");
   const [tipoFiltroPecas, setTipoFiltroPecas] = useState("TODOS");
   const [santanderFiltro, setSantanderFiltro] = useState("TODOS");
+  const [modalCadastrar, setModalCadastrar] = useState(false);
+
 
 
   /* ===== MODAL VENDA MOTO ===== */
@@ -334,6 +336,15 @@ value="MARAGOGI">Maragogi</option>
         🔄
       </button>
     )}
+   {user.role === "DIRETORIA" && (
+  <button
+    className="btn-cadastrar"
+    onClick={() => setModalCadastrar(true)}
+  >
+    ➕ Cadastrar
+  </button>
+)}
+
   </div>
 
                     </td>
@@ -635,6 +646,27 @@ value="MARAGOGI">MARAGOGI</option>
     </div>
   </div>
 )}
+     {modalCadastrar && user.role === "DIRETORIA" && (
+  <div className="modal-overlay">
+    <div className="modal">
+      <h3>Cadastrar</h3>
+
+      <input placeholder="Nome" />
+      <input placeholder="Valor" />
+      <input placeholder="Filial" />
+
+      <div style={{ display: "flex", gap: 10 }}>
+        <button onClick={() => alert("Cadastrar aqui")}>
+          Salvar
+        </button>
+        <button onClick={() => setModalCadastrar(false)}>
+          Cancelar
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
 
     </div>
   );
