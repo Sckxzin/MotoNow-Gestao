@@ -178,10 +178,12 @@ function exportarCSV(nomeArquivo, headers, dados) {
   const res = await api.post("/pecas", {
     nome: nomePeca,
     preco: Number(valorPeca),
-    cidade: filialPeca
+    cidade: filialPeca,
+    estoque: 0,              // 🔥 OBRIGATÓRIO
+    tipo_moto: null           // 🔥 evita erro de constraint
   });
 
-  setPecas(prev => [...prev, res.data]); // atualiza tabela
+  setPecas(prev => [...prev, res.data]);
   setModalCadastrar(false);
 
   setNomePeca("");
