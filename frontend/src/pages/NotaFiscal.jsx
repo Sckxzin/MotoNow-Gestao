@@ -28,7 +28,7 @@ export default function NotaFiscal() {
       endereco: "Av. Comendador José Pereira, 695",
       cidade: "Escada - PE",
       telefone: "(81) 99302-4733",
-      cnpj: "12.345.678/0001-90",
+      cnpj: "61.065.883/001-02",
     },
     IPOJUCA: {
       nome: "MOTONOW COMÉRCIO MOTOS",
