@@ -52,6 +52,19 @@ const [pecaTransferir, setPecaTransferir] = useState(null);
 const [quantidadeTransferir, setQuantidadeTransferir] = useState("");
 const [cidadeDestino, setCidadeDestino] = useState("");
 
+ /* ===== CADASTRAR MOTO ===== */
+const [modalCadastrarMoto, setModalCadastrarMoto] = useState(false);
+
+const [modeloMoto, setModeloMoto] = useState("");
+const [corMoto, setCorMoto] = useState("");
+const [chassiMoto, setChassiMoto] = useState("");
+const [anoMoto, setAnoMoto] = useState("");
+const [valorMotoCadastro, setValorMotoCadastro] = useState("");
+const [filialMoto, setFilialMoto] = useState("");
+const [cnpjEmpresa, setCnpjEmpresa] = useState("");
+const [santanderMoto, setSantanderMoto] = useState(false);
+
+
   /* ================= LOAD ================= */
   useEffect(() => {
     const raw = localStorage.getItem("user");
@@ -259,6 +272,48 @@ async function confirmarTransferencia() {
   setPecaTransferir(null);
   alert("Transferência realizada com sucesso!");
 }
+ async function cadastrarMoto() {
+  if (
+    !modeloMoto ||
+    !corMoto ||
+    !chassiMoto ||
+    !anoMoto ||
+    !valorMotoCadastro ||
+    !filialMoto ||
+    !cnpjEmpresa
+  ) {
+    alert("Preencha todos os campos obrigatórios");
+    return;
+  }
+
+  const res = await api.post("/motos", {
+    modelo: modeloMoto,
+    cor: corMoto,
+    chassi: chassiMoto,
+    ano: Number(anoMoto),
+    valor: Number(valorMotoCadastro),
+    filial: filialMoto,
+    cnpj_empresa: cnpjEmpresa,
+    santander: santanderMoto,
+    status: "DISPONIVEL"
+  });
+
+  setMotos(prev => [...prev, res.data]);
+  setModalCadastrarMoto(false);
+
+  // limpa campos
+  setModeloMoto("");
+  setCorMoto("");
+  setChassiMoto("");
+  setAnoMoto("");
+  setValorMotoCadastro("");
+  setFilialMoto("");
+  setCnpjEmpresa("");
+  setSantanderMoto(false);
+
+  alert("Moto cadastrada com sucesso!");
+}
+
 
   /* ================= JSX ================= */
   return (
@@ -368,14 +423,7 @@ value="MARAGOGI">Maragogi</option>
         🔄
       </button>
     )}
-   {user.role === "DIRETORIA" && (
-  <button
-    className="btn-cadastrar"
-    onClick={() => setModalCadastrar(true)}
-  >
-    ➕ Cadastrar
-  </button>
-)}
+   {
 
   </div>
 
@@ -404,6 +452,15 @@ value="MARAGOGI">Maragogi</option>
            value={busca}
            onChange={e => setBusca(e.target.value)}
           />
+         {user.role === "DIRETORIA" && (
+  <button
+    className="tab-btn"
+    onClick={() => setModalCadastrarMoto(true)}
+  >
+    ➕ Cadastrar Moto
+  </button>
+)}
+
          {user.role === "DIRETORIA" && (
   <select
     className="select-filial"
@@ -721,6 +778,60 @@ value="MARAGOGI">MARAGOGI</option>
     </div>
   </div>
 )}
+             {modalCadastrarMoto && user.role === "DIRETORIA" && (
+  <div className="modal-overlay">
+    <div className="modal">
+      <h3>Cadastrar Moto</h3>
+
+      <input placeholder="Modelo" value={modeloMoto}
+        onChange={e => setModeloMoto(e.target.value)} />
+
+      <input placeholder="Cor" value={corMoto}
+        onChange={e => setCorMoto(e.target.value)} />
+
+      <input placeholder="Chassi" value={chassiMoto}
+        onChange={e => setChassiMoto(e.target.value)} />
+
+      <input type="number" placeholder="Ano" value={anoMoto}
+        onChange={e => setAnoMoto(e.target.value)} />
+
+      <input type="number" placeholder="Valor" value={valorMotoCadastro}
+        onChange={e => setValorMotoCadastro(e.target.value)} />
+
+      <select value={filialMoto}
+        onChange={e => setFilialMoto(e.target.value)}>
+        <option value="">Filial</option>
+        <option value="ESCADA">Escada</option>
+        <option value="IPOJUCA">Ipojuca</option>
+        <option value="RIBEIRAO">Ribeirão</option>
+        <option value="SAO JOSE">São José</option>
+        <option value="CATENDE">Catende</option>
+        <option value="XEXEU">Xexeu</option>
+        <option value="MARAGOGI">Maragogi</option>
+        <option value="IPOJUCA RICARDO">Ipojuca Ricardo</option>
+      </select>
+
+      <input placeholder="CNPJ da empresa"
+        value={cnpjEmpresa}
+        onChange={e => setCnpjEmpresa(e.target.value)} />
+
+      <label style={{ display: "flex", gap: 6, alignItems: "center" }}>
+        <input
+          type="checkbox"
+          checked={santanderMoto}
+          onChange={e => setSantanderMoto(e.target.checked)}
+        />
+        Financiada Santander
+      </label>
+
+      <div style={{ display: "flex", gap: 10 }}>
+        <button onClick={cadastrarMoto}>Salvar</button>
+        <button onClick={() => setModalCadastrarMoto(false)}>Cancelar</button>
+      </div>
+    </div>
+  </div>
+)}
+
 
 
     </div>
