@@ -709,7 +709,7 @@ value="MARAGOGI">MARAGOGI</option>
 
 
       <div style={{ display: "flex", gap: 10 }}>
-        <button onClick={() => alert("cadastrarPeca")}>
+        <button onClick={"cadastrarPeca"}>
           Salvar
         </button>
         <button onClick={() => setModalCadastrar(false)}>
