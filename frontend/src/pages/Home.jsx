@@ -541,6 +541,7 @@ value="MARAGOGI">MARAGOGI</option>
               placeholder="Numero cliente"
               value={numeroCliente}
               onChange={e => setNumeroCliente(e.target.value)}
+             />
              
 
             <input
