@@ -110,6 +110,8 @@ app.post("/motos", async (req, res) => {
 
 /* ================= CADASTRAR PEÇA ================= */
 app.post("/pecas", async (req, res) => {
+  console.log("REQ /pecas:", req.body);
+
   const {
     nome,
     preco,
@@ -123,7 +125,6 @@ app.post("/pecas", async (req, res) => {
   }
 
   try {
-    // 🔍 verifica duplicidade
     const existe = await db.query(
       `SELECT id FROM pecas WHERE nome = $1 AND cidade = $2`,
       [nome, cidade]
@@ -136,7 +137,7 @@ app.post("/pecas", async (req, res) => {
     await db.query(
       `INSERT INTO pecas (nome, preco, estoque, cidade, tipo_moto)
        VALUES ($1,$2,$3,$4,$5)`,
-      [nome, preco, estoque, cidade, tipo_moto]
+      [nome, preco, estoque, cidade, tipo_moto || null]
     );
 
     res.json({ message: "Peça cadastrada com sucesso" });
@@ -146,6 +147,9 @@ app.post("/pecas", async (req, res) => {
     res.status(500).json({ message: "Erro ao cadastrar peça" });
   }
 });
+
+
+  
 
 
 /* ================= PEÇAS ================= */
