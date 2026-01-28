@@ -221,6 +221,7 @@ const totalGeralMotos = useMemo(() => {
               valor: v.valor,
               filial: v.filial_venda,
               empresa: v.Empresa,
+              numero: v.numero_cliente,
               data: new Date(v.created_at).toLocaleDateString("pt-BR")
             }))
           )
@@ -241,6 +242,7 @@ const totalGeralMotos = useMemo(() => {
                 <th>Cor</th>
                 <th>Chassi</th>
                 <th>Cliente</th>
+                <th>Numero cliente</th>
                 <th>Como chegou?</th>
                 <th>Valor</th>
                 <th>Pagamento</th>
@@ -250,6 +252,7 @@ const totalGeralMotos = useMemo(() => {
                 <th>CNPJ</th>
                 <th>Brinde</th>
                 <th>Data</th>
+                
               </tr>
             </thead>
 
@@ -260,6 +263,7 @@ const totalGeralMotos = useMemo(() => {
                   <td>{v.cor}</td>
                   <td>{v.chassi}</td>
                   <td>{v.nome_cliente}</td>
+                  <td>{v.numero_cliente}</td>
                   <td>{v.como_chegou}</td>
                   <td>{formatarValor(v.valor)}</td>
                   <td>{v.forma_pagamento}</td>
