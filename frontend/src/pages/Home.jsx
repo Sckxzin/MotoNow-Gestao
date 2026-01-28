@@ -33,6 +33,7 @@ export default function Home() {
   const [formaPagamento, setFormaPagamento] = useState("");
   const [comoChegou, setComoChegou] = useState("");
   const [filialVenda, setFilialVenda] = useState("");
+  const [numeroCliente, setNumeroCliente] = useState("");
 
  /* ===== TRANSFERIR MOTO ===== */
 const [motoTransferir, setMotoTransferir] = useState(null);
@@ -131,6 +132,7 @@ function exportarCSV(nomeArquivo, headers, dados) {
     setFormaPagamento("");
     setComoChegou("");
     setFilialVenda("");
+    setNumeroCliente("");
   }
 
   async function confirmarVendaMoto() {
@@ -148,6 +150,7 @@ function exportarCSV(nomeArquivo, headers, dados) {
       gasolina: gasolina ? Number(gasolina) : null,
       como_chegou: comoChegou,
       filial_venda: filialVenda
+      numero_cliente: numeroCliente
     });
 
     setMotos(prev =>
@@ -532,6 +535,13 @@ value="MARAGOGI">MARAGOGI</option>
               value={gasolina}
               onChange={e => setGasolina(e.target.value)}
             />
+
+            <input
+              type="Numero cliente"
+              placeholder="Numero cliente"
+              value={numeroCliente}
+              onChange={e => setNumeroCliente(e.target.value)}
+             
 
             <input
               placeholder="Forma de pagamento"
