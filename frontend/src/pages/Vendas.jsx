@@ -9,24 +9,19 @@ export default function Vendas() {
   const [vendas, setVendas] = useState([]);
   const [aberta, setAberta] = useState(null);
 
-  // ===== FILTROS =====
+  /* ===== FILTROS ===== */
   const [empresaFiltro, setEmpresaFiltro] = useState("TODAS");
   const [cidadeFiltro, setCidadeFiltro] = useState("TODAS");
   const [dataInicio, setDataInicio] = useState("");
   const [dataFim, setDataFim] = useState("");
 
-  // ===== BUSCA VENDAS =====
   useEffect(() => {
-    api
-      .get("/vendas")
+    api.get("/vendas")
       .then(res => setVendas(res.data || []))
-      .catch(err => {
-        console.error("Erro ao buscar vendas:", err);
-        setVendas([]);
-      });
+      .catch(() => setVendas([]));
   }, []);
 
-  // ===== BOTÕES RÁPIDOS =====
+  /* ===== FUNÇÕES DE DATA ===== */
   function aplicarHoje() {
     const hoje = new Date().toISOString().slice(0, 10);
     setDataInicio(hoje);
@@ -65,32 +60,41 @@ export default function Vendas() {
     setDataFim("");
   }
 
-  // ===== FILTRAGEM =====
+  /* ===== FILTRAGEM ===== */
   const vendasFiltradas = vendas.filter(v => {
+    const dataVenda = new Date(v.created_at);
+
     const okEmpresa =
       empresaFiltro === "TODAS" || v.empresa === empresaFiltro;
 
     const okCidade =
       cidadeFiltro === "TODAS" || v.cidade === cidadeFiltro;
 
-    const dataVenda = new Date(v.created_at);
-    const inicio = dataInicio ? new Date(dataInicio) : null;
-    const fim = dataFim ? new Date(dataFim + "T23:59:59") : null;
-
     const okData =
-      (!inicio || dataVenda >= inicio) &&
-      (!fim || dataVenda <= fim);
+      (!dataInicio || dataVenda >= new Date(dataInicio)) &&
+      (!dataFim || dataVenda <= new Date(`${dataFim}T23:59:59`));
 
     return okEmpresa && okCidade && okData;
   });
 
-  // ===== EXPORTAR CSV =====
-  function exportarCSV() {
-    const headers = ["cliente", "empresa", "cidade", "total", "data"];
+  /* ===== FATURAMENTO ===== */
+  const faturamentoTotal = vendasFiltradas.reduce(
+    (acc, v) => acc + Number(v.total || 0),
+    0
+  );
 
-    const dados = vendasFiltradas.map(v => ({
+  const quantidadeVendas = vendasFiltradas.length;
+
+  const ticketMedio =
+    quantidadeVendas > 0
+      ? faturamentoTotal / quantidadeVendas
+      : 0;
+
+  /* ===== CSV ===== */
+  function exportarCSV() {
+    const headers = ["cliente", "cidade", "total", "data"];
+    const linhas = vendasFiltradas.map(v => ({
       cliente: v.cliente_nome,
-      empresa: v.empresa,
       cidade: v.cidade,
       total: v.total,
       data: new Date(v.created_at).toLocaleDateString("pt-BR")
@@ -98,8 +102,8 @@ export default function Vendas() {
 
     const csv = [
       headers.join(";"),
-      ...dados.map(row =>
-        headers.map(h => `"${row[h] ?? ""}"`).join(";")
+      ...linhas.map(l =>
+        headers.map(h => `"${l[h] ?? ""}"`).join(";")
       )
     ].join("\n");
 
@@ -114,9 +118,7 @@ export default function Vendas() {
     <div className="vendas-container">
       <div className="vendas-header">
         <h2>🧾 Histórico de Vendas</h2>
-        <button className="btn-voltar" onClick={() => nav("/home")}>
-          ⬅ Voltar
-        </button>
+        <button onClick={() => nav("/home")}>⬅ Voltar</button>
       </div>
 
       {/* ===== FILTROS ===== */}
@@ -146,11 +148,33 @@ export default function Vendas() {
       {/* ===== BOTÕES RÁPIDOS ===== */}
       <div className="botoes-rapidos">
         <button onClick={aplicarHoje}>Hoje</button>
-        <button onClick={aplicar7Dias}>Últimos 7 dias</button>
-        <button onClick={aplicar30Dias}>Últimos 30 dias</button>
+        <button onClick={aplicar7Dias}>7 dias</button>
+        <button onClick={aplicar30Dias}>30 dias</button>
         <button onClick={aplicarMesAtual}>Mês atual</button>
         <button onClick={limparDatas}>Limpar</button>
-        <button onClick={exportarCSV}>📥 Exportar CSV</button>
+        <button onClick={exportarCSV}>📥 Exportar</button>
+      </div>
+
+      {/* ===== FATURAMENTO ===== */}
+      <div className="faturamento-resumo">
+        <div className="card-faturamento">
+          <span>💰 Faturamento</span>
+          <strong>
+            R$ {faturamentoTotal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+          </strong>
+        </div>
+
+        <div className="card-faturamento">
+          <span>🧾 Vendas</span>
+          <strong>{quantidadeVendas}</strong>
+        </div>
+
+        <div className="card-faturamento">
+          <span>📊 Ticket Médio</span>
+          <strong>
+            R$ {ticketMedio.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+          </strong>
+        </div>
       </div>
 
       {/* ===== TABELA ===== */}
@@ -165,10 +189,8 @@ export default function Vendas() {
               <th>Total</th>
               <th>Detalhes</th>
               <th>Cidade</th>
-              <th>Nota</th>
             </tr>
           </thead>
-
           <tbody>
             {vendasFiltradas.map(v => (
               <>
@@ -182,15 +204,12 @@ export default function Vendas() {
                     </button>
                   </td>
                   <td>{v.cidade}</td>
-                  <td>
-                    <button onClick={() => nav(`/nota?id=${v.id}`)}>🧾</button>
-                  </td>
                 </tr>
 
                 {aberta === v.id && (
                   <tr>
-                    <td colSpan={6}>
-                      <ul className="lista-itens">
+                    <td colSpan={5}>
+                      <ul>
                         {v.itens.map((i, idx) => (
                           <li key={idx}>
                             {i.nome} — {i.quantidade} × R$ {Number(i.preco_unitario).toFixed(2)}
