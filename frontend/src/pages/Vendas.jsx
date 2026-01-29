@@ -29,6 +29,7 @@ function exportarCSV(nomeArquivo, headers, dados) {
   // 🔹 filtros
   const [cidadeFiltro, setCidadeFiltro] = useState("TODAS");
   const [mesFiltro, setMesFiltro] = useState("");
+  const [periodoFiltro, setPeriodoFiltro] = useState("MES");
 
   useEffect(() => {
     api
@@ -43,6 +44,42 @@ function exportarCSV(nomeArquivo, headers, dados) {
   }, []);
 
   // 🔹 vendas filtradas
+  const hoje = new Date();
+
+const vendasFiltradas = vendas
+  .filter(v => cidadeFiltro === "TODAS" || v.cidade === cidadeFiltro)
+  .filter(v => {
+    const dataVenda = new Date(v.created_at);
+
+    if (periodoFiltro === "7D") {
+      const limite = new Date();
+      limite.setDate(hoje.getDate() - 7);
+      return dataVenda >= limite;
+    }
+
+    if (periodoFiltro === "30D") {
+      const limite = new Date();
+      limite.setDate(hoje.getDate() - 30);
+      return dataVenda >= limite;
+    }
+
+    if (periodoFiltro === "MES") {
+      return (
+        dataVenda.getMonth() === hoje.getMonth() &&
+        dataVenda.getFullYear() === hoje.getFullYear()
+      );
+    }
+
+    if (periodoFiltro === "CALENDARIO" && mesFiltro) {
+      const [ano, mes] = mesFiltro.split("-");
+      return (
+        dataVenda.getMonth() + 1 === Number(mes) &&
+        dataVenda.getFullYear() === Number(ano)
+      );
+    }
+
+    return true;
+  });
   const vendasFiltradas = vendas.filter(v => {
     const okCidade =
       cidadeFiltro === "TODAS" || v.cidade === cidadeFiltro;
@@ -71,26 +108,39 @@ function exportarCSV(nomeArquivo, headers, dados) {
       </div>
 
       {/* ===== FILTROS ===== */}
+      
       <div className="filtros-historico">
-        <select
-          value={cidadeFiltro}
-          onChange={e => setCidadeFiltro(e.target.value)}
-        >
-          <option value="TODAS">Todas as cidades</option>
-          <option value="ESCADA">Escada</option>
-          <option value="IPOJUCA">Ipojuca</option>
-          <option value="RIBEIRAO">Ribeirão</option>
-          <option value="SAO JOSE">São José</option>
-          <option value="CATENDE">Catende</option>
-          <option value="XEXEU">Xexeu</option>
-        </select>
+  <select
+    value={cidadeFiltro}
+    onChange={e => setCidadeFiltro(e.target.value)}
+  >
+    <option value="TODAS">Todas as cidades</option>
+    <option value="ESCADA">Escada</option>
+    <option value="IPOJUCA">Ipojuca</option>
+    <option value="RIBEIRAO">Ribeirão</option>
+    <option value="SAO JOSE">São José</option>
+    <option value="CATENDE">Catende</option>
+    <option value="XEXEU">Xexeu</option>
+  </select>
 
-        <input
-          type="month"
-          value={mesFiltro}
-          onChange={e => setMesFiltro(e.target.value)}
-        />
-      </div>
+  <select
+    value={periodoFiltro}
+    onChange={e => setPeriodoFiltro(e.target.value)}
+  >
+    <option value="MES">Mês atual</option>
+    <option value="7D">Últimos 7 dias</option>
+    <option value="30D">Últimos 30 dias</option>
+    <option value="CALENDARIO">Selecionar mês</option>
+  </select>
+
+  {periodoFiltro === "CALENDARIO" && (
+    <input
+      type="month"
+      value={mesFiltro}
+      onChange={e => setMesFiltro(e.target.value)}
+    />
+  )}
+</div>
 <button
   onClick={() =>
     exportarCSV(
