@@ -169,12 +169,7 @@ export default function Vendas() {
           <strong>{quantidadeVendas}</strong>
         </div>
 
-        <div className="card-faturamento">
-          <span>📊 Ticket Médio</span>
-          <strong>
-            R$ {ticketMedio.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-          </strong>
-        </div>
+        
       </div>
 
       {/* ===== TABELA ===== */}
