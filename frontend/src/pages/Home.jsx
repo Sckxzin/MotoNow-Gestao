@@ -795,7 +795,8 @@ value="MARAGOGI">MARAGOGI</option>
       <input type="number" placeholder="Ano" value={anoMoto}
         onChange={e => setAnoMoto(e.target.value)} />
 
-      
+      <input type="number" placeholder="Valor" value={valorMotoCadastro}
+        onChange={e => setValorMotoCadastro(e.target.value)} />
 
       <select value={filialMoto}
         onChange={e => setFilialMoto(e.target.value)}>
