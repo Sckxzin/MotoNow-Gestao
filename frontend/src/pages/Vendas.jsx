@@ -85,11 +85,6 @@ export default function Vendas() {
 
   const quantidadeVendas = vendasFiltradas.length;
 
-  const ticketMedio =
-    quantidadeVendas > 0
-      ? faturamentoTotal / quantidadeVendas
-      : 0;
-
   /* ===== CSV ===== */
   function exportarCSV() {
     const headers = ["cliente", "cidade", "total", "data"];
@@ -112,6 +107,11 @@ export default function Vendas() {
     link.href = URL.createObjectURL(blob);
     link.download = "historico_vendas.csv";
     link.click();
+  }
+
+  /* ===== IR PARA NOTA ===== */
+  function irParaNota(id) {
+    nav(`/nota/${id}`);
   }
 
   return (
@@ -138,7 +138,6 @@ export default function Vendas() {
           <option value="CATENDE">Catende</option>
           <option value="XEXEU">Xexeu</option>
           <option value="MARAGOGI">Maragogi</option>
-          <option value="IPOJUCA RICARDO">Ipojuca Ricardo</option>
         </select>
 
         <input type="date" value={dataInicio} onChange={e => setDataInicio(e.target.value)} />
@@ -168,8 +167,6 @@ export default function Vendas() {
           <span>🧾 Vendas</span>
           <strong>{quantidadeVendas}</strong>
         </div>
-
-        
       </div>
 
       {/* ===== TABELA ===== */}
@@ -182,8 +179,9 @@ export default function Vendas() {
               <th>ID</th>
               <th>Data</th>
               <th>Total</th>
-              <th>Detalhes</th>
+              <th>Itens</th>
               <th>Cidade</th>
+              <th>Nota</th>
             </tr>
           </thead>
           <tbody>
@@ -199,11 +197,19 @@ export default function Vendas() {
                     </button>
                   </td>
                   <td>{v.cidade}</td>
+                  <td>
+                    <button
+                      className="btn-nota"
+                      onClick={() => irParaNota(v.id)}
+                    >
+                      🧾 Nota
+                    </button>
+                  </td>
                 </tr>
 
                 {aberta === v.id && (
                   <tr>
-                    <td colSpan={5}>
+                    <td colSpan={6}>
                       <ul>
                         {v.itens.map((i, idx) => (
                           <li key={idx}>
