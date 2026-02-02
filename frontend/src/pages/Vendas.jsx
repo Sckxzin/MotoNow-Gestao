@@ -1,3 +1,5 @@
+
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api";
@@ -9,169 +11,113 @@ export default function Vendas() {
   const [vendas, setVendas] = useState([]);
   const [aberta, setAberta] = useState(null);
 
-  /* ===== FILTROS ===== */
-  const [empresaFiltro, setEmpresaFiltro] = useState("TODAS");
+function exportarCSV(nomeArquivo, headers, dados) {
+  const csv = [
+    headers.join(";"),
+    ...dados.map(row =>
+      headers.map(h => `"${row[h] ?? ""}"`).join(";")
+    )
+  ].join("\n");
+
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = nomeArquivo;
+  link.click();
+}
+
+  // 🔹 filtros
   const [cidadeFiltro, setCidadeFiltro] = useState("TODAS");
-  const [dataInicio, setDataInicio] = useState("");
-  const [dataFim, setDataFim] = useState("");
+  const [mesFiltro, setMesFiltro] = useState("");
 
   useEffect(() => {
-    api.get("/vendas")
-      .then(res => setVendas(res.data || []))
-      .catch(() => setVendas([]));
+    api
+      .get("/vendas")
+      .then(res => {
+        setVendas(res.data || []);
+      })
+      .catch(err => {
+        console.error("Erro ao buscar vendas:", err);
+        setVendas([]);
+      });
   }, []);
 
-  /* ===== FUNÇÕES DE DATA ===== */
-  function aplicarHoje() {
-    const hoje = new Date().toISOString().slice(0, 10);
-    setDataInicio(hoje);
-    setDataFim(hoje);
-  }
-
-  function aplicar7Dias() {
-    const fim = new Date();
-    const inicio = new Date();
-    inicio.setDate(fim.getDate() - 7);
-
-    setDataInicio(inicio.toISOString().slice(0, 10));
-    setDataFim(fim.toISOString().slice(0, 10));
-  }
-
-  function aplicar30Dias() {
-    const fim = new Date();
-    const inicio = new Date();
-    inicio.setDate(fim.getDate() - 30);
-
-    setDataInicio(inicio.toISOString().slice(0, 10));
-    setDataFim(fim.toISOString().slice(0, 10));
-  }
-
-  function aplicarMesAtual() {
-    const hoje = new Date();
-    const inicio = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
-    const fim = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0);
-
-    setDataInicio(inicio.toISOString().slice(0, 10));
-    setDataFim(fim.toISOString().slice(0, 10));
-  }
-
-  function limparDatas() {
-    setDataInicio("");
-    setDataFim("");
-  }
-
-  /* ===== FILTRAGEM ===== */
+  // 🔹 vendas filtradas
   const vendasFiltradas = vendas.filter(v => {
-    const dataVenda = new Date(v.created_at);
-
-    const okEmpresa =
-      empresaFiltro === "TODAS" || v.empresa === empresaFiltro;
-
     const okCidade =
       cidadeFiltro === "TODAS" || v.cidade === cidadeFiltro;
 
-    const okData =
-      (!dataInicio || dataVenda >= new Date(dataInicio)) &&
-      (!dataFim || dataVenda <= new Date(`${dataFim}T23:59:59`));
+    const okMes = (() => {
+      if (!mesFiltro) return true;
 
-    return okEmpresa && okCidade && okData;
+      const data = new Date(v.created_at);
+      const mesVenda = `${data.getFullYear()}-${String(
+        data.getMonth() + 1
+      ).padStart(2, "0")}`;
+
+      return mesVenda === mesFiltro;
+    })();
+
+    return okCidade && okMes;
   });
-
-  /* ===== FATURAMENTO ===== */
-  const faturamentoTotal = vendasFiltradas.reduce(
-    (acc, v) => acc + Number(v.total || 0),
-    0
-  );
-
-  const quantidadeVendas = vendasFiltradas.length;
-
-  /* ===== CSV ===== */
-  function exportarCSV() {
-    const headers = ["cliente", "cidade", "total", "data"];
-    const linhas = vendasFiltradas.map(v => ({
-      cliente: v.cliente_nome,
-      cidade: v.cidade,
-      total: v.total,
-      data: new Date(v.created_at).toLocaleDateString("pt-BR")
-    }));
-
-    const csv = [
-      headers.join(";"),
-      ...linhas.map(l =>
-        headers.map(h => `"${l[h] ?? ""}"`).join(";")
-      )
-    ].join("\n");
-
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = "historico_vendas.csv";
-    link.click();
-  }
-
-  /* ===== IR PARA NOTA ===== */
-  function irParaNota(id) {
-    nav(`/nota/${id}`);
-  }
 
   return (
     <div className="vendas-container">
       <div className="vendas-header">
         <h2>🧾 Histórico de Vendas</h2>
-        <button onClick={() => nav("/home")}>⬅ Voltar</button>
+        <button className="btn-voltar" onClick={() => nav("/home")}>
+          ⬅ Voltar
+        </button>
       </div>
 
       {/* ===== FILTROS ===== */}
-      <div className="filtros">
-        <select value={empresaFiltro} onChange={e => setEmpresaFiltro(e.target.value)}>
-          <option value="TODAS">Todas Empresas</option>
-          <option value="EMENEZES">Emenezes</option>
-          <option value="MOTONOW">MotoNow</option>
-        </select>
-
-        <select value={cidadeFiltro} onChange={e => setCidadeFiltro(e.target.value)}>
-          <option value="TODAS">Todas Cidades</option>
+      <div className="filtros-historico">
+        <select
+          value={cidadeFiltro}
+          onChange={e => setCidadeFiltro(e.target.value)}
+        >
+          <option value="TODAS">Todas as cidades</option>
           <option value="ESCADA">Escada</option>
           <option value="IPOJUCA">Ipojuca</option>
           <option value="RIBEIRAO">Ribeirão</option>
           <option value="SAO JOSE">São José</option>
           <option value="CATENDE">Catende</option>
           <option value="XEXEU">Xexeu</option>
-          <option value="MARAGOGI">Maragogi</option>
         </select>
 
-        <input type="date" value={dataInicio} onChange={e => setDataInicio(e.target.value)} />
-        <input type="date" value={dataFim} onChange={e => setDataFim(e.target.value)} />
+        <input
+          type="month"
+          value={mesFiltro}
+          onChange={e => setMesFiltro(e.target.value)}
+        />
       </div>
-
-      {/* ===== BOTÕES RÁPIDOS ===== */}
-      <div className="botoes-rapidos">
-        <button onClick={aplicarHoje}>Hoje</button>
-        <button onClick={aplicar7Dias}>7 dias</button>
-        <button onClick={aplicar30Dias}>30 dias</button>
-        <button onClick={aplicarMesAtual}>Mês atual</button>
-        <button onClick={limparDatas}>Limpar</button>
-        <button onClick={exportarCSV}>📥 Exportar</button>
-      </div>
-
-      {/* ===== FATURAMENTO ===== */}
-      <div className="faturamento-resumo">
-        <div className="card-faturamento">
-          <span>💰 Faturamento</span>
-          <strong>
-            R$ {faturamentoTotal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-          </strong>
-        </div>
-
-        <div className="card-faturamento">
-          <span>🧾 Vendas</span>
-          <strong>{quantidadeVendas}</strong>
-        </div>
-      </div>
+<button
+  onClick={() =>
+    exportarCSV(
+      "historico_vendas_pecas.csv",
+      [
+        "cliente",
+        "cidade",
+        "total",
+        "detalhes",
+        "data"
+      ],
+      vendasFiltradas.map(v => ({
+        cliente: v.cliente_nome,
+        cidade: v.cidade,
+        total: v.total,
+        detalhes: v.detalhes,
+        data: new Date(v.created_at).toLocaleDateString("pt-BR")
+      }))
+    )
+  }
+>
+  📥 Exportar Histórico de Vendas
+</button>
 
       {/* ===== TABELA ===== */}
       {vendasFiltradas.length === 0 ? (
-        <p>Nenhuma venda encontrada.</p>
+        <p>Nenhuma venda registrada.</p>
       ) : (
         <table className="table">
           <thead>
@@ -179,30 +125,40 @@ export default function Vendas() {
               <th>ID</th>
               <th>Data</th>
               <th>Total</th>
-              <th>Itens</th>
+              <th>Detalhes</th>
               <th>Cidade</th>
               <th>Nota</th>
             </tr>
           </thead>
+
           <tbody>
             {vendasFiltradas.map(v => (
               <>
                 <tr key={v.id}>
                   <td>{v.id}</td>
-                  <td>{new Date(v.created_at).toLocaleString("pt-BR")}</td>
-                  <td><strong>R$ {Number(v.total).toFixed(2)}</strong></td>
                   <td>
-                    <button onClick={() => setAberta(aberta === v.id ? null : v.id)}>
+                    {new Date(v.created_at).toLocaleString("pt-BR")}
+                  </td>
+                  <td>
+                    <strong>R$ {Number(v.total).toFixed(2)}</strong>
+                  </td>
+
+                  <td>
+                    <button
+                      className="btn-detalhes"
+                      onClick={() =>
+                        setAberta(aberta === v.id ? null : v.id)
+                      }
+                    >
                       {aberta === v.id ? "▲" : "▼"}
                     </button>
                   </td>
-                  <td>{v.cidade}</td>
+
+                  <td>{v.cidade || "-"}</td>
+
                   <td>
-                    <button
-                      className="btn-nota"
-                      onClick={() => irParaNota(v.id)}
-                    >
-                      🧾 Nota
+                    <button onClick={() => nav(`/nota?id=${v.id}`)}>
+                      🧾
                     </button>
                   </td>
                 </tr>
@@ -210,10 +166,11 @@ export default function Vendas() {
                 {aberta === v.id && (
                   <tr>
                     <td colSpan={6}>
-                      <ul>
+                      <ul className="lista-itens">
                         {v.itens.map((i, idx) => (
                           <li key={idx}>
-                            {i.nome} — {i.quantidade} × R$ {Number(i.preco_unitario).toFixed(2)}
+                            {i.nome} — {i.quantidade} × R${" "}
+                            {Number(i.preco_unitario).toFixed(2)}
                           </li>
                         ))}
                       </ul>
