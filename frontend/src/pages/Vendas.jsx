@@ -22,6 +22,21 @@ export default function Vendas() {
   }, []);
 
   /* ===== FUNÇÕES DE DATA ===== */
+  function aplicarMesPassado() {
+  const hoje = new Date();
+
+  // primeiro dia do mês passado
+  const inicio = new Date(hoje.getFullYear(), hoje.getMonth() - 1, 1);
+
+  // último dia do mês passado
+  const fim = new Date(hoje.getFullYear(), hoje.getMonth(), 0);
+
+  setDataInicio(inicio.toISOString().slice(0, 10));
+  setDataFim(fim.toISOString().slice(0, 10));
+}
+
+  
+  
   function aplicarHoje() {
     const hoje = new Date().toISOString().slice(0, 10);
     setDataInicio(hoje);
@@ -151,6 +166,7 @@ export default function Vendas() {
         <button onClick={aplicar7Dias}>7 dias</button>
         <button onClick={aplicar30Dias}>30 dias</button>
         <button onClick={aplicarMesAtual}>Mês atual</button>
+        <button onClick={aplicarMesPassado}>Mês passado</button>
         <button onClick={limparDatas}>Limpar</button>
         <button onClick={exportarCSV}>📥 Exportar</button>
       </div>
