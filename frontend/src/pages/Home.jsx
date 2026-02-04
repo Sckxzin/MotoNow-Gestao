@@ -524,6 +524,7 @@ value="MARAGOGI">Maragogi</option>         </select>
             <thead>
               <tr>
                 <th>Modelo</th>
+                <th>Ano</th>
                 <th>Cor</th>
                 <th>Chassi</th>
                 <th>Filial</th>
@@ -555,6 +556,7 @@ value="MARAGOGI">Maragogi</option>         </select>
                
                   <tr key={m.id}>
                     <td>{m.modelo}</td>
+                    <td>{m.ano_moto}</td>
                     <td>{m.cor}</td>
                     <td>{m.chassi}</td>
                     <td>
