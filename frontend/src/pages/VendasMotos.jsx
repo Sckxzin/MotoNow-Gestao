@@ -97,6 +97,19 @@ function getCNPJ(v) {
   }
 
   /* ================= FILTRAGEM ================= */
+function aplicarMesPassado() {
+  const hoje = new Date();
+
+  // primeiro dia do mês passado
+  const inicio = new Date(hoje.getFullYear(), hoje.getMonth() - 1, 1);
+
+  // último dia do mês passado
+  const fim = new Date(hoje.getFullYear(), hoje.getMonth(), 0);
+
+  setDataInicio(inicio.toISOString().slice(0, 10));
+  setDataFim(fim.toISOString().slice(0, 10));
+}
+  
   const vendasFiltradas = useMemo(() => {
     return vendas.filter(v => {
       const empresa = getEmpresa(v);
