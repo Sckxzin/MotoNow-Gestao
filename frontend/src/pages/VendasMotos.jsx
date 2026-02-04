@@ -198,6 +198,7 @@ const totalGeralMotos = useMemo(() => {
         <button onClick={aplicar7Dias}>Últimos 7 dias</button>
         <button onClick={aplicar30Dias}>Últimos 30 dias</button>
         <button onClick={aplicarMesAtual}>Mês atual</button>
+        <button onClick={aplicarMesPassado}>Mês passado</button>
         <button onClick={limparDatas}>Limpar</button>
       </div>
 
