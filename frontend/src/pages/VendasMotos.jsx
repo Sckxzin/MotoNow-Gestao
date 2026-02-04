@@ -224,26 +224,33 @@ const totalGeralMotos = useMemo(() => {
 
       {/* ===== EXPORTAR ===== */}
       <button
-        className="btn-exportar"
-        onClick={() =>
-          exportarCSV(
-            "historico_vendas_motos.csv",
-            ["modelo","chassi", "cliente", "valor", "filial", "empresa", "data"],
-            vendasFiltradas.map(v => ({
-              modelo: v.modelo,
-              chassi: v.chassi,
-              cliente: v.nome_cliente,
-              valor: v.valor,
-              filial: v.filial_venda,
-              empresa: v.Empresa,
-              numero: v.numero_cliente,
-              data: new Date(v.created_at).toLocaleDateString("pt-BR")
-            }))
-          )
-        }
-      >
-        📥 Exportar CSV
-      </button>
+  className="btn-exportar"
+  onClick={() =>
+    exportarCSV(
+      "historico_vendas_motos.csv",
+      [
+        "modelo",
+        "chassi",
+        "cliente",
+        "faturamento",
+        "filial",
+        "empresa",
+        "data"
+      ],
+      vendasFiltradas.map(v => ({
+        modelo: v.modelo,
+        chassi: v.chassi,
+        cliente: v.nome_cliente,
+        faturamento: Number(v.valor).toFixed(2),
+        filial: v.filial_venda,
+        empresa: getEmpresa(v),
+        data: new Date(v.created_at).toLocaleDateString("pt-BR")
+      }))
+    )
+  }
+>
+  📥 Exportar CSV
+</button>
 
       {/* ===== TABELA ===== */}
       {vendasFiltradas.length === 0 ? (
