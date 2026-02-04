@@ -285,6 +285,7 @@ app.get("/motos", async (req, res) => {
         filial,
         status,
         cnpj_empresa,
+        ano_moto,
         CASE
          WHEN santander = true THEN true
          ELSE false
