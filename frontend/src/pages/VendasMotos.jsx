@@ -228,7 +228,7 @@ const totalGeralMotos = useMemo(() => {
         onClick={() =>
           exportarCSV(
             "historico_vendas_motos.csv",
-            ["modelo", "cliente", "valor", "filial", "empresa", "data"],
+            ["modelo","chassi", "cliente", "valor", "filial", "empresa", "data"],
             vendasFiltradas.map(v => ({
               modelo: v.modelo,
               chassi: v.chassi,
