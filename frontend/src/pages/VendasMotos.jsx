@@ -36,6 +36,19 @@ export default function VendasMotos() {
   const [dataInicio, setDataInicio] = useState("");
   const [dataFim, setDataFim] = useState("");
 
+  /* ================= CIDADES PADRÃO ================= */
+  const cidadesPadrao = [
+    "ESCADA",
+    "IPOJUCA",
+    "RIBEIRAO",
+    "SAO JOSE",
+    "CATENDE",
+    "XEXEU",
+    "MARAGOGI",
+    "IPOJUCA RICARDO",
+    "VALTER"
+  ];
+
   /* ================= LOAD ================= */
   useEffect(() => {
     api.get("/vendas-motos")
@@ -49,13 +62,13 @@ export default function VendasMotos() {
       ? "EMENEZES"
       : "MOTONOW";
   }
-function getCNPJ(v) {
-  if (v.santander === true || v.santander === "SIM") {
-    return "-";
-  }
 
-  return v.cnpj_empresa || "-";
-}
+  function getCNPJ(v) {
+    if (v.santander === true || v.santander === "SIM") {
+      return "-";
+    }
+    return v.cnpj_empresa || "-";
+  }
 
   /* ================= BOTÕES RÁPIDOS ================= */
   function aplicarHoje() {
@@ -68,7 +81,6 @@ function getCNPJ(v) {
     const fim = new Date();
     const inicio = new Date();
     inicio.setDate(fim.getDate() - 7);
-
     setDataInicio(inicio.toISOString().slice(0, 10));
     setDataFim(fim.toISOString().slice(0, 10));
   }
@@ -77,7 +89,6 @@ function getCNPJ(v) {
     const fim = new Date();
     const inicio = new Date();
     inicio.setDate(fim.getDate() - 30);
-
     setDataInicio(inicio.toISOString().slice(0, 10));
     setDataFim(fim.toISOString().slice(0, 10));
   }
@@ -86,7 +97,14 @@ function getCNPJ(v) {
     const hoje = new Date();
     const inicio = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
     const fim = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0);
+    setDataInicio(inicio.toISOString().slice(0, 10));
+    setDataFim(fim.toISOString().slice(0, 10));
+  }
 
+  function aplicarMesPassado() {
+    const hoje = new Date();
+    const inicio = new Date(hoje.getFullYear(), hoje.getMonth() - 1, 1);
+    const fim = new Date(hoje.getFullYear(), hoje.getMonth(), 0);
     setDataInicio(inicio.toISOString().slice(0, 10));
     setDataFim(fim.toISOString().slice(0, 10));
   }
@@ -97,19 +115,6 @@ function getCNPJ(v) {
   }
 
   /* ================= FILTRAGEM ================= */
-function aplicarMesPassado() {
-  const hoje = new Date();
-
-  // primeiro dia do mês passado
-  const inicio = new Date(hoje.getFullYear(), hoje.getMonth() - 1, 1);
-
-  // último dia do mês passado
-  const fim = new Date(hoje.getFullYear(), hoje.getMonth(), 0);
-
-  setDataInicio(inicio.toISOString().slice(0, 10));
-  setDataFim(fim.toISOString().slice(0, 10));
-}
-  
   const vendasFiltradas = useMemo(() => {
     return vendas.filter(v => {
       const empresa = getEmpresa(v);
@@ -119,21 +124,21 @@ function aplicarMesPassado() {
         empresaFiltro === "TODAS" || empresa === empresaFiltro;
 
       const okCidade = (() => {
-  if (cidadeFiltro === "TODAS") return true;
+        if (cidadeFiltro === "TODAS") return true;
 
-  if (cidadeFiltro === "SEM_CIDADE") {
-    return !v.filial_venda || v.filial_venda.trim() === "";
-  }
+        if (cidadeFiltro === "SEM_CIDADE") {
+          return !v.filial_venda || v.filial_venda.trim() === "";
+        }
 
-  if (cidadeFiltro === "OUTRAS") {
-    return (
-      v.filial_venda &&
-      !cidadesPadrao.includes(v.filial_venda)
-    );
-  }
+        if (cidadeFiltro === "OUTRAS") {
+          return (
+            v.filial_venda &&
+            !cidadesPadrao.includes(v.filial_venda)
+          );
+        }
 
-  return v.filial_venda === cidadeFiltro;
-})();
+        return v.filial_venda === cidadeFiltro;
+      })();
 
       const okInicio =
         !dataInicio || dataVenda >= new Date(dataInicio);
@@ -157,21 +162,17 @@ function aplicarMesPassado() {
 
     return { emenezes, motonow };
   }, [vendasFiltradas]);
-  
+
   const totalPorCidade = useMemo(() => {
-  const contagem = {};
+    const contagem = {};
+    vendasFiltradas.forEach(v => {
+      const cidade = v.filial_venda || "SEM CIDADE";
+      contagem[cidade] = (contagem[cidade] || 0) + 1;
+    });
+    return contagem;
+  }, [vendasFiltradas]);
 
-  vendasFiltradas.forEach(v => {
-    const cidade = v.filial_venda || "SEM CIDADE";
-    contagem[cidade] = (contagem[cidade] || 0) + 1;
-  });
-
-  return contagem;
-}, [vendasFiltradas]);
-
-const totalGeralMotos = useMemo(() => {
-  return vendasFiltradas.length;
-}, [vendasFiltradas]);
+  const totalGeralMotos = vendasFiltradas.length;
 
   /* ================= UI ================= */
   return (
@@ -182,7 +183,7 @@ const totalGeralMotos = useMemo(() => {
         ⬅ Voltar
       </button>
 
-      {/* ===== FILTROS ===== */}
+      {/* FILTROS */}
       <div className="filtros">
         <select value={empresaFiltro} onChange={e => setEmpresaFiltro(e.target.value)}>
           <option value="TODAS">Todas Empresas</option>
@@ -190,138 +191,79 @@ const totalGeralMotos = useMemo(() => {
           <option value="MOTONOW">MotoNow</option>
         </select>
 
-       <select value={cidadeFiltro} onChange={e => setCidadeFiltro(e.target.value)}>
-  <option value="TODAS">Todas Cidades</option>
-
-  <option value="ESCADA">Escada</option>
-  <option value="IPOJUCA">Ipojuca</option>
-  <option value="RIBEIRAO">Ribeirão</option>
-  <option value="SAO JOSE">São José</option>
-  <option value="CATENDE">Catende</option>
-  <option value="XEXEU">Xexeu</option>
-  <option value="MARAGOGI">Maragogi</option>
-  <option value="IPOJUCA RICARDO">Ipojuca Ricardo</option>
-  <option value="VALTER">Distri Valter</option>
-
-  <option value="OUTRAS">Outras cidades</option>
-  <option value="SEM_CIDADE">Sem cidade</option>
-</select>
-
+        <select value={cidadeFiltro} onChange={e => setCidadeFiltro(e.target.value)}>
+          <option value="TODAS">Todas Cidades</option>
+          {cidadesPadrao.map(c => (
+            <option key={c} value={c}>{c}</option>
+          ))}
+          <option value="OUTRAS">Outras cidades</option>
+          <option value="SEM_CIDADE">Sem cidade</option>
+        </select>
 
         <input type="date" value={dataInicio} onChange={e => setDataInicio(e.target.value)} />
         <input type="date" value={dataFim} onChange={e => setDataFim(e.target.value)} />
       </div>
 
-      {/* ===== BOTÕES RÁPIDOS ===== */}
+      {/* BOTÕES */}
       <div className="botoes-rapidos">
         <button onClick={aplicarHoje}>Hoje</button>
-        <button onClick={aplicar7Dias}>Últimos 7 dias</button>
-        <button onClick={aplicar30Dias}>Últimos 30 dias</button>
+        <button onClick={aplicar7Dias}>7 dias</button>
+        <button onClick={aplicar30Dias}>30 dias</button>
         <button onClick={aplicarMesAtual}>Mês atual</button>
         <button onClick={aplicarMesPassado}>Mês passado</button>
         <button onClick={limparDatas}>Limpar</button>
       </div>
 
-      {/* ===== TOTAIS ===== */}
+      {/* RESUMO */}
       <div className="resumo">
         <strong>🏢 EMENEZES: {formatarValor(totalEmpresa.emenezes)}</strong>
         <strong>🏢 MOTONOW: {formatarValor(totalEmpresa.motonow)}</strong>
+        <strong>🧮 Total: {totalGeralMotos} motos</strong>
       </div>
-      <div className="resumo-cidades">
-  <h4>📍 Motos vendidas por cidade</h4>
 
-  <ul>
-    {Object.entries(totalPorCidade).map(([cidade, total]) => (
-      <li key={cidade}>
-        {cidade}: <strong>{total}</strong>
-      </li>
-    ))}
-  </ul>
-
-  <strong>🧮 Total geral: {totalGeralMotos} motos</strong>
-</div>
-
-
-      {/* ===== EXPORTAR ===== */}
-      <button
-  className="btn-exportar"
-  onClick={() =>
-    exportarCSV(
-      "historico_vendas_motos.csv",
-      [
-        "modelo",
-        "chassi",
-        "cliente",
-        "faturamento",
-        "filial",
-        "empresa",
-        "data"
-      ],
-      vendasFiltradas.map(v => ({
-        modelo: v.modelo,
-        chassi: v.chassi,
-        cliente: v.nome_cliente,
-        faturamento: Number(v.valor).toFixed(2),
-        filial: v.filial_venda,
-        empresa: getEmpresa(v),
-        data: new Date(v.created_at).toLocaleDateString("pt-BR")
-      }))
-    )
-  }
->
-  📥 Exportar CSV
-</button>
-
-      {/* ===== TABELA ===== */}
-      {vendasFiltradas.length === 0 ? (
-        <p>Nenhuma venda encontrada.</p>
-      ) : (
-        <div className="table-container">
-          <table className="table">
-            <thead>
-              <tr>
-                <th>Modelo</th>
-                <th>Cor</th>
-                <th>Chassi</th>
-                <th>Cliente</th>
-                <th>Numero cliente</th>
-                <th>Como chegou?</th>
-                <th>Valor</th>
-                <th>Pagamento</th>
-                <th>Gasolina</th>
-                <th>Filial</th>
-                <th>Empresa</th>
-                <th>CNPJ</th>
-                <th>Brinde</th>
-                <th>Data</th>
-                
+      {/* TABELA */}
+      <div className="table-container">
+        <table className="table">
+          <thead>
+            <tr>
+              <th>Modelo</th>
+              <th>Cor</th>
+              <th>Chassi</th>
+              <th>Cliente</th>
+              <th>Telefone</th>
+              <th>Origem</th>
+              <th>Valor</th>
+              <th>Pagamento</th>
+              <th>Gasolina</th>
+              <th>Filial</th>
+              <th>Empresa</th>
+              <th>CNPJ</th>
+              <th>Brinde</th>
+              <th>Data</th>
+            </tr>
+          </thead>
+          <tbody>
+            {vendasFiltradas.map(v => (
+              <tr key={v.id}>
+                <td>{v.modelo}</td>
+                <td>{v.cor}</td>
+                <td>{v.chassi}</td>
+                <td>{v.nome_cliente}</td>
+                <td>{v.numero_cliente}</td>
+                <td>{v.como_chegou}</td>
+                <td>{formatarValor(v.valor)}</td>
+                <td>{v.forma_pagamento}</td>
+                <td>{v.gasolina ? formatarValor(v.gasolina) : "-"}</td>
+                <td>{v.filial_venda || "-"}</td>
+                <td>{getEmpresa(v)}</td>
+                <td>{getCNPJ(v)}</td>
+                <td>{v.brinde ? "SIM" : "NÃO"}</td>
+                <td>{new Date(v.created_at).toLocaleDateString("pt-BR")}</td>
               </tr>
-            </thead>
-
-            <tbody>
-              {vendasFiltradas.map(v => (
-                <tr key={v.id}>
-                  <td>{v.modelo}</td>
-                  <td>{v.cor}</td>
-                  <td>{v.chassi}</td>
-                  <td>{v.nome_cliente}</td>
-                  <td>{v.numero_cliente}</td>
-                  <td>{v.como_chegou}</td>
-                  <td>{formatarValor(v.valor)}</td>
-                  <td>{v.forma_pagamento}</td>
-                  <td>{v.gasolina ? `R$ ${Number(v.gasolina).toFixed(2)}` : "-"}</td>
-                  <td>{v.filial_venda}</td>
-                  <td>{v.empresa}</td>
-<td>{v.cnpj}</td>
-<td>{v.brinde ? "SIM" : "NÃO"}</td>
-
-                  <td>{new Date(v.created_at).toLocaleDateString("pt-BR")}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
