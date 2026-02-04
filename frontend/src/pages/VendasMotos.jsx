@@ -118,8 +118,22 @@ function aplicarMesPassado() {
       const okEmpresa =
         empresaFiltro === "TODAS" || empresa === empresaFiltro;
 
-      const okCidade =
-        cidadeFiltro === "TODAS" || v.filial_venda === cidadeFiltro;
+      const okCidade = (() => {
+  if (cidadeFiltro === "TODAS") return true;
+
+  if (cidadeFiltro === "SEM_CIDADE") {
+    return !v.filial_venda || v.filial_venda.trim() === "";
+  }
+
+  if (cidadeFiltro === "OUTRAS") {
+    return (
+      v.filial_venda &&
+      !cidadesPadrao.includes(v.filial_venda)
+    );
+  }
+
+  return v.filial_venda === cidadeFiltro;
+})();
 
       const okInicio =
         !dataInicio || dataVenda >= new Date(dataInicio);
@@ -176,18 +190,23 @@ const totalGeralMotos = useMemo(() => {
           <option value="MOTONOW">MotoNow</option>
         </select>
 
-        <select value={cidadeFiltro} onChange={e => setCidadeFiltro(e.target.value)}>
-          <option value="TODAS">Todas Cidades</option>
-          <option value="ESCADA">Escada</option>
-          <option value="IPOJUCA">Ipojuca</option>
-          <option value="RIBEIRAO">Ribeirão</option>
-          <option value="SAO JOSE">São José</option>
-          <option value="CATENDE">Catende</option>
-          <option value="XEXEU">Xexeu</option>
-          <option value="MARAGOGI">Maragogi</option>
-          <option value="IPOJUCA RICARDO">Ipojuca Ricardo</option>
-          <option value="VALTER">Distri valter</option>
-        </select>
+       <select value={cidadeFiltro} onChange={e => setCidadeFiltro(e.target.value)}>
+  <option value="TODAS">Todas Cidades</option>
+
+  <option value="ESCADA">Escada</option>
+  <option value="IPOJUCA">Ipojuca</option>
+  <option value="RIBEIRAO">Ribeirão</option>
+  <option value="SAO JOSE">São José</option>
+  <option value="CATENDE">Catende</option>
+  <option value="XEXEU">Xexeu</option>
+  <option value="MARAGOGI">Maragogi</option>
+  <option value="IPOJUCA RICARDO">Ipojuca Ricardo</option>
+  <option value="VALTER">Distri Valter</option>
+
+  <option value="OUTRAS">Outras cidades</option>
+  <option value="SEM_CIDADE">Sem cidade</option>
+</select>
+
 
         <input type="date" value={dataInicio} onChange={e => setDataInicio(e.target.value)} />
         <input type="date" value={dataFim} onChange={e => setDataFim(e.target.value)} />
