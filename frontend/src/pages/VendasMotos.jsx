@@ -231,6 +231,7 @@ const totalGeralMotos = useMemo(() => {
             ["modelo", "cliente", "valor", "filial", "empresa", "data"],
             vendasFiltradas.map(v => ({
               modelo: v.modelo,
+              chassi: v.chassi,
               cliente: v.nome_cliente,
               valor: v.valor,
               filial: v.filial_venda,
