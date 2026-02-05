@@ -220,6 +220,50 @@ export default function VendasMotos() {
         <strong>🏢 MOTONOW: {formatarValor(totalEmpresa.motonow)}</strong>
         <strong>🧮 Total: {totalGeralMotos} motos</strong>
       </div>
+      {/* EXPORTAR CSV */}
+<button
+  className="btn-exportar"
+  onClick={() =>
+    exportarCSV(
+      "historico_vendas_motos.csv",
+      [
+        "modelo",
+        "cor",
+        "chassi",
+        "cliente",
+        "telefone",
+        "origem",
+        "valor",
+        "pagamento",
+        "gasolina",
+        "filial",
+        "empresa",
+        "cnpj",
+        "brinde",
+        "data"
+      ],
+      vendasFiltradas.map(v => ({
+        modelo: v.modelo,
+        cor: v.cor,
+        chassi: v.chassi,
+        cliente: v.nome_cliente,
+        telefone: v.numero_cliente,
+        origem: v.como_chegou,
+        valor: Number(v.valor).toFixed(2),
+        pagamento: v.forma_pagamento,
+        gasolina: v.gasolina || "",
+        filial: v.filial_venda,
+        empresa: getEmpresa(v),
+        cnpj: getCNPJ(v),
+        brinde: v.brinde ? "SIM" : "NÃO",
+        data: new Date(v.created_at).toLocaleDateString("pt-BR")
+      }))
+    )
+  }
+>
+  📥 Exportar CSV
+</button>
+
 
       {/* TABELA */}
       <div className="table-container">
