@@ -45,8 +45,8 @@ export default function VendasMotos() {
     "CATENDE",
     "XEXEU",
     "MARAGOGI",
-    "IPOJUCA RICARDO",
-    "VALTER"
+    "IPOJUCA RICARDO"
+    
   ];
 
   /* ================= LOAD ================= */
