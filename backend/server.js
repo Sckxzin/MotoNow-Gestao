@@ -524,7 +524,6 @@ app.get("/vendas-motos", async (req, res) => {
         santander,
         numero_cliente,
         created_at,
-        cnpj_empresa,
 
         -- ✅ EMPRESA
         CASE
@@ -532,7 +531,12 @@ app.get("/vendas-motos", async (req, res) => {
           ELSE 'MOTONOW'
         END AS empresa,
 
-       
+        -- ✅ CNPJ (SÓ 2 PRIMEIROS DÍGITOS)
+        CASE
+          WHEN santander = true THEN NULL
+          ELSE LEFT(cnpj_empresa, 2)
+        END AS cnpj
+
       FROM vendas_motos
       ORDER BY created_at DESC
     `);
@@ -548,19 +552,18 @@ app.get("/vendas-motos", async (req, res) => {
 /* ================= VENDER MOTO ================= */
 app.post("/vender-moto", async (req, res) => {
   const {
-  moto_id,
-  nome_cliente,
-  cpf,
-  telefone,
-  valor,
-  forma_pagamento,
-  brinde,
-  gasolina,
-  como_chegou,
-  filial_venda,
-  numero_cliente,
-  cnpj_empresa
-} = req.body;
+    moto_id,
+    nome_cliente,
+    cpf,
+    telefone,
+    valor,
+    forma_pagamento,
+    brinde,
+    gasolina,
+    como_chegou,
+    filial_venda,
+    numero_cliente
+  } = req.body;
 
   if (!filial_venda) {
     return res.status(400).json({ message: "Filial da venda não informada" });
@@ -599,10 +602,9 @@ app.post("/vender-moto", async (req, res) => {
         gasolina,
         como_chegou,
         santander,
-        cnpj_empresa,
         numero_cliente
       ) VALUES (
-        $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17
+        $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16
       )`,
       [
         moto.id,
@@ -620,9 +622,7 @@ app.post("/vender-moto", async (req, res) => {
         gasolina,
         como_chegou,
         moto.santander,
-        cnpj_empresa,
         numero_cliente
-      
       ]
     );
 
