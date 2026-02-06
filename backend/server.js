@@ -601,7 +601,7 @@ app.post("/vender-moto", async (req, res) => {
         cnpj_empresa,
         numero_cliente
       ) VALUES (
-        $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16, $17
+        $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17
       )`,
       [
         moto.id,
@@ -619,8 +619,9 @@ app.post("/vender-moto", async (req, res) => {
         gasolina,
         como_chegou,
         moto.santander,
-        numero_cliente,
-        cnpj_empresa
+        cnpj_empresa,
+        numero_cliente
+      
       ]
     );
 
