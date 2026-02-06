@@ -624,6 +624,7 @@ value="MARAGOGI">Maragogi</option>         </select>
               <option 
 value="MARAGOGI">MARAGOGI</option>
              <option value="IPOJUCA RICARDO">Ipojuca Ricardo</option>
+             <option value="DISTRI VALTER">Sem cidade </option>
             </select>
 
             <label>
