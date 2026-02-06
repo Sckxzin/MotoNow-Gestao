@@ -548,18 +548,19 @@ app.get("/vendas-motos", async (req, res) => {
 /* ================= VENDER MOTO ================= */
 app.post("/vender-moto", async (req, res) => {
   const {
-    moto_id,
-    nome_cliente,
-    cpf,
-    telefone,
-    valor,
-    forma_pagamento,
-    brinde,
-    gasolina,
-    como_chegou,
-    filial_venda,
-    numero_cliente
-  } = req.body;
+  moto_id,
+  nome_cliente,
+  cpf,
+  telefone,
+  valor,
+  forma_pagamento,
+  brinde,
+  gasolina,
+  como_chegou,
+  filial_venda,
+  numero_cliente,
+  cnpj_empresa
+} = req.body;
 
   if (!filial_venda) {
     return res.status(400).json({ message: "Filial da venda não informada" });
