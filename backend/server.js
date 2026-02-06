@@ -531,12 +531,7 @@ app.get("/vendas-motos", async (req, res) => {
           ELSE 'MOTONOW'
         END AS empresa,
 
-        -- ✅ CNPJ (SÓ 2 PRIMEIROS DÍGITOS)
-        CASE
-          WHEN santander = true THEN NULL
-          ELSE LEFT(cnpj_empresa, 2)
-        END AS cnpj
-
+        cnpj_empresa
       FROM vendas_motos
       ORDER BY created_at DESC
     `);
