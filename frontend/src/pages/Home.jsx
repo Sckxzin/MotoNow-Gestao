@@ -468,10 +468,9 @@ value="MARAGOGI">Maragogi</option>
     onChange={e => setSantanderFiltro(e.target.value)}
   >
     <option value="TODOS">Todos </option>
-    <option value="SIM">Somente Santander</option>
-    <option value="NAO">Somente Não Santander</option>
-    <option value="61">CNPJ 61</option>
-    <option value="62">CNPJ 62</option>
+    <option value="SIM">MOTONOW</option>
+    <option value="NAO">EMENEZES</option>
+    
   </select>
 )}
 
