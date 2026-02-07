@@ -503,6 +503,7 @@ value="MARAGOGI">Maragogi</option>         </select>
         "valor",
         "filial",
         "status",
+        "cnpj",
         "created_at"
       ],
       motos.map(m => ({
@@ -513,6 +514,7 @@ value="MARAGOGI">Maragogi</option>         </select>
         valor: m.valor,
         filial: m.filial,
         status: m.status,
+        cnpj: m.cnpj_empresa,
         created_at: new Date(m.created_at).toLocaleDateString("pt-BR")
       }))
     )
