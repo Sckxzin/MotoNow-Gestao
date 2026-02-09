@@ -398,8 +398,8 @@ value="MARAGOGI">Maragogi</option>
         nome: m.nome,
         tipo: m.tipo_moto,
         filial: m.cidade,
-        quantidade: m.quantidade,
-        valor: m.valor,
+        quantidade: m.estoque,
+        valor: m.preco,
        
         
         
