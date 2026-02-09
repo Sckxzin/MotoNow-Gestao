@@ -396,8 +396,8 @@ value="MARAGOGI">Maragogi</option>
       ],
       pecas.map(m => ({
         nome: m.nome,
-        tipo: m.tipo,
-        filial: m.filia,
+        tipo: m.tipo_moto,
+        filial: m.cidade,
         quantidade: m.quantidade,
         valor: m.valor,
        
@@ -408,7 +408,7 @@ value="MARAGOGI">Maragogi</option>
     )
   }
 >
-  📥 Exportar Motos Disponíveis
+  📥 Exportar Pecas Disponíveis
 </button>
 
           <table className="table">
