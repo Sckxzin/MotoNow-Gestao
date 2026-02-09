@@ -382,6 +382,34 @@ value="MARAGOGI">Maragogi</option>
               onChange={e => setBusca(e.target.value)}
             />
           </div>
+         <button
+  onClick={() =>
+    exportarCSV(
+      "pecas.csv",
+      [
+        "nome",
+        "tipo",
+        "filial",
+        "quantidade",
+        "valor",
+        "created_at"
+      ],
+      pecas.map(m => ({
+        nome: m.nome,
+        tipo: m.tipo,
+        filial: m.filia,
+        quantidade: m.quantidade,
+        valor: m.valor,
+       
+        
+        
+        created_at: new Date(m.created_at).toLocaleDateString("pt-BR")
+      }))
+    )
+  }
+>
+  📥 Exportar Motos Disponíveis
+</button>
 
           <table className="table">
             <thead>
