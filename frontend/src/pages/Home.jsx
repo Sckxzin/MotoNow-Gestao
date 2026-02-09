@@ -63,6 +63,10 @@ const [valorMotoCadastro, setValorMotoCadastro] = useState("");
 const [filialMoto, setFilialMoto] = useState("");
 const [cnpjEmpresa, setCnpjEmpresa] = useState("");
 const [santanderMoto, setSantanderMoto] = useState(false);
+const pecasFiltradas = pecas
+  .filter(p => p.nome?.toLowerCase().includes(busca.toLowerCase()))
+  .filter(p => cidadeFiltroPecas === "TODAS" || p.cidade === cidadeFiltroPecas)
+  .filter(p => tipoFiltroPecas === "TODOS" || p.tipo_moto === tipoFiltroPecas);
 
 
   /* ================= LOAD ================= */
@@ -385,30 +389,22 @@ value="MARAGOGI">Maragogi</option>
          <button
   onClick={() =>
     exportarCSV(
-      "pecas.csv",
-      [
-        "nome",
-        "tipo",
-        "filial",
-        "quantidade",
-        "valor",
-        "created_at"
-      ],
-      pecas.map(m => ({
-        nome: m.nome,
-        tipo: m.tipo_moto,
-        filial: m.cidade,
-        quantidade: m.estoque,
-        valor: m.preco,
-       
-        
-        
-        created_at: new Date(m.created_at).toLocaleDateString("pt-BR")
+      "pecas_filtradas.csv",
+      ["nome", "tipo", "filial", "quantidade", "valor", "created_at"],
+      pecasFiltradas.map(p => ({
+        nome: p.nome,
+        tipo: p.tipo_moto || "UNIVERSAL",
+        filial: p.cidade,
+        quantidade: p.estoque,
+        valor: Number(p.preco).toFixed(2),
+        created_at: p.created_at
+          ? new Date(p.created_at).toLocaleDateString("pt-BR")
+          : ""
       }))
     )
   }
 >
-  📥 Exportar Pecas Disponíveis
+  📥 Exportar Peças (Filtradas)
 </button>
 
           <table className="table">
