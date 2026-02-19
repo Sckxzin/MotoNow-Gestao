@@ -37,7 +37,7 @@ export default function NotaFiscal() {
       telefone: "(81) 99245-9495",
       cnpj: "58.021.497/0001-04",
     },
-    SAO JOSE: {
+    SAOJOSE: {
      nome: "LITORAL MOTO CENTER SHINERAY LTDA",
      endereço: "PE-060, 60",
      cidade: "São José da Coroa Grande",
