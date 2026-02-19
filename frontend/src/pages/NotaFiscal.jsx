@@ -28,7 +28,7 @@ export default function NotaFiscal() {
       endereco: "Av. Comendador José Pereira, 695",
       cidade: "Escada - PE",
       telefone: "(81) 99302-4733",
-      cnpj: "61.065.883/001-02",
+      cnpj: "61.065.883/0001-02",
     },
     IPOJUCA: {
       nome: "MOTONOW COMÉRCIO MOTOS",
@@ -37,9 +37,9 @@ export default function NotaFiscal() {
       telefone: "(81) 99245-9495",
       cnpj: "58.021.497/0001-04",
     },
-    SAOJOSE: {
+    SAO JOSE: {
      nome: "LITORAL MOTO CENTER SHINERAY LTDA",
-     endereço: "PE-060, 60",
+     endereco: "PE-060, 60",
      cidade: "São José da Coroa Grande",
      telefone: "(81) 97103-8812",
      cnpj: "62.619.032/0001-27,
