@@ -42,7 +42,7 @@ export default function NotaFiscal() {
      endereco: "PE-060, 60",
      cidade: "São José da Coroa Grande",
      telefone: "(81) 97103-8812",
-     cnpj: "62.619.032/0001-27,
+     cnpj: "62.619.032/0001-27",
     },
   
   };
