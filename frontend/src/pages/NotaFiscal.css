@@ -154,3 +154,13 @@
   border-bottom: 1px solid #000;
   padding-bottom: 4px;
 }
+@media print {
+  body {
+    width: 80mm;
+  }
+  .nota {
+    width: 80mm;
+    front-size: 12px:
+}
+buttuon { display: none; }
+}
