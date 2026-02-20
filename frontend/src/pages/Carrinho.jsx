@@ -66,38 +66,29 @@ export default function Carrinho() {
       const user = JSON.parse(localStorage.getItem("user"));
 
       const res = await api.post("/finalizar-venda", {
-        tipo: "PECA",
-        cliente_nome: nomeCliente,
-        cliente_telefone: telefone,
-        forma_pagamento: formaPagamento,
-        total,
-        itens,
-        cidade: user.cidade,
-        observacao,
-        modelo_moto: modeloMoto || null,
-        chassi_moto: chassiMoto || null
-        
-        
-      });
+  tipo: "PECA",
+  cliente_nome: nomeCliente,
+  cliente_telefone: telefone,
+  forma_pagamento: formaPagamento,
+  total,
+  itens,
+  cidade: user.cidade,
+  observacao,
+  modelo_moto: modeloMoto || null,
+  chassi_moto: chassiMoto || null
+});
 
-      cost vendaId = res.data?.vendaId;
+const vendaId = res.data?.vendaId;
 
-      localStorage.removeItem("carrinho");
+localStorage.removeItem("carrinho");
 
-      if (vendaId) {
-        nav(`/nota?id=${vendaId}`);
-      } else {
-        alert("Venda finalizada, mas não retornou o ID da nota.");
-        nav("/home");
-
-      localStorage.removeItem("carrinho");
-      alert("Venda finalizada com sucesso!");
-      nav("/home");
-    } catch (err) {
-      console.error("Erro ao finalizar venda:", err);
-      alert("Erro ao finalizar venda");
-    }
-  }
+// ✅ abre direto a nota
+if (vendaId) {
+  nav(`/nota?id=${vendaId}`);
+} else {
+  alert("Venda finalizada, mas não retornou o ID da nota.");
+  nav("/home");
+}
 
   return (
     <div className="carrinho-container">
