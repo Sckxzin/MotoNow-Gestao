@@ -573,7 +573,7 @@ app.post("/transferir-moto", async (req, res) => {
 app.post("/finalizar-venda", async (req, res) => {
   const {
     cliente_nome,
-    cliente_cpf,
+    cliente_telefone,
     forma_pagamento,
     itens,
     total,
