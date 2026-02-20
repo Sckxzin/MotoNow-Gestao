@@ -160,7 +160,7 @@
   }
   .nota {
     width: 80mm;
-    front-size: 12px:
-}
-buttuon { display: none; }
+    font-size: 12px;
+  }
+  button { display: none; }
 }
