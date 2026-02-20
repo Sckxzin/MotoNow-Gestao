@@ -10,7 +10,7 @@ export default function Carrinho() {
 
   // 🔹 Dados do cliente (PEÇAS)
   const [nomeCliente, setNomeCliente] = useState("");
-  const [cpf, setCpf] = useState("");
+  const [telefone, setTelefone] = useState("");
   const [formaPagamento, setFormaPagamento] = useState("");
   const [observacao, setObservacao] = useState("");
   const [modeloMoto, setModeloMoto] = useState("");
@@ -65,7 +65,7 @@ export default function Carrinho() {
     try {
       const user = JSON.parse(localStorage.getItem("user"));
 
-      await api.post("/finalizar-venda", {
+      const res = await api.post("/finalizar-venda", {
         tipo: "PECA",
         cliente_nome: nomeCliente,
         cliente_telefone: telefone,
@@ -79,6 +79,16 @@ export default function Carrinho() {
         
         
       });
+
+      cost vendaId = res.data?.vendaId;
+
+      localStorage.removeItem("carrinho");
+
+      if (vendaId) {
+        nav(`/nota?id=${vendaId}`);
+      } else {
+        alert("Venda finalizada, mas não retornou o ID da nota.");
+        nav("/home");
 
       localStorage.removeItem("carrinho");
       alert("Venda finalizada com sucesso!");
@@ -165,9 +175,9 @@ export default function Carrinho() {
           />
 
           <input
-            placeholder="CPF"
-            value={cpf}
-            onChange={e => setCpf(e.target.value)}
+            placeholder="TELEFONE DO CLIENTE"
+            value={telefone}
+            onChange={e => setTelefone(e.target.value)}
           />
 
           <input
