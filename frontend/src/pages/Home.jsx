@@ -18,7 +18,6 @@ export default function Home() {
 
   const [busca, setBusca] = useState("");
   
-  const [tab, setTab] = useState("pecas");
  
 
   const [cidadeFiltroPecas, setCidadeFiltroPecas] = useState("TODAS");
