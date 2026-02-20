@@ -107,6 +107,203 @@ app.post("/motos", async (req, res) => {
   }
 });
 
+/* ================= REVISOES ================= */
+
+// criar revisão (OS)
+app.post("/revisoes", async (req, res) => {
+  const {
+    cidade,
+    cliente_nome,
+    cliente_telefone,
+    cliente_cpf,
+    modelo_moto,
+    chassi_moto,
+    km,
+    tipo_revisao,
+    observacao
+  } = req.body;
+
+  if (!cidade || !cliente_nome) {
+    return res.status(400).json({ message: "Dados incompletos" });
+  }
+
+  try {
+    const r = await db.query(
+      `INSERT INTO revisoes
+       (cidade, cliente_nome, cliente_telefone, cliente_cpf, modelo_moto, chassi_moto, km, tipo_revisao, observacao, status)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,'ABERTA')
+       RETURNING *`,
+      [cidade, cliente_nome, cliente_telefone || null, cliente_cpf || null, modelo_moto || null, chassi_moto || null, km || null, tipo_revisao || null, observacao || null]
+    );
+
+    res.json(r.rows[0]);
+  } catch (err) {
+    console.error("Erro criar revisão:", err);
+    res.status(500).json({ message: "Erro ao criar revisão" });
+  }
+});
+
+// adicionar item (peça usada) na revisão
+app.post("/revisoes/:id/itens", async (req, res) => {
+  const { id } = req.params;
+  const { peca_id, quantidade } = req.body;
+
+  if (!peca_id || !quantidade || Number(quantidade) <= 0) {
+    return res.status(400).json({ message: "Dados incompletos" });
+  }
+
+  try {
+    // pega peça (pra snapshot)
+    const p = await db.query(
+      `SELECT id, nome, preco, estoque FROM pecas WHERE id = $1`,
+      [peca_id]
+    );
+    if (p.rows.length === 0) return res.status(404).json({ message: "Peça não encontrada" });
+
+    // não baixa estoque aqui (só quando FINALIZAR a revisão)
+    await db.query(
+      `INSERT INTO revisao_itens (revisao_id, peca_id, nome_peca, quantidade, preco_unitario)
+       VALUES ($1,$2,$3,$4,$5)`,
+      [id, peca_id, p.rows[0].nome, Number(quantidade), Number(p.rows[0].preco)]
+    );
+
+    res.json({ message: "Item adicionado" });
+  } catch (err) {
+    console.error("Erro add item revisão:", err);
+    res.status(500).json({ message: "Erro ao adicionar item" });
+  }
+});
+
+// finalizar revisão: calcula total + baixa estoque + registra movimento
+app.post("/revisoes/:id/finalizar", async (req, res) => {
+  const { id } = req.params;
+  const { mao_de_obra = 0, desconto = 0, forma_pagamento } = req.body;
+
+  const client = await db.connect();
+
+  try {
+    await client.query("BEGIN");
+
+    const revRes = await client.query(
+      `SELECT * FROM revisoes WHERE id = $1`,
+      [id]
+    );
+    if (revRes.rows.length === 0) throw new Error("Revisão não encontrada");
+
+    const revisao = revRes.rows[0];
+    if (revisao.status === "FINALIZADA") throw new Error("Revisão já finalizada");
+
+    const itensRes = await client.query(
+      `SELECT peca_id, nome_peca, quantidade, preco_unitario
+       FROM revisao_itens
+       WHERE revisao_id = $1`,
+      [id]
+    );
+
+    // 1) valida estoque antes de baixar tudo
+    for (const it of itensRes.rows) {
+      if (!it.peca_id) continue; // caso item manual sem peça cadastrada
+      const est = await client.query(
+        `SELECT estoque, cidade FROM pecas WHERE id = $1`,
+        [it.peca_id]
+      );
+      if (est.rows.length === 0) throw new Error(`Peça não existe mais (ID ${it.peca_id})`);
+      if (Number(est.rows[0].estoque) < Number(it.quantidade)) {
+        throw new Error(`Estoque insuficiente: ${it.nome_peca}`);
+      }
+    }
+
+    // 2) baixa estoque e registra movimentos
+    for (const it of itensRes.rows) {
+      if (!it.peca_id) continue;
+
+      await client.query(
+        `UPDATE pecas SET estoque = estoque - $1 WHERE id = $2`,
+        [Number(it.quantidade), it.peca_id]
+      );
+
+      // opcional (recomendado)
+      await client.query(
+        `INSERT INTO estoque_movimentos (peca_id, cidade, tipo, quantidade, ref_id, observacao)
+         VALUES ($1,$2,'REVISAO',$3,$4,$5)`,
+        [
+          it.peca_id,
+          revisao.cidade,
+          -Number(it.quantidade),
+          Number(id),
+          `Revisão #${id} - ${it.nome_peca}`
+        ]
+      );
+    }
+
+    // 3) calcula total
+    const totalPecas = itensRes.rows.reduce(
+      (acc, it) => acc + (Number(it.preco_unitario) * Number(it.quantidade)),
+      0
+    );
+
+    const totalFinal = totalPecas + Number(mao_de_obra) - Number(desconto);
+
+    await client.query(
+      `UPDATE revisoes
+       SET mao_de_obra = $1,
+           desconto = $2,
+           total = $3,
+           forma_pagamento = $4,
+           status = 'FINALIZADA'
+       WHERE id = $5`,
+      [Number(mao_de_obra), Number(desconto), Number(totalFinal), forma_pagamento || null, Number(id)]
+    );
+
+    await client.query("COMMIT");
+    res.json({ message: "Revisão finalizada", total: totalFinal });
+
+  } catch (err) {
+    await client.query("ROLLBACK");
+    console.error("ERRO FINALIZAR REVISAO:", err);
+    res.status(500).json({ message: err.message });
+  } finally {
+    client.release();
+  }
+});
+
+// listar revisões (histórico)
+app.get("/revisoes", async (req, res) => {
+  try {
+    const r = await db.query(
+      `SELECT id, created_at, cidade, cliente_nome, modelo_moto, chassi_moto, km, tipo_revisao, total, status
+       FROM revisoes
+       ORDER BY created_at DESC`
+    );
+    res.json(r.rows);
+  } catch (err) {
+    console.error("Erro listar revisões:", err);
+    res.status(500).json({ message: "Erro ao buscar revisões" });
+  }
+});
+
+// detalhe da revisão (pra “nota” OS)
+app.get("/revisoes/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const revRes = await db.query(`SELECT * FROM revisoes WHERE id = $1`, [id]);
+    if (revRes.rows.length === 0) return res.status(404).json({ message: "Revisão não encontrada" });
+
+    const itensRes = await db.query(
+      `SELECT nome_peca, quantidade, preco_unitario
+       FROM revisao_itens
+       WHERE revisao_id = $1`,
+      [id]
+    );
+
+    res.json({ revisao: revRes.rows[0], itens: itensRes.rows });
+  } catch (err) {
+    console.error("Erro detalhe revisão:", err);
+    res.status(500).json({ message: "Erro ao buscar revisão" });
+  }
+});
+
 
 /* ================= CADASTRAR PEÇA ================= */
 app.post("/pecas", async (req, res) => {
