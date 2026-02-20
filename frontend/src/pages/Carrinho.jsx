@@ -16,8 +16,6 @@ export default function Carrinho() {
   const [modeloMoto, setModeloMoto] = useState("");
   const [chassiMoto, setChassiMoto] = useState("");
 
-
-
   /* ================= LOAD CARRINHO ================= */
   useEffect(() => {
     const carrinho = JSON.parse(localStorage.getItem("carrinho")) || [];
@@ -45,10 +43,7 @@ export default function Carrinho() {
     atualizarCarrinho(itens.filter((_, i) => i !== index));
   }
 
-  const total = itens.reduce(
-    (s, i) => s + i.quantidade * i.preco_unitario,
-    0
-  );
+  const total = itens.reduce((s, i) => s + i.quantidade * i.preco_unitario, 0);
 
   /* ================= FINALIZAR VENDA ================= */
   async function finalizarVenda() {
@@ -66,29 +61,33 @@ export default function Carrinho() {
       const user = JSON.parse(localStorage.getItem("user"));
 
       const res = await api.post("/finalizar-venda", {
-  tipo: "PECA",
-  cliente_nome: nomeCliente,
-  cliente_telefone: telefone,
-  forma_pagamento: formaPagamento,
-  total,
-  itens,
-  cidade: user.cidade,
-  observacao,
-  modelo_moto: modeloMoto || null,
-  chassi_moto: chassiMoto || null
-});
+        tipo: "PECA",
+        cliente_nome: nomeCliente,
+        cliente_telefone: telefone,
+        forma_pagamento: formaPagamento,
+        total,
+        itens,
+        cidade: user?.cidade,
+        observacao,
+        modelo_moto: modeloMoto || null,
+        chassi_moto: chassiMoto || null
+      });
 
-const vendaId = res.data?.vendaId;
+      const vendaId = res.data?.vendaId;
 
-localStorage.removeItem("carrinho");
+      localStorage.removeItem("carrinho");
 
-// ✅ abre direto a nota
-if (vendaId) {
-  nav(`/nota?id=${vendaId}`);
-} else {
-  alert("Venda finalizada, mas não retornou o ID da nota.");
-  nav("/home");
-}
+      if (vendaId) {
+        nav(`/nota?id=${vendaId}`);
+      } else {
+        alert("Venda finalizada, mas não retornou o ID da nota.");
+        nav("/home");
+      }
+    } catch (err) {
+      console.error("Erro ao finalizar venda:", err);
+      alert("Erro ao finalizar venda");
+    }
+  }
 
   return (
     <div className="carrinho-container">
@@ -112,6 +111,7 @@ if (vendaId) {
               {itens.map((i, index) => (
                 <tr key={index}>
                   <td>{i.nome}</td>
+
                   <td>
                     <input
                       type="number"
@@ -120,6 +120,7 @@ if (vendaId) {
                       onChange={e => alterarQtd(index, e.target.value)}
                     />
                   </td>
+
                   <td>
                     <input
                       type="number"
@@ -128,9 +129,9 @@ if (vendaId) {
                       onChange={e => alterarPreco(index, e.target.value)}
                     />
                   </td>
-                  <td>
-                    R$ {(i.quantidade * i.preco_unitario).toFixed(2)}
-                  </td>
+
+                  <td>R$ {(i.quantidade * i.preco_unitario).toFixed(2)}</td>
+
                   <td>
                     <button onClick={() => remover(index)}>❌</button>
                   </td>
@@ -144,21 +145,6 @@ if (vendaId) {
           {/* ================= DADOS DO CLIENTE ================= */}
           <h3>👤 Dados do Cliente</h3>
 
-          <h3>🏍 Dados da Moto (opcional)</h3>
-
-<input
-  placeholder="Modelo da moto (ex: SHI, JET.....)"
-  value={modeloMoto}
-  onChange={e => setModeloMoto(e.target.value)}
-/>
-
-<input
-  placeholder="Chassi da moto"
-  value={chassiMoto}
-  onChange={e => setChassiMoto(e.target.value)}
-/>
-
-
           <input
             placeholder="Nome do cliente"
             value={nomeCliente}
@@ -166,7 +152,7 @@ if (vendaId) {
           />
 
           <input
-            placeholder="TELEFONE DO CLIENTE"
+            placeholder="Telefone do cliente"
             value={telefone}
             onChange={e => setTelefone(e.target.value)}
           />
@@ -176,15 +162,31 @@ if (vendaId) {
             value={formaPagamento}
             onChange={e => setFormaPagamento(e.target.value)}
           />
+
           <textarea
-  placeholder="Observações da venda (ex: desconto, troca, cliente voltou depois...)"
-  value={observacao}
-  onChange={e => setObservacao(e.target.value)}
-  rows={4}
-/>
+            placeholder="Observações da venda (ex: desconto, troca, cliente voltou depois...)"
+            value={observacao}
+            onChange={e => setObservacao(e.target.value)}
+            rows={4}
+          />
 
+          {/* ================= DADOS DA MOTO (OPCIONAL) ================= */}
+          <h3>🏍 Dados da Moto (opcional)</h3>
 
-          <br /><br />
+          <input
+            placeholder="Modelo da moto (ex: SHI, JET...)"
+            value={modeloMoto}
+            onChange={e => setModeloMoto(e.target.value)}
+          />
+
+          <input
+            placeholder="Chassi da moto"
+            value={chassiMoto}
+            onChange={e => setChassiMoto(e.target.value)}
+          />
+
+          <br />
+          <br />
 
           <button className="btn-finalizar" onClick={finalizarVenda}>
             ✅ Finalizar Venda
