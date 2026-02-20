@@ -17,6 +17,9 @@ export default function Home() {
   const [motos, setMotos] = useState([]);
 
   const [busca, setBusca] = useState("");
+  
+  const [tab, setTab] = useState("pecas");
+ 
 
   const [cidadeFiltroPecas, setCidadeFiltroPecas] = useState("TODAS");
   const [cidadeFiltroMotos, setCidadeFiltroMotos] = useState("TODAS");
@@ -339,6 +342,9 @@ async function confirmarTransferencia() {
         {user.role === "DIRETORIA" && (
        <button className="tab-btn" onClick={() => setModalCadastrar(true)}> Cadastrar Peças</button>
         )}
+       <button onClick={() => setTab("revisoes")}>
+       🛠 Revisões
+       </button>
         {user.role === "DIRETORIA" && (
           <button className="tab-btn" onClick={() => nav("/vendas-motos")}>
             🏍 Histórico Motos
