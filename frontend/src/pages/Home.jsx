@@ -341,9 +341,9 @@ async function confirmarTransferencia() {
         {user.role === "DIRETORIA" && (
        <button className="tab-btn" onClick={() => setModalCadastrar(true)}> Cadastrar Peças</button>
         )}
-       <button onClick={() => setTab("revisoes")}>
+       {/* ========== <button onClick={() => setTab("revisoes")}>
        🛠 Revisões
-       </button>
+       </button> ============*/}
         {user.role === "DIRETORIA" && (
           <button className="tab-btn" onClick={() => nav("/vendas-motos")}>
             🏍 Histórico Motos
