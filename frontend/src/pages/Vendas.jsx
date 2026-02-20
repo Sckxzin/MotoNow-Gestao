@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api";
 import "./Vendas.css";
@@ -22,21 +22,6 @@ export default function Vendas() {
   }, []);
 
   /* ===== FUNÇÕES DE DATA ===== */
-  function aplicarMesPassado() {
-  const hoje = new Date();
-
-  // primeiro dia do mês passado
-  const inicio = new Date(hoje.getFullYear(), hoje.getMonth() - 1, 1);
-
-  // último dia do mês passado
-  const fim = new Date(hoje.getFullYear(), hoje.getMonth(), 0);
-
-  setDataInicio(inicio.toISOString().slice(0, 10));
-  setDataFim(fim.toISOString().slice(0, 10));
-}
-
-  
-  
   function aplicarHoje() {
     const hoje = new Date().toISOString().slice(0, 10);
     setDataInicio(hoje);
@@ -47,7 +32,6 @@ export default function Vendas() {
     const fim = new Date();
     const inicio = new Date();
     inicio.setDate(fim.getDate() - 7);
-
     setDataInicio(inicio.toISOString().slice(0, 10));
     setDataFim(fim.toISOString().slice(0, 10));
   }
@@ -56,7 +40,6 @@ export default function Vendas() {
     const fim = new Date();
     const inicio = new Date();
     inicio.setDate(fim.getDate() - 30);
-
     setDataInicio(inicio.toISOString().slice(0, 10));
     setDataFim(fim.toISOString().slice(0, 10));
   }
@@ -65,7 +48,14 @@ export default function Vendas() {
     const hoje = new Date();
     const inicio = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
     const fim = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0);
+    setDataInicio(inicio.toISOString().slice(0, 10));
+    setDataFim(fim.toISOString().slice(0, 10));
+  }
 
+  function aplicarMesPassado() {
+    const hoje = new Date();
+    const inicio = new Date(hoje.getFullYear(), hoje.getMonth() - 1, 1);
+    const fim = new Date(hoje.getFullYear(), hoje.getMonth(), 0);
     setDataInicio(inicio.toISOString().slice(0, 10));
     setDataFim(fim.toISOString().slice(0, 10));
   }
@@ -92,7 +82,7 @@ export default function Vendas() {
     return okEmpresa && okCidade && okData;
   });
 
-  /* ===== FATURAMENTO ===== */
+  /* ===== FATURAMENTO (SEMPRE PELO FILTRO) ===== */
   const faturamentoTotal = vendasFiltradas.reduce(
     (acc, v) => acc + Number(v.total || 0),
     0
@@ -101,9 +91,7 @@ export default function Vendas() {
   const quantidadeVendas = vendasFiltradas.length;
 
   const ticketMedio =
-    quantidadeVendas > 0
-      ? faturamentoTotal / quantidadeVendas
-      : 0;
+    quantidadeVendas > 0 ? faturamentoTotal / quantidadeVendas : 0;
 
   /* ===== CSV ===== */
   function exportarCSV() {
@@ -117,9 +105,7 @@ export default function Vendas() {
 
     const csv = [
       headers.join(";"),
-      ...linhas.map(l =>
-        headers.map(h => `"${l[h] ?? ""}"`).join(";")
-      )
+      ...linhas.map(l => headers.map(h => `"${l[h] ?? ""}"`).join(";"))
     ].join("\n");
 
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
@@ -171,21 +157,26 @@ export default function Vendas() {
         <button onClick={exportarCSV}>📥 Exportar</button>
       </div>
 
-      {/* ===== FATURAMENTO ===== */}
+      {/* ===== FATURAMENTO (POR FILTRO) ===== */}
       <div className="faturamento-resumo">
         <div className="card-faturamento">
-          <span>💰 Faturamento</span>
+          <span>💰 Faturamento (filtro)</span>
           <strong>
             R$ {faturamentoTotal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
           </strong>
         </div>
 
         <div className="card-faturamento">
-          <span>🧾 Vendas</span>
+          <span>🧾 Vendas (filtro)</span>
           <strong>{quantidadeVendas}</strong>
         </div>
 
-        
+        <div className="card-faturamento">
+          <span>🎯 Ticket médio (filtro)</span>
+          <strong>
+            R$ {ticketMedio.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+          </strong>
+        </div>
       </div>
 
       {/* ===== TABELA ===== */}
@@ -200,32 +191,38 @@ export default function Vendas() {
               <th>Total</th>
               <th>Detalhes</th>
               <th>Cidade</th>
+              <th>Nota</th>
             </tr>
           </thead>
+
           <tbody>
             {vendasFiltradas.map(v => (
-              <>
-                <tr key={v.id}>
+              <React.Fragment key={v.id}>
+                <tr>
                   <td>{v.id}</td>
                   <td>{new Date(v.created_at).toLocaleString("pt-BR")}</td>
                   <td><strong>R$ {Number(v.total).toFixed(2)}</strong></td>
+
                   <td>
                     <button onClick={() => setAberta(aberta === v.id ? null : v.id)}>
                       {aberta === v.id ? "▲" : "▼"}
                     </button>
                   </td>
-                  <td>{v.cidade}
-                  </td>
-                  <button onClick={() => nav(`/nota?id=${v.id}`)}>
+
+                  <td>{v.cidade || "-"}</td>
+
+                  <td>
+                    <button onClick={() => nav(`/nota?id=${v.id}`)}>
                       🧾
                     </button>
+                  </td>
                 </tr>
 
                 {aberta === v.id && (
                   <tr>
-                    <td colSpan={5}>
+                    <td colSpan={6}>
                       <ul>
-                        {v.itens.map((i, idx) => (
+                        {v.itens?.map((i, idx) => (
                           <li key={idx}>
                             {i.nome} — {i.quantidade} × R$ {Number(i.preco_unitario).toFixed(2)}
                           </li>
@@ -234,7 +231,7 @@ export default function Vendas() {
                     </td>
                   </tr>
                 )}
-              </>
+              </React.Fragment>
             ))}
           </tbody>
         </table>
