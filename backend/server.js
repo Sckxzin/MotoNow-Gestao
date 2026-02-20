@@ -583,7 +583,7 @@ app.post("/finalizar-venda", async (req, res) => {
     chassi_moto
   } = req.body;
 
-  if (!cliente_nome || !cliente_cpf || !forma_pagamento || !cidade) {
+  if (!cliente_nome || !cliente_telefone || !forma_pagamento || !cidade) {
     return res.status(400).json({ message: "Dados incompletos" });
   }
 
@@ -636,7 +636,7 @@ app.get("/nota-fiscal/:id", async (req, res) => {
 
   try {
     const vendaRes = await db.query(
-      `SELECT id, cliente_nome, cliente_cpf, forma_pagamento, observacao, chassi_moto,
+      `SELECT id, cliente_nome, cliente_telefone, forma_pagamento, observacao, chassi_moto,
               total, cidade, created_at
        FROM vendas
        WHERE id = $1`,
