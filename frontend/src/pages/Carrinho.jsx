@@ -57,8 +57,8 @@ export default function Carrinho() {
       return;
     }
 
-    if (!nomeCliente || !cpf || !formaPagamento) {
-      alert("Preencha nome, CPF e forma de pagamento");
+    if (!nomeCliente || !telefone || !formaPagamento) {
+      alert("Preencha nome, telefone e forma de pagamento");
       return;
     }
 
@@ -68,7 +68,7 @@ export default function Carrinho() {
       await api.post("/finalizar-venda", {
         tipo: "PECA",
         cliente_nome: nomeCliente,
-        cliente_cpf: cpf,
+        cliente_telefone: telefone,
         forma_pagamento: formaPagamento,
         total,
         itens,
