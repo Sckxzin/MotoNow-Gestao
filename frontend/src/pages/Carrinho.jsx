@@ -71,7 +71,8 @@ export default function Carrinho() {
         cidade: user?.cidade,
         observacao,
         modelo_moto: modeloMoto || null,
-        chassi_moto: chassiMoto || null
+        chassi_moto: chassiMoto || null,
+        km: km
       });
 
       const vendaId = res.data?.vendaId;
