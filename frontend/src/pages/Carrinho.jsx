@@ -15,6 +15,7 @@ export default function Carrinho() {
   const [observacao, setObservacao] = useState("");
   const [modeloMoto, setModeloMoto] = useState("");
   const [chassiMoto, setChassiMoto] = useState("");
+  const [km, setKm] = useState("");
 
   /* ================= LOAD CARRINHO ================= */
   useEffect(() => {
@@ -169,6 +170,13 @@ export default function Carrinho() {
             onChange={e => setObservacao(e.target.value)}
             rows={4}
           />
+
+          <input
+            placeholder="KM rodados"
+            value={km}
+            onChange={e => setKm(e.target.value)}
+            
+            
 
           {/* ================= DADOS DA MOTO (OPCIONAL) ================= */}
           <h3>🏍 Dados da Moto (opcional)</h3>
