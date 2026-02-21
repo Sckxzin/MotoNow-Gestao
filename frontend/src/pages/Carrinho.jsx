@@ -175,6 +175,7 @@ export default function Carrinho() {
             placeholder="KM rodados"
             value={km}
             onChange={e => setKm(e.target.value)}
+          />
             
             
 
