@@ -580,10 +580,11 @@ app.post("/finalizar-venda", async (req, res) => {
     cidade,
     observacao,
     modelo_moto,
-    chassi_moto
+    chassi_moto,
+    km
   } = req.body;
 
-  if (!cliente_nome || !cliente_telefone || !forma_pagamento || !cidade) {
+  if (!cliente_nome || !cliente_telefone || !forma_pagamento || !cidade || !km) {
     return res.status(400).json({ message: "Dados incompletos" });
   }
 
@@ -594,10 +595,10 @@ app.post("/finalizar-venda", async (req, res) => {
 
     const vendaRes = await client.query(
       `INSERT INTO vendas
-       (cliente_nome, cliente_telefone, forma_pagamento, total, cidade, observacao, modelo_moto, chassi_moto)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+       (cliente_nome, cliente_telefone, forma_pagamento, total, cidade, observacao, modelo_moto, chassi_moto,km)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
        RETURNING id`,
-      [cliente_nome, cliente_telefone, forma_pagamento, total, cidade, observacao, modelo_moto, chassi_moto]
+      [cliente_nome, cliente_telefone, forma_pagamento, total, cidade, observacao, modelo_moto, chassi_moto, km]
     );
 
     const vendaId = vendaRes.rows[0].id;
@@ -636,7 +637,7 @@ app.get("/nota-fiscal/:id", async (req, res) => {
 
   try {
     const vendaRes = await db.query(
-      `SELECT id, cliente_nome, cliente_telefone, forma_pagamento, observacao, chassi_moto,
+      `SELECT id, cliente_nome, cliente_telefone, forma_pagamento, observacao, chassi_moto, km,
               total, cidade, created_at
        FROM vendas
        WHERE id = $1`,
