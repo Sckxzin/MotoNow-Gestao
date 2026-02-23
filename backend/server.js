@@ -760,7 +760,7 @@ app.post("/vender-moto", async (req, res) => {
     como_chegou,
     filial_venda,
     numero_cliente,
-    valor_compra
+    
   } = req.body;
 
   if (!filial_venda) {
@@ -783,6 +783,9 @@ app.post("/vender-moto", async (req, res) => {
 
     const moto = motoRes.rows[0];
 
+    const cnpjEmpresaFinal = moto.cnpj_empresa || null;
+    const valorCompraFinal = moto.valor_compra ?? null;
+
     await client.query(
       `INSERT INTO vendas_motos (
         moto_id,
@@ -801,9 +804,10 @@ app.post("/vender-moto", async (req, res) => {
         como_chegou,
         santander,
         numero_cliente,
-        valor_compra
+        valor_compra,
+        cnpj_empresa
       ) VALUES (
-        $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17
+        $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18
       )`,
       [
         moto.id,
@@ -822,7 +826,8 @@ app.post("/vender-moto", async (req, res) => {
         como_chegou,
         moto.santander,
         numero_cliente,
-        valor_compra
+        valorCompraFinal,
+        cnpjEmpresaFinal
       ]
     );
 
