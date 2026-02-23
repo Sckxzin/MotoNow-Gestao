@@ -9,6 +9,7 @@ export default function VendasMotos() {
 
   /* ================= HELPERS ================= */
   function formatarValor(valor) {
+    if (valor == null || valor === "" || Number.isNaN(Number(valor))) return "-";
     return Number(valor).toLocaleString("pt-BR", {
       style: "currency",
       currency: "BRL"
@@ -18,9 +19,7 @@ export default function VendasMotos() {
   function exportarCSV(nomeArquivo, headers, dados) {
     const csv = [
       headers.join(";"),
-      ...dados.map(row =>
-        headers.map(h => `"${row[h] ?? ""}"`).join(";")
-      )
+      ...dados.map(row => headers.map(h => `"${row[h] ?? ""}"`).join(";"))
     ].join("\n");
 
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
@@ -32,7 +31,10 @@ export default function VendasMotos() {
 
   /* ================= FILTROS ================= */
   const [empresaFiltro, setEmpresaFiltro] = useState("TODAS");
-  const [cidadeFiltro, setCidadeFiltro] = useState("TODAS");
+
+  // ✅ AGORA É MULTI-CIDADE
+  const [cidadesFiltro, setCidadesFiltro] = useState([]); // array
+
   const [dataInicio, setDataInicio] = useState("");
   const [dataFim, setDataFim] = useState("");
 
@@ -46,27 +48,23 @@ export default function VendasMotos() {
     "XEXEU",
     "MARAGOGI",
     "IPOJUCA RICARDO"
-    
   ];
 
   /* ================= LOAD ================= */
   useEffect(() => {
-    api.get("/vendas-motos")
+    api
+      .get("/vendas-motos")
       .then(res => setVendas(res.data || []))
       .catch(() => alert("Erro ao carregar vendas"));
   }, []);
 
   /* ================= EMPRESA ================= */
   function getEmpresa(v) {
-    return v.santander === true || v.santander === "SIM"
-      ? "EMENEZES"
-      : "MOTONOW";
+    return v.santander === true || v.santander === "SIM" ? "EMENEZES" : "MOTONOW";
   }
 
   function getCNPJ(v) {
-    if (v.santander === true || v.santander === "SIM") {
-      return "-";
-    }
+    if (v.santander === true || v.santander === "SIM") return "-";
     return v.cnpj_empresa || "-";
   }
 
@@ -114,41 +112,48 @@ export default function VendasMotos() {
     setDataFim("");
   }
 
+  function limparCidades() {
+    setCidadesFiltro([]);
+  }
+
   /* ================= FILTRAGEM ================= */
   const vendasFiltradas = useMemo(() => {
     return vendas.filter(v => {
       const empresa = getEmpresa(v);
       const dataVenda = new Date(v.created_at);
 
-      const okEmpresa =
-        empresaFiltro === "TODAS" || empresa === empresaFiltro;
+      const okEmpresa = empresaFiltro === "TODAS" || empresa === empresaFiltro;
 
       const okCidade = (() => {
-        if (cidadeFiltro === "TODAS") return true;
+        // nada selecionado ou TODAS
+        if (cidadesFiltro.length === 0 || cidadesFiltro.includes("TODAS")) return true;
 
-        if (cidadeFiltro === "SEM_CIDADE") {
-          return !v.filial_venda || v.filial_venda.trim() === "";
+        const filial = (v.filial_venda || "").trim();
+
+        // SEM_CIDADE
+        if (cidadesFiltro.includes("SEM_CIDADE") && filial === "") return true;
+
+        // OUTRAS
+        if (cidadesFiltro.includes("OUTRAS")) {
+          if (filial !== "" && !cidadesPadrao.includes(filial)) return true;
         }
 
-        if (cidadeFiltro === "OUTRAS") {
-          return (
-            v.filial_venda &&
-            !cidadesPadrao.includes(v.filial_venda)
-          );
-        }
+        // cidades específicas
+        const cidadesEspecificas = cidadesFiltro.filter(
+          x => x !== "SEM_CIDADE" && x !== "OUTRAS" && x !== "TODAS"
+        );
 
-        return v.filial_venda === cidadeFiltro;
+        if (cidadesEspecificas.length > 0 && cidadesEspecificas.includes(filial)) return true;
+
+        return false;
       })();
 
-      const okInicio =
-        !dataInicio || dataVenda >= new Date(dataInicio);
-
-      const okFim =
-        !dataFim || dataVenda <= new Date(`${dataFim}T23:59:59`);
+      const okInicio = !dataInicio || dataVenda >= new Date(dataInicio);
+      const okFim = !dataFim || dataVenda <= new Date(`${dataFim}T23:59:59`);
 
       return okEmpresa && okCidade && okInicio && okFim;
     });
-  }, [vendas, empresaFiltro, cidadeFiltro, dataInicio, dataFim]);
+  }, [vendas, empresaFiltro, cidadesFiltro, dataInicio, dataFim]);
 
   /* ================= TOTAIS ================= */
   const totalEmpresa = useMemo(() => {
@@ -161,15 +166,6 @@ export default function VendasMotos() {
     });
 
     return { emenezes, motonow };
-  }, [vendasFiltradas]);
-
-  const totalPorCidade = useMemo(() => {
-    const contagem = {};
-    vendasFiltradas.forEach(v => {
-      const cidade = v.filial_venda || "SEM CIDADE";
-      contagem[cidade] = (contagem[cidade] || 0) + 1;
-    });
-    return contagem;
   }, [vendasFiltradas]);
 
   const totalGeralMotos = vendasFiltradas.length;
@@ -191,14 +187,34 @@ export default function VendasMotos() {
           <option value="MOTONOW">MotoNow</option>
         </select>
 
-        <select value={cidadeFiltro} onChange={e => setCidadeFiltro(e.target.value)}>
+        {/* ✅ MULTI-CIDADES (Ctrl/Shift no PC) */}
+        <select
+          multiple
+          value={cidadesFiltro}
+          onChange={e => {
+            const selecionadas = Array.from(e.target.selectedOptions).map(o => o.value);
+            setCidadesFiltro(selecionadas);
+          }}
+          style={{ height: 160 }}
+          title="Segure Ctrl (ou Shift) para selecionar várias"
+        >
           <option value="TODAS">Todas Cidades</option>
+
           {cidadesPadrao.map(c => (
-            <option key={c} value={c}>{c}</option>
+            <option key={c} value={c}>
+              {c}
+            </option>
           ))}
+
           <option value="OUTRAS">Outras cidades</option>
           <option value="SEM_CIDADE">Sem cidade</option>
         </select>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+          <button type="button" onClick={limparCidades}>
+            Limpar cidades
+          </button>
+        </div>
 
         <input type="date" value={dataInicio} onChange={e => setDataInicio(e.target.value)} />
         <input type="date" value={dataFim} onChange={e => setDataFim(e.target.value)} />
@@ -211,7 +227,7 @@ export default function VendasMotos() {
         <button onClick={aplicar30Dias}>30 dias</button>
         <button onClick={aplicarMesAtual}>Mês atual</button>
         <button onClick={aplicarMesPassado}>Mês passado</button>
-        <button onClick={limparDatas}>Limpar</button>
+        <button onClick={limparDatas}>Limpar datas</button>
       </div>
 
       {/* RESUMO */}
@@ -220,50 +236,54 @@ export default function VendasMotos() {
         <strong>🏢 MOTONOW: {formatarValor(totalEmpresa.motonow)}</strong>
         <strong>🧮 Total: {totalGeralMotos} motos</strong>
       </div>
-      {/* EXPORTAR CSV */}
-<button
-  className="btn-exportar"
-  onClick={() =>
-    exportarCSV(
-      "historico_vendas_motos.csv",
-      [
-        "modelo",
-        "cor",
-        "chassi",
-        "cliente",
-        "telefone",
-        "origem",
-        "valor",
-        "pagamento",
-        "gasolina",
-        "filial",
-        "empresa",
-        "cnpj",
-        "brinde",
-        "data"
-      ],
-      vendasFiltradas.map(v => ({
-        modelo: v.modelo,
-        cor: v.cor,
-        chassi: v.chassi,
-        cliente: v.nome_cliente,
-        telefone: v.numero_cliente,
-        origem: v.como_chegou,
-        valor: Number(v.valor).toFixed(2),
-        pagamento: v.forma_pagamento,
-        gasolina: v.gasolina || "",
-        filial: v.filial_venda,
-        empresa: getEmpresa(v),
-        cnpj: getCNPJ(v),
-        brinde: v.brinde ? "SIM" : "NÃO",
-        data: new Date(v.created_at).toLocaleDateString("pt-BR")
-      }))
-    )
-  }
->
-  📥 Exportar CSV
-</button>
 
+      {/* EXPORTAR CSV */}
+      <button
+        className="btn-exportar"
+        onClick={() =>
+          exportarCSV(
+            "historico_vendas_motos.csv",
+            [
+              "modelo",
+              "cor",
+              "chassi",
+              "cliente",
+              "telefone",
+              "origem",
+              "valor",
+              "valor_compra",
+              "repasse",
+              "pagamento",
+              "gasolina",
+              "filial",
+              "empresa",
+              "cnpj",
+              "brinde",
+              "data"
+            ],
+            vendasFiltradas.map(v => ({
+              modelo: v.modelo,
+              cor: v.cor,
+              chassi: v.chassi,
+              cliente: v.nome_cliente,
+              telefone: v.numero_cliente,
+              origem: v.como_chegou,
+              valor: v.valor != null ? Number(v.valor).toFixed(2) : "",
+              valor_compra: v.valor_compra != null ? Number(v.valor_compra).toFixed(2) : "",
+              repasse: v.repasse != null ? Number(v.repasse).toFixed(2) : "",
+              pagamento: v.forma_pagamento,
+              gasolina: v.gasolina != null ? Number(v.gasolina).toFixed(2) : "",
+              filial: v.filial_venda || "",
+              empresa: getEmpresa(v),
+              cnpj: getCNPJ(v),
+              brinde: v.brinde ? "SIM" : "NÃO",
+              data: new Date(v.created_at).toLocaleDateString("pt-BR")
+            }))
+          )
+        }
+      >
+        📥 Exportar CSV
+      </button>
 
       {/* TABELA */}
       <div className="table-container">
@@ -288,6 +308,7 @@ export default function VendasMotos() {
               <th>Data</th>
             </tr>
           </thead>
+
           <tbody>
             {vendasFiltradas.map(v => (
               <tr key={v.id}>
