@@ -486,6 +486,7 @@ app.get("/motos", async (req, res) => {
         cnpj_empresa,
         ano_moto,
         valor_compra,
+        repasse,
         CASE
          WHEN santander = true THEN true
          ELSE false
@@ -726,6 +727,7 @@ app.get("/vendas-motos", async (req, res) => {
         numero_cliente,
         created_at,
         valor_compra,
+        repasse,
 
         -- ✅ EMPRESA
         CASE
@@ -785,6 +787,7 @@ app.post("/vender-moto", async (req, res) => {
 
     const cnpjEmpresaFinal = moto.cnpj_empresa || null;
     const valorCompraFinal = moto.valor_compra ?? null;
+    const repasseFinal = moto.repasse ?? null;
 
     await client.query(
       `INSERT INTO vendas_motos (
@@ -805,9 +808,10 @@ app.post("/vender-moto", async (req, res) => {
         santander,
         numero_cliente,
         valor_compra,
-        cnpj_empresa
+        cnpj_empresa,
+        repasse
       ) VALUES (
-        $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18
+        $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19
       )`,
       [
         moto.id,
@@ -827,7 +831,8 @@ app.post("/vender-moto", async (req, res) => {
         moto.santander,
         numero_cliente,
         valorCompraFinal,
-        cnpjEmpresaFinal
+        cnpjEmpresaFinal,
+        repasseFinal
       ]
     );
 
