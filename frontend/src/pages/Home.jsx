@@ -1,6 +1,4 @@
-
-
- /* eslint-disable no-unused-vars */
+/* eslint-disable no-unused-vars */
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api";
@@ -17,21 +15,19 @@ export default function Home() {
   const [motos, setMotos] = useState([]);
 
   const [busca, setBusca] = useState("");
-  
- 
 
   const [cidadeFiltroPecas, setCidadeFiltroPecas] = useState("TODAS");
   const [cidadeFiltroMotos, setCidadeFiltroMotos] = useState("TODAS");
   const [tipoFiltroPecas, setTipoFiltroPecas] = useState("TODOS");
   const [santanderFiltro, setSantanderFiltro] = useState("TODOS");
-  
+
+  // ✅ NOVO: filtro de CNPJ (motos)
+  const [cnpjFiltro, setCnpjFiltro] = useState("TODOS");
+
   const [modalCadastrar, setModalCadastrar] = useState(false);
   const [nomePeca, setNomePeca] = useState("");
   const [valorPeca, setValorPeca] = useState("");
   const [filialPeca, setFilialPeca] = useState("");
-
-
-
 
   /* ===== MODAL VENDA MOTO ===== */
   const [motoSelecionada, setMotoSelecionada] = useState(null);
@@ -44,32 +40,31 @@ export default function Home() {
   const [filialVenda, setFilialVenda] = useState("");
   const [numeroCliente, setNumeroCliente] = useState("");
 
- /* ===== TRANSFERIR MOTO ===== */
-const [motoTransferir, setMotoTransferir] = useState(null);
-const [filialDestinoMoto, setFilialDestinoMoto] = useState("");
+  /* ===== TRANSFERIR MOTO ===== */
+  const [motoTransferir, setMotoTransferir] = useState(null);
+  const [filialDestinoMoto, setFilialDestinoMoto] = useState("");
 
+  /* ===== TRANSFERIR PEÇA ===== */
+  const [pecaTransferir, setPecaTransferir] = useState(null);
+  const [quantidadeTransferir, setQuantidadeTransferir] = useState("");
+  const [cidadeDestino, setCidadeDestino] = useState("");
 
-/* ===== TRANSFERIR PEÇA ===== */
-const [pecaTransferir, setPecaTransferir] = useState(null);
-const [quantidadeTransferir, setQuantidadeTransferir] = useState("");
-const [cidadeDestino, setCidadeDestino] = useState("");
+  /* ===== CADASTRAR MOTO ===== */
+  const [modalCadastrarMoto, setModalCadastrarMoto] = useState(false);
 
- /* ===== CADASTRAR MOTO ===== */
-const [modalCadastrarMoto, setModalCadastrarMoto] = useState(false);
+  const [modeloMoto, setModeloMoto] = useState("");
+  const [corMoto, setCorMoto] = useState("");
+  const [chassiMoto, setChassiMoto] = useState("");
+  const [anoMoto, setAnoMoto] = useState("");
+  const [valorMotoCadastro, setValorMotoCadastro] = useState("");
+  const [filialMoto, setFilialMoto] = useState("");
+  const [cnpjEmpresa, setCnpjEmpresa] = useState("");
+  const [santanderMoto, setSantanderMoto] = useState(false);
 
-const [modeloMoto, setModeloMoto] = useState("");
-const [corMoto, setCorMoto] = useState("");
-const [chassiMoto, setChassiMoto] = useState("");
-const [anoMoto, setAnoMoto] = useState("");
-const [valorMotoCadastro, setValorMotoCadastro] = useState("");
-const [filialMoto, setFilialMoto] = useState("");
-const [cnpjEmpresa, setCnpjEmpresa] = useState("");
-const [santanderMoto, setSantanderMoto] = useState(false);
-const pecasFiltradas = pecas
-  .filter(p => p.nome?.toLowerCase().includes(busca.toLowerCase()))
-  .filter(p => cidadeFiltroPecas === "TODAS" || p.cidade === cidadeFiltroPecas)
-  .filter(p => tipoFiltroPecas === "TODOS" || p.tipo_moto === tipoFiltroPecas);
-
+  const pecasFiltradas = pecas
+    .filter(p => p.nome?.toLowerCase().includes(busca.toLowerCase()))
+    .filter(p => cidadeFiltroPecas === "TODAS" || p.cidade === cidadeFiltroPecas)
+    .filter(p => tipoFiltroPecas === "TODOS" || p.tipo_moto === tipoFiltroPecas);
 
   /* ================= LOAD ================= */
   useEffect(() => {
@@ -110,24 +105,30 @@ const pecasFiltradas = pecas
 
   const tiposPecas = [
     "TODOS",
-    ...Array.from(
-      new Set(pecas.map(p => p.tipo_moto).filter(Boolean))
-    )
+    ...Array.from(new Set(pecas.map(p => p.tipo_moto).filter(Boolean)))
   ];
-function exportarCSV(nomeArquivo, headers, dados) {
-  const csv = [
-    headers.join(";"),
-    ...dados.map(row =>
-      headers.map(h => `"${row[h] ?? ""}"`).join(";")
-    )
-  ].join("\n");
 
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-  const link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
-  link.download = nomeArquivo;
-  link.click();
-}
+  // ✅ NOVO: lista de CNPJs disponíveis (para o select)
+  const cnpjsDisponiveis = Array.from(
+    new Set(
+      motos
+        .map(m => (m.cnpj_empresa || "").trim())
+        .filter(cnpj => cnpj !== "")
+    )
+  ).sort();
+
+  function exportarCSV(nomeArquivo, headers, dados) {
+    const csv = [
+      headers.join(";"),
+      ...dados.map(row => headers.map(h => `"${row[h] ?? ""}"`).join(";"))
+    ].join("\n");
+
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = nomeArquivo;
+    link.click();
+  }
 
   /* ================= CARRINHO ================= */
   function adicionarCarrinho(peca) {
@@ -188,170 +189,182 @@ function exportarCSV(nomeArquivo, headers, dados) {
     setMotoSelecionada(null);
     alert("Moto vendida com sucesso!");
   }
- async function cadastrarPeca() {
-  if (!nomePeca || !valorPeca || !filialPeca) {
-    alert("Preencha todos os campos");
-    return;
+
+  async function cadastrarPeca() {
+    if (!nomePeca || !valorPeca || !filialPeca) {
+      alert("Preencha todos os campos");
+      return;
+    }
+
+    await api.post("/pecas", {
+      nome: nomePeca,
+      preco: Number(valorPeca),
+      cidade: filialPeca,
+      estoque: 0,
+      tipo_moto: null
+    });
+
+    setModalCadastrar(false);
+    setNomePeca("");
+    setValorPeca("");
+    setFilialPeca("");
+    alert("Peça cadastrada com sucesso!");
+
+    // recarrega peças
+    api.get("/pecas", { params: { role: user.role, cidade: user.cidade } })
+      .then(res => setPecas(res.data || []));
   }
-
-  const res = await api.post("/pecas", {
-    nome: nomePeca,
-    preco: Number(valorPeca),
-    cidade: filialPeca,
-    estoque: 0,              // 🔥 OBRIGATÓRIO
-    tipo_moto: null           // 🔥 evita erro de constraint
-  });
-
-  setPecas(prev => [...prev, res.data]);
-  setModalCadastrar(false);
-
-  setNomePeca("");
-  setValorPeca("");
-  setFilialPeca("");
-
-  alert("Peça cadastrada com sucesso!");
-}
-
 
   if (!user) return null;
 
- async function confirmarTransferenciaMoto() {
-  if (!filialDestinoMoto) {
-    alert("Selecione a filial destino");
-    return;
+  async function confirmarTransferenciaMoto() {
+    if (!filialDestinoMoto) {
+      alert("Selecione a filial destino");
+      return;
+    }
+
+    await api.post("/transferir-moto", {
+      moto_id: motoTransferir.id,
+      filial_origem: motoTransferir.filial,
+      filial_destino: filialDestinoMoto
+    });
+
+    setMotos(prev =>
+      prev.map(m =>
+        m.id === motoTransferir.id ? { ...m, filial: filialDestinoMoto } : m
+      )
+    );
+
+    setMotoTransferir(null);
+    setFilialDestinoMoto("");
+    alert("Moto transferida com sucesso!");
   }
 
-  await api.post("/transferir-moto", {
-    moto_id: motoTransferir.id,
-    filial_origem: motoTransferir.filial,
-    filial_destino: filialDestinoMoto
-  });
-
-  setMotos(prev =>
-    prev.map(m =>
-      m.id === motoTransferir.id
-        ? { ...m, filial: filialDestinoMoto }
-        : m
-    )
-  );
-
-  setMotoTransferir(null);
-  setFilialDestinoMoto("");
-  alert("Moto transferida com sucesso!");
-}
-
-
-
-function abrirTransferencia(peca) {
-  setPecaTransferir(peca);
-  setQuantidadeTransferir("");
-  setCidadeDestino("");
-}
-
-async function confirmarTransferencia() {
-  if (!quantidadeTransferir || !cidadeDestino) {
-    alert("Preencha quantidade e filial destino");
-    return;
+  function abrirTransferencia(peca) {
+    setPecaTransferir(peca);
+    setQuantidadeTransferir("");
+    setCidadeDestino("");
   }
 
-  if (Number(quantidadeTransferir) <= 0) {
-    alert("Quantidade inválida");
-    return;
+  async function confirmarTransferencia() {
+    if (!quantidadeTransferir || !cidadeDestino) {
+      alert("Preencha quantidade e filial destino");
+      return;
+    }
+
+    if (Number(quantidadeTransferir) <= 0) {
+      alert("Quantidade inválida");
+      return;
+    }
+
+    await api.post("/transferir-peca", {
+      peca_id: pecaTransferir.id,
+      quantidade: Number(quantidadeTransferir),
+      filial_origem: pecaTransferir.cidade,
+      filial_destino: cidadeDestino
+    });
+
+    setPecas(prev =>
+      prev.map(p =>
+        p.id === pecaTransferir.id
+          ? { ...p, estoque: p.estoque - Number(quantidadeTransferir) }
+          : p
+      )
+    );
+
+    setPecaTransferir(null);
+    alert("Transferência realizada com sucesso!");
   }
 
-  await api.post("/transferir-peca", {
-    peca_id: pecaTransferir.id,
-    quantidade: Number(quantidadeTransferir),
-    filial_origem: pecaTransferir.cidade,
-    filial_destino: cidadeDestino
-  });
+  async function cadastrarMoto() {
+    if (
+      !modeloMoto ||
+      !corMoto ||
+      !chassiMoto ||
+      !anoMoto ||
+      !valorMotoCadastro ||
+      !filialMoto ||
+      !cnpjEmpresa
+    ) {
+      alert("Preencha todos os campos obrigatórios");
+      return;
+    }
 
-  // Atualiza estoque na tela
-  setPecas(prev =>
-    prev.map(p =>
-      p.id === pecaTransferir.id
-        ? { ...p, estoque: p.estoque - Number(quantidadeTransferir) }
-        : p
-    )
-  );
+    await api.post("/motos", {
+      modelo: modeloMoto,
+      cor: corMoto,
+      chassi: chassiMoto,
+      ano: Number(anoMoto),
+      valor: Number(valorMotoCadastro),
+      filial: filialMoto,
+      cnpj_empresa: cnpjEmpresa,
+      santander: santanderMoto,
+      status: "DISPONIVEL"
+    });
 
-  setPecaTransferir(null);
-  alert("Transferência realizada com sucesso!");
-}
- async function cadastrarMoto() {
-  if (
-    !modeloMoto ||
-    !corMoto ||
-    !chassiMoto ||
-    !anoMoto ||
-    !valorMotoCadastro ||
-    !filialMoto ||
-    !cnpjEmpresa
-  ) {
-    alert("Preencha todos os campos obrigatórios");
-    return;
+    setModalCadastrarMoto(false);
+
+    setModeloMoto("");
+    setCorMoto("");
+    setChassiMoto("");
+    setAnoMoto("");
+    setValorMotoCadastro("");
+    setFilialMoto("");
+    setCnpjEmpresa("");
+    setSantanderMoto(false);
+
+    alert("Moto cadastrada com sucesso!");
+
+    // recarrega motos
+    api.get("/motos").then(res => setMotos(res.data || []));
   }
-
-  const res = await api.post("/motos", {
-    modelo: modeloMoto,
-    cor: corMoto,
-    chassi: chassiMoto,
-    ano: Number(anoMoto),
-    valor: Number(valorMotoCadastro),
-    filial: filialMoto,
-    cnpj_empresa: cnpjEmpresa,
-    santander: santanderMoto,
-    status: "DISPONIVEL"
-  });
-
-  setMotos(prev => [...prev, res.data]);
-  setModalCadastrarMoto(false);
-
-  // limpa campos
-  setModeloMoto("");
-  setCorMoto("");
-  setChassiMoto("");
-  setAnoMoto("");
-  setValorMotoCadastro("");
-  setFilialMoto("");
-  setCnpjEmpresa("");
-  setSantanderMoto(false);
-
-  alert("Moto cadastrada com sucesso!");
-}
-
 
   /* ================= JSX ================= */
   return (
     <div className="home-container">
       {/* HEADER */}
       <div className="home-header">
-       <h2>
-  MotoNow <span>Gestão</span>
-</h2>
-<span className="user-role">{user.role} • {user.cidade}</span>
-        <button className="btn-sair" onClick={sair}>Sair</button>
+        <h2>
+          MotoNow <span>Gestão</span>
+        </h2>
+        <span className="user-role">
+          {user.role} • {user.cidade}
+        </span>
+        <button className="btn-sair" onClick={sair}>
+          Sair
+        </button>
       </div>
 
       {/* TABS */}
       <div className="tabs">
-        <button className="tab-btn" onClick={() => setTab("pecas")}>📦 Peças</button>
-        <button className="tab-btn" onClick={() => setTab("motos")}>🏍 Motos</button>
+        <button className="tab-btn" onClick={() => setTab("pecas")}>
+          📦 Peças
+        </button>
+        <button className="tab-btn" onClick={() => setTab("motos")}>
+          🏍 Motos
+        </button>
+
         {user.role === "DIRETORIA" && (
-       <button className="tab-btn" onClick={() => nav("/vendas")}>🧾 Vendas</button>
-         )}
-        {user.role === "DIRETORIA" && (
-       <button className="tab-btn" onClick={() => setModalCadastrar(true)}> Cadastrar Peças</button>
+          <button className="tab-btn" onClick={() => nav("/vendas")}>
+            🧾 Vendas
+          </button>
         )}
-       {/* ========== <button onClick={() => setTab("revisoes")}>
-       🛠 Revisões
-       </button> ============*/}
+
+        {user.role === "DIRETORIA" && (
+          <button className="tab-btn" onClick={() => setModalCadastrar(true)}>
+            Cadastrar Peças
+          </button>
+        )}
+
         {user.role === "DIRETORIA" && (
           <button className="tab-btn" onClick={() => nav("/vendas-motos")}>
             🏍 Histórico Motos
           </button>
         )}
-        <button className="tab-btn" onClick={() => nav("/carrinho")}>🛒 Carrinho</button>
+
+        <button className="tab-btn" onClick={() => nav("/carrinho")}>
+          🛒 Carrinho
+        </button>
       </div>
 
       {/* ================= PEÇAS ================= */}
@@ -371,8 +384,7 @@ async function confirmarTransferencia() {
                 <option value="SAO JOSE">São José</option>
                 <option value="CATENDE">Catende</option>
                 <option value="XEXEU">Xexeu</option>
-                <option 
-value="MARAGOGI">Maragogi</option>
+                <option value="MARAGOGI">Maragogi</option>
               </select>
             )}
 
@@ -382,7 +394,9 @@ value="MARAGOGI">Maragogi</option>
               onChange={e => setTipoFiltroPecas(e.target.value)}
             >
               {tiposPecas.map(t => (
-                <option key={t} value={t}>{t}</option>
+                <option key={t} value={t}>
+                  {t}
+                </option>
               ))}
             </select>
 
@@ -393,26 +407,27 @@ value="MARAGOGI">Maragogi</option>
               onChange={e => setBusca(e.target.value)}
             />
           </div>
-         <button
-  onClick={() =>
-    exportarCSV(
-      "pecas_filtradas.csv",
-      ["nome", "tipo", "filial", "quantidade", "valor", "created_at"],
-      pecasFiltradas.map(p => ({
-        nome: p.nome,
-        tipo: p.tipo_moto || "UNIVERSAL",
-        filial: p.cidade,
-        quantidade: p.estoque,
-        valor: Number(p.preco).toFixed(2),
-        created_at: p.created_at
-          ? new Date(p.created_at).toLocaleDateString("pt-BR")
-          : ""
-      }))
-    )
-  }
->
-  📥 Exportar Peças (Filtradas)
-</button>
+
+          <button
+            onClick={() =>
+              exportarCSV(
+                "pecas_filtradas.csv",
+                ["nome", "tipo", "filial", "quantidade", "valor", "created_at"],
+                pecasFiltradas.map(p => ({
+                  nome: p.nome,
+                  tipo: p.tipo_moto || "UNIVERSAL",
+                  filial: p.cidade,
+                  quantidade: p.estoque,
+                  valor: Number(p.preco).toFixed(2),
+                  created_at: p.created_at
+                    ? new Date(p.created_at).toLocaleDateString("pt-BR")
+                    : ""
+                }))
+              )
+            }
+          >
+            📥 Exportar Peças (Filtradas)
+          </button>
 
           <table className="table">
             <thead>
@@ -433,31 +448,24 @@ value="MARAGOGI">Maragogi</option>
                 .map(p => (
                   <tr key={p.id}>
                     <td>{p.nome}</td>
-                    <td><strong>{p.tipo_moto || "UNIVERSAL"}</strong></td>
+                    <td>
+                      <strong>{p.tipo_moto || "UNIVERSAL"}</strong>
+                    </td>
                     <td>{p.cidade}</td>
                     <td>{p.estoque}</td>
                     <td>R$ {Number(p.preco).toFixed(2)}</td>
                     <td>
-  <div style={{ display: "flex", gap: 6 }}>
-    <button
-      className="action-btn"
-      onClick={() => adicionarCarrinho(p)}
-    >
-      🛒
-    </button>
+                      <div style={{ display: "flex", gap: 6 }}>
+                        <button className="action-btn" onClick={() => adicionarCarrinho(p)}>
+                          🛒
+                        </button>
 
-    {user.role === "DIRETORIA" && (
-      <button
-        className="action-btn"
-        onClick={() => abrirTransferencia(p)}
-      >
-        🔄
-      </button>
-    )}
-   
-
-  </div>
-
+                        {user.role === "DIRETORIA" && (
+                          <button className="action-btn" onClick={() => abrirTransferencia(p)}>
+                            🔄
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -472,39 +480,54 @@ value="MARAGOGI">Maragogi</option>
           <div className="resumo-motos">
             {Object.entries(resumoMotos).map(([c, d]) => (
               <div key={c} className="resumo-card">
-                <strong>{c}</strong><br />
+                <strong>{c}</strong>
+                <br />
                 🟢 {d.disponiveis} | 🔴 {d.vendidas}
               </div>
             ))}
           </div>
-         <input
-           className="input-busca"
-           placeholder="Buscar por modelo ou chassi..."
-           value={busca}
-           onChange={e => setBusca(e.target.value)}
+
+          <input
+            className="input-busca"
+            placeholder="Buscar por modelo ou chassi..."
+            value={busca}
+            onChange={e => setBusca(e.target.value)}
           />
-         {user.role === "DIRETORIA" && (
-  <button
-    className="tab-btn"
-    onClick={() => setModalCadastrarMoto(true)}
-  >
-    ➕ Cadastrar Moto
-  </button>
-)}
 
-         {user.role === "DIRETORIA" && (
-  <select
-    className="select-filial"
-    value={santanderFiltro}
-    onChange={e => setSantanderFiltro(e.target.value)}
-  >
-    <option value="TODOS">Todos </option>
-    <option value="SIM">MOTONOW</option>
-    <option value="NAO">EMENEZES</option>
-    
-  </select>
-)}
+          {user.role === "DIRETORIA" && (
+            <button className="tab-btn" onClick={() => setModalCadastrarMoto(true)}>
+              ➕ Cadastrar Moto
+            </button>
+          )}
 
+          {user.role === "DIRETORIA" && (
+            <select
+              className="select-filial"
+              value={santanderFiltro}
+              onChange={e => setSantanderFiltro(e.target.value)}
+            >
+              <option value="TODOS">Todos</option>
+              <option value="SIM">MOTONOW</option>
+              <option value="NAO">EMENEZES</option>
+            </select>
+          )}
+
+          {/* ✅ NOVO SELECT: CNPJ */}
+          {user.role === "DIRETORIA" && (
+            <select
+              className="select-filial"
+              value={cnpjFiltro}
+              onChange={e => setCnpjFiltro(e.target.value)}
+            >
+              <option value="TODOS">Todos CNPJs</option>
+              <option value="SEM_CNPJ">Sem CNPJ</option>
+              {cnpjsDisponiveis.map(cnpj => (
+                <option key={cnpj} value={cnpj}>
+                  {cnpj}
+                </option>
+              ))}
+            </select>
+          )}
 
           <select
             className="select-filial"
@@ -519,40 +542,30 @@ value="MARAGOGI">Maragogi</option>
             <option value="CATENDE">Catende</option>
             <option value="XEXEU">Xexeu</option>
             <option value="IPOJUCA RICARDO">Ipojuca Ricardo</option>
+            <option value="MARAGOGI">Maragogi</option>
+          </select>
 
-            <option 
-value="MARAGOGI">Maragogi</option>         </select>
-<button
-  onClick={() =>
-    exportarCSV(
-      "motos_disponiveis.csv",
-      [
-        "modelo",
-        "cor",
-        "chassi",
-        "ano",
-        "valor",
-        "filial",
-        "status",
-        "cnpj",
-        "created_at"
-      ],
-      motos.map(m => ({
-        modelo: m.modelo,
-        cor: m.cor,
-        chassi: m.chassi,
-        ano: m.ano,
-        valor: m.valor,
-        filial: m.filial,
-        status: m.status,
-        cnpj: m.cnpj_empresa,
-        created_at: new Date(m.created_at).toLocaleDateString("pt-BR")
-      }))
-    )
-  }
->
-  📥 Exportar Motos Disponíveis
-</button>
+          <button
+            onClick={() =>
+              exportarCSV(
+                "motos_disponiveis.csv",
+                ["modelo", "cor", "chassi", "ano", "valor", "filial", "status", "cnpj", "created_at"],
+                motos.map(m => ({
+                  modelo: m.modelo,
+                  cor: m.cor,
+                  chassi: m.chassi,
+                  ano: m.ano_moto,
+                  valor: m.valor_compra ?? m.valor ?? "",
+                  filial: m.filial,
+                  status: m.status,
+                  cnpj: m.cnpj_empresa,
+                  created_at: m.created_at ? new Date(m.created_at).toLocaleDateString("pt-BR") : ""
+                }))
+              )
+            }
+          >
+            📥 Exportar Motos Disponíveis
+          </button>
 
           <table className="table">
             <thead>
@@ -570,64 +583,59 @@ value="MARAGOGI">Maragogi</option>         </select>
             </thead>
             <tbody>
               {motos
-  .filter(m => cidadeFiltroMotos === "TODAS" || m.filial === cidadeFiltroMotos)
-
-  .filter(m => {
-    if (santanderFiltro === "TODOS") return true;
-    if (santanderFiltro === "SIM") return m.santander === true;
-    if (santanderFiltro === "NAO") return m.santander === false || m.santander == null;
-    return true;
-  })
-
-  .filter(m =>
-    busca === "" ||
-    m.modelo?.toLowerCase().includes(busca.toLowerCase()) ||
-    m.chassi?.toLowerCase().includes(busca.toLowerCase())
-  )
-
-  .map(m => (
-              
-               
+                .filter(m => cidadeFiltroMotos === "TODAS" || m.filial === cidadeFiltroMotos)
+                .filter(m => {
+                  if (santanderFiltro === "TODOS") return true;
+                  if (santanderFiltro === "SIM") return m.santander === true;
+                  if (santanderFiltro === "NAO") return m.santander === false || m.santander == null;
+                  return true;
+                })
+                // ✅ FILTRO CNPJ APLICADO AQUI
+                .filter(m => {
+                  const cnpj = (m.cnpj_empresa || "").trim();
+                  if (cnpjFiltro === "TODOS") return true;
+                  if (cnpjFiltro === "SEM_CNPJ") return cnpj === "";
+                  return cnpj === cnpjFiltro;
+                })
+                .filter(m => {
+                  const q = busca.toLowerCase();
+                  return (
+                    busca === "" ||
+                    m.modelo?.toLowerCase().includes(q) ||
+                    m.chassi?.toLowerCase().includes(q)
+                  );
+                })
+                .map(m => (
                   <tr key={m.id}>
                     <td>{m.modelo}</td>
                     <td>{m.ano_moto}</td>
                     <td>{m.cor}</td>
                     <td>{m.chassi}</td>
                     <td>
-  <span className={`cidade-tag ${m.filial.toLowerCase().replace(/\s/g, "-")}`}>
-    {m.filial}
-  </span>
-</td>
+                      <span className={`cidade-tag ${m.filial.toLowerCase().replace(/\s/g, "-")}`}>
+                        {m.filial}
+                      </span>
+                    </td>
                     <td>{m.santander === true ? "SIM" : "NÃO"}</td>
-                    <td>{m.cnpj_empresa}</td>
+                    <td>{m.cnpj_empresa || "-"}</td>
                     <td>
-  <span className={`status ${m.status.toLowerCase()}`}>
-    {m.status}
-  </span>
-</td>
+                      <span className={`status ${m.status.toLowerCase()}`}>{m.status}</span>
+                    </td>
                     <td>
-  <div style={{ display: "flex", gap: 6, justifyContent: "center" }}>
-    {m.status === "DISPONIVEL" && (
-      <button
-        className="action-btn"
-        onClick={() => abrirVendaMoto(m)}
-      >
-        Vender
-      </button>
-    )}
+                      <div style={{ display: "flex", gap: 6, justifyContent: "center" }}>
+                        {m.status === "DISPONIVEL" && (
+                          <button className="action-btn" onClick={() => abrirVendaMoto(m)}>
+                            Vender
+                          </button>
+                        )}
 
-    {user.role === "DIRETORIA" && m.status === "DISPONIVEL" && (
-      <button
-        className="action-btn"
-        onClick={() => setMotoTransferir(m)}
-      >
-        🔄
-      </button>
-    )}
-  </div>
-</td>
-
-
+                        {user.role === "DIRETORIA" && m.status === "DISPONIVEL" && (
+                          <button className="action-btn" onClick={() => setMotoTransferir(m)}>
+                            🔄
+                          </button>
+                        )}
+                      </div>
+                    </td>
                   </tr>
                 ))}
             </tbody>
