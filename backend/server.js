@@ -581,10 +581,9 @@ app.post("/finalizar-venda", async (req, res) => {
     observacao,
     modelo_moto,
     chassi_moto,
-    km
   } = req.body;
 
-  if (!cliente_nome || !cliente_telefone || !forma_pagamento || !cidade || !km) {
+  if (!cliente_nome || !cliente_telefone || !forma_pagamento || !cidade) {
     return res.status(400).json({ message: "Dados incompletos" });
   }
 
