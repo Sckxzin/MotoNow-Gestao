@@ -278,6 +278,7 @@ export default function VendasMotos() {
               <th>Origem</th>
               <th>Valor</th>
               <th>Valor de compra</th>
+              <th>Repasse</th>
               <th>Pagamento</th>
               <th>Gasolina</th>
               <th>Filial</th>
@@ -298,6 +299,7 @@ export default function VendasMotos() {
                 <td>{v.como_chegou}</td>
                 <td>{formatarValor(v.valor)}</td>
                 <td>{formatarValor(v.valor_compra)}</td>
+                <td>{formatarValor(v.repasse)}</td>
                 <td>{v.forma_pagamento}</td>
                 <td>{v.gasolina ? formatarValor(v.gasolina) : "-"}</td>
                 <td>{v.filial_venda || "-"}</td>
