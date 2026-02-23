@@ -67,7 +67,8 @@ app.post("/motos", async (req, res) => {
     chassi,
     filial,
     santander,
-    cnpj_empresa
+    cnpj_empresa,
+    valor_compra
   } = req.body;
 
   if (!modelo || !cor || !chassi || !filial) {
@@ -87,15 +88,16 @@ app.post("/motos", async (req, res) => {
 
     await db.query(
       `INSERT INTO motos
-       (modelo, cor, chassi, filial, status, santander, cnpj_empresa)
-       VALUES ($1,$2,$3,$4,'DISPONIVEL',$5,$6)`,
+       (modelo, cor, chassi, filial, status, santander, cnpj_empresa, valor_compra)
+       VALUES ($1,$2,$3,$4,'DISPONIVEL',$5,$6,$7)`,
       [
         modelo,
         cor,
         chassi,
         filial,
         santander === true,
-        cnpj_empresa || null
+        cnpj_empresa || null,
+        valor_compra
       ]
     );
 
@@ -483,6 +485,7 @@ app.get("/motos", async (req, res) => {
         status,
         cnpj_empresa,
         ano_moto,
+        valor_compra,
         CASE
          WHEN santander = true THEN true
          ELSE false
@@ -722,6 +725,7 @@ app.get("/vendas-motos", async (req, res) => {
         santander,
         numero_cliente,
         created_at,
+        valor_compra
 
         -- ✅ EMPRESA
         CASE
@@ -755,7 +759,8 @@ app.post("/vender-moto", async (req, res) => {
     gasolina,
     como_chegou,
     filial_venda,
-    numero_cliente
+    numero_cliente,
+    valor_compra
   } = req.body;
 
   if (!filial_venda) {
@@ -795,9 +800,10 @@ app.post("/vender-moto", async (req, res) => {
         gasolina,
         como_chegou,
         santander,
-        numero_cliente
+        numero_cliente,
+        valor_compra
       ) VALUES (
-        $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16
+        $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17
       )`,
       [
         moto.id,
@@ -815,7 +821,8 @@ app.post("/vender-moto", async (req, res) => {
         gasolina,
         como_chegou,
         moto.santander,
-        numero_cliente
+        numero_cliente,
+        valor_compra
       ]
     );
 
