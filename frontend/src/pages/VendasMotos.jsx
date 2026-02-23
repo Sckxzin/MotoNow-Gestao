@@ -297,7 +297,7 @@ export default function VendasMotos() {
                 <td>{v.numero_cliente}</td>
                 <td>{v.como_chegou}</td>
                 <td>{formatarValor(v.valor)}</td>
-                <td>{v.valor_compra}</td>
+                <td>{formatarValor(v.valor_compra)}</td>
                 <td>{v.forma_pagamento}</td>
                 <td>{v.gasolina ? formatarValor(v.gasolina) : "-"}</td>
                 <td>{v.filial_venda || "-"}</td>
