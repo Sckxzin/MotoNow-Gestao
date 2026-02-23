@@ -725,7 +725,7 @@ app.get("/vendas-motos", async (req, res) => {
         santander,
         numero_cliente,
         created_at,
-        valor_compra
+        valor_compra,
 
         -- ✅ EMPRESA
         CASE
