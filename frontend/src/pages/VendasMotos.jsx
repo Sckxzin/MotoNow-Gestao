@@ -237,13 +237,7 @@ export default function VendasMotos() {
         <input type="date" value={dataInicio} onChange={e => setDataInicio(e.target.value)} />
         <input type="date" value={dataFim} onChange={e => setDataFim(e.target.value)} />
 
-        {/* ✅ BUSCA */}
-        <input
-          className="input-busca"
-          placeholder="Buscar por chassi, modelo ou cliente..."
-          value={buscaChassi}
-          onChange={e => setBuscaChassi(e.target.value)}
-        />
+    
 
         <button type="button" onClick={limparBusca}>
           Limpar busca
@@ -314,6 +308,14 @@ export default function VendasMotos() {
       >
         📥 Exportar CSV
       </button>
+
+       {/* ✅ BUSCA */}
+        <input
+          className="input-busca"
+          placeholder="Buscar por chassi, modelo ou cliente..."
+          value={buscaChassi}
+          onChange={e => setBuscaChassi(e.target.value)}
+        />
 
       {/* TABELA */}
       <div className="table-container">
