@@ -32,11 +32,14 @@ export default function VendasMotos() {
   /* ================= FILTROS ================= */
   const [empresaFiltro, setEmpresaFiltro] = useState("TODAS");
 
-  // ✅ AGORA É MULTI-CIDADE
+  // ✅ multi-cidades
   const [cidadesFiltro, setCidadesFiltro] = useState([]); // array
 
   const [dataInicio, setDataInicio] = useState("");
   const [dataFim, setDataFim] = useState("");
+
+  // ✅ busca por chassi/modelo/cliente
+  const [buscaChassi, setBuscaChassi] = useState("");
 
   /* ================= CIDADES PADRÃO ================= */
   const cidadesPadrao = [
@@ -116,6 +119,10 @@ export default function VendasMotos() {
     setCidadesFiltro([]);
   }
 
+  function limparBusca() {
+    setBuscaChassi("");
+  }
+
   /* ================= FILTRAGEM ================= */
   const vendasFiltradas = useMemo(() => {
     return vendas.filter(v => {
@@ -151,9 +158,20 @@ export default function VendasMotos() {
       const okInicio = !dataInicio || dataVenda >= new Date(dataInicio);
       const okFim = !dataFim || dataVenda <= new Date(`${dataFim}T23:59:59`);
 
-      return okEmpresa && okCidade && okInicio && okFim;
+      const okBusca = (() => {
+        if (!buscaChassi.trim()) return true;
+        const termo = buscaChassi.trim().toLowerCase();
+
+        const chassi = (v.chassi || "").toLowerCase();
+        const modelo = (v.modelo || "").toLowerCase();
+        const cliente = (v.nome_cliente || "").toLowerCase();
+
+        return chassi.includes(termo) || modelo.includes(termo) || cliente.includes(termo);
+      })();
+
+      return okEmpresa && okCidade && okInicio && okFim && okBusca;
     });
-  }, [vendas, empresaFiltro, cidadesFiltro, dataInicio, dataFim]);
+  }, [vendas, empresaFiltro, cidadesFiltro, dataInicio, dataFim, buscaChassi]);
 
   /* ================= TOTAIS ================= */
   const totalEmpresa = useMemo(() => {
@@ -218,6 +236,18 @@ export default function VendasMotos() {
 
         <input type="date" value={dataInicio} onChange={e => setDataInicio(e.target.value)} />
         <input type="date" value={dataFim} onChange={e => setDataFim(e.target.value)} />
+
+        {/* ✅ BUSCA */}
+        <input
+          className="input-busca"
+          placeholder="Buscar por chassi, modelo ou cliente..."
+          value={buscaChassi}
+          onChange={e => setBuscaChassi(e.target.value)}
+        />
+
+        <button type="button" onClick={limparBusca}>
+          Limpar busca
+        </button>
       </div>
 
       {/* BOTÕES */}
