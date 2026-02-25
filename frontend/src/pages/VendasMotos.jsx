@@ -295,22 +295,35 @@ export default function VendasMotos() {
         <button onClick={limparDatas}>Limpar datas</button>
       </div>
 
-      {/* RESUMO */}
-      <div className="resumo">
-        <strong>🏢 EMENEZES: {formatarValor(totalEmpresa.emenezes)}</strong>
-        <strong>🏢 MOTONOW: {formatarValor(totalEmpresa.motonow)}</strong>
-        <strong>🧮 Total: {totalGeralMotos} motos</strong>
+      <div className="cards-resumo">
 
-        <hr style={{ width: "100%" }} />
+  <div className="card">
+    <span>🏢 EMENEZES</span>
+    <h3>{formatarValor(totalEmpresa.emenezes)}</h3>
+  </div>
 
-        <strong>💸 A repassar EMENEZES: {formatarValor(totalARepassarPorEmpresa.emenezes)}</strong>
-        <strong>💸 A repassar MOTONOW: {formatarValor(totalARepassarPorEmpresa.motonow)}</strong>
+  <div className="card">
+    <span>🏢 MOTONOW</span>
+    <h3>{formatarValor(totalEmpresa.motonow)}</h3>
+  </div>
 
-        <hr style={{ width: "100%" }} />
+  <div className="card">
+    <span>💸 A REPASSAR</span>
+    <h3>{formatarValor(
+      totalARepassarPorEmpresa.emenezes +
+      totalARepassarPorEmpresa.motonow
+    )}</h3>
+  </div>
 
-        <strong>📈 Líquido EMENEZES: {formatarValor(totalLiquidoPorEmpresa.emenezes)}</strong>
-        <strong>📈 Líquido MOTONOW: {formatarValor(totalLiquidoPorEmpresa.motonow)}</strong>
-      </div>
+  <div className="card destaque">
+    <span>📈 LÍQUIDO TOTAL</span>
+    <h3>{formatarValor(
+      totalLucroPorEmpresa.emenezes +
+      totalLucroPorEmpresa.motonow
+    )}</h3>
+  </div>
+
+</div>
 
       {/* EXPORTAR CSV */}
       <button
