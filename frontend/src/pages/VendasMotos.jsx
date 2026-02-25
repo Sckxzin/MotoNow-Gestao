@@ -30,15 +30,14 @@ export default function VendasMotos() {
   }
 
 function getValorARepassar(v) {
-  // se não tem repasse → não calcula
   if (v.repasse == null || v.repasse === "" || Number.isNaN(Number(v.repasse))) {
-    return null;
+    return null; // não calcula se não tiver repasse
   }
 
   const repasse = Number(v.repasse);
-  const compra = Number(v.valor_compra || 0);
+  const valorVenda = Number(v.valor || 0);
 
-  return repasse - compra;
+  return repasse - valorVenda;
 }
   /* ================= FILTROS ================= */
   const [empresaFiltro, setEmpresaFiltro] = useState("TODAS");
@@ -206,16 +205,17 @@ const totalARepassarPorEmpresa = useMemo(() => {
   vendasFiltradas.forEach(v => {
     const valorARepassar = getValorARepassar(v);
 
-    // só soma se tiver repasse
     if (valorARepassar == null) return;
 
-    if (getEmpresa(v) === "EMENEZES") emenezes += valorARepassar;
-    else motonow += valorARepassar;
+    if (getEmpresa(v) === "EMENEZES") {
+      emenezes += valorARepassar;
+    } else {
+      motonow += valorARepassar;
+    }
   });
 
   return { emenezes, motonow };
 }, [vendasFiltradas]);
-
   /* ================= UI ================= */
   return (
     <div className="vendas-motos-container">
