@@ -284,8 +284,9 @@ export default function Home() {
       !chassiMoto ||
       !anoMoto ||
       !valorCompra ||
-      !filialMoto ||
       !repasse ||
+      !filialMoto ||
+      
       !cnpjEmpresa
     ) {
       alert("Preencha todos os campos obrigatórios");
@@ -297,7 +298,8 @@ export default function Home() {
       cor: corMoto,
       chassi: chassiMoto,
       ano: Number(anoMoto),
-      valor: Number(valorMotoCadastro),
+      valor: Number(valorCompra),
+      repasse: Number(repasse),
       filial: filialMoto,
       cnpj_empresa: cnpjEmpresa,
       santander: santanderMoto,
@@ -310,7 +312,7 @@ export default function Home() {
     setCorMoto("");
     setChassiMoto("");
     setAnoMoto("");
-    setValorMotoCadastro("");
+    setValorCompra("");
     setFilialMoto("");
     setCnpjEmpresa("");
     setSantanderMoto(false);
