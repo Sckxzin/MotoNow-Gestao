@@ -405,6 +405,7 @@ const totalLucroPorEmpresa = useMemo(() => {
               <th>Brinde</th>
               <th>Data</th>
               <th>A repassar</th>
+              <th>Lucro Real</th>
 
             </tr>
           </thead>
@@ -433,6 +434,7 @@ const totalLucroPorEmpresa = useMemo(() => {
     ? "-"
     : formatarValor(getValorARepassar(v))}
 </td>
+<td>{formatarValor(getLucroReal(v))}</td>
               </tr>
             ))}
           </tbody>
