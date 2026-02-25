@@ -60,7 +60,8 @@ function getValorARepassar(v) {
     "CATENDE",
     "XEXEU",
     "MARAGOGI",
-    "IPOJUCA RICARDO"
+    "IPOJUCA RICARDO",
+    "CHA GRANDE"
   ];
 
   /* ================= LOAD ================= */
