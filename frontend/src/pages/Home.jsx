@@ -862,6 +862,7 @@ value="MARAGOGI">MARAGOGI</option>
         <option value="XEXEU">Xexeu</option>
         <option value="MARAGOGI">Maragogi</option>
         <option value="IPOJUCA RICARDO">Ipojuca Ricardo</option>
+         <option="CHA GRANDE">Cha grande</option>
       </select>
 
       <input placeholder="CNPJ da empresa"
