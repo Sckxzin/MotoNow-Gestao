@@ -1,279 +1,243 @@
 
-/* ================= CONTAINER ================= */
 .vendas-motos-container {
-  padding: 24px;
-  background: #f5f7fa;
-  min-height: 100vh;
-  font-family: "Inter", Arial, sans-serif;
+  padding: 18px;
 }
 
-/* ================= TÍTULO ================= */
-.vendas-motos-container h2 {
-  margin-bottom: 16px;
-  color: #1f2933;
-  font-size: 22px;
-  font-weight: 600;
-}
-
-/* ================= BOTÃO VOLTAR ================= */
-.btn-voltar {
-  background: #111827;
-  color: #fff;
-  border: none;
-  padding: 8px 14px;
-  border-radius: 8px;
-  cursor: pointer;
-  margin-bottom: 16px;
-  font-size: 14px;
-}
-
-.btn-voltar:hover {
-  opacity: 0.9;
-}
-
-/* ================= FILTROS ================= */
-.filtros {
+/* TOPBAR */
+.vm-topbar {
   display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
   margin-bottom: 14px;
 }
 
-.filtros select,
-.filtros input {
-  padding: 8px 10px;
-  border-radius: 8px;
-  border: 1px solid #d1d5db;
-  background: #fff;
-  font-size: 14px;
+.vm-title {
+  margin: 0;
+  font-size: 20px;
 }
 
-/* ================= BOTÕES RÁPIDOS ================= */
-.botoes-rapidos {
+.vm-subtitle {
+  margin: 6px 0 0;
+  opacity: 0.75;
+  font-size: 13px;
+}
+
+.vm-topbar-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* BUTTONS */
+.vm-btn {
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.06);
+  color: inherit;
+  padding: 10px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: 0.15s ease;
+  font-weight: 600;
+}
+
+.vm-btn:hover {
+  background: rgba(255,255,255,0.10);
+}
+
+.vm-btn:active {
+  transform: scale(0.99);
+}
+
+.vm-btn-primary {
+  border: 1px solid rgba(0, 200, 120, 0.35);
+  background: rgba(0, 200, 120, 0.18);
+}
+
+.vm-btn-ghost {
+  background: transparent;
+}
+
+.vm-btn-soft {
+  background: rgba(255,255,255,0.07);
+}
+
+.vm-btn-full {
+  width: 100%;
+  text-align: center;
+}
+
+/* CARD */
+.vm-card {
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(255,255,255,0.04);
+  border-radius: 14px;
+  padding: 14px;
+  margin-bottom: 14px;
+}
+
+/* FILTER GRID */
+.vm-filters-grid {
+  display: grid;
+  grid-template-columns: 220px 160px 160px 1fr 200px;
+  gap: 12px;
+  align-items: end;
+}
+
+.vm-field label {
+  display: block;
+  font-size: 12px;
+  opacity: 0.85;
+  margin-bottom: 6px;
+}
+
+.vm-field input,
+.vm-field select {
+  width: 100%;
+  padding: 10px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(0,0,0,0.20);
+  color: inherit;
+}
+
+.vm-field-wide {
+  min-width: 260px;
+}
+
+/* QUICKBAR */
+.vm-quickbar {
+  margin-top: 12px;
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-bottom: 16px;
 }
 
-.botoes-rapidos button {
-  background: #2563eb;
-  color: #fff;
-  border: none;
-  padding: 7px 12px;
-  border-radius: 8px;
-  font-size: 13px;
-  cursor: pointer;
+/* CITIES PANEL */
+.vm-cities-panel {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed rgba(255,255,255,0.14);
 }
 
-.botoes-rapidos button:hover {
-  opacity: 0.9;
-}
-
-/* ================= RESUMO ================= */
-.resumo {
-  display: flex;
-  gap: 24px;
-  background: #fff;
-  padding: 14px 18px;
-  border-radius: 12px;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
-  margin-bottom: 16px;
-  font-size: 15px;
-  color: #111827;
-}
-.resumo-cidades {
-  margin-top: 15px;
-  padding: 10px;
-  background: #f6f6f6;
-  border-radius: 8px;
-}
-
-.resumo-cidades h4 {
-  margin-bottom: 8px;
-}
-
-.resumo-cidades ul {
-  list-style: none;
-  padding: 0;
-  margin: 0 0 8px 0;
-}
-
-.resumo-cidades li {
-  margin-bottom: 4px;
-}
-
-
-/* ================= EXPORTAR ================= */
-.btn-exportar {
-  background: #059669;
-  color: #fff;
-  border: none;
-  padding: 10px 16px;
-  border-radius: 10px;
-  cursor: pointer;
-  font-size: 14px;
-  margin-bottom: 16px;
-}
-
-.btn-exportar:hover {
-  opacity: 0.9;
-}
-
-/* ================= TABELA ================= */
-.table-container {
-  background: #fff;
-  border-radius: 14px;
-  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.08);
-  overflow-x: auto;
-}
-
-.table {
-  width: 100%;
-  border-collapse: collapse;
-  min-width: 1100px;
-}
-
-.table th {
-  background: #111827;
-  color: #fff;
-  padding: 12px 8px;
-  font-size: 13px;
-  font-weight: 600;
-  text-transform: uppercase;
-  position: sticky;
-  top: 0;
-  z-index: 1;
-}
-
-.table td {
-  padding: 10px 8px;
-  border-bottom: 1px solid #e5e7eb;
-  font-size: 13px;
-  text-align: center;
-  color: #1f2933;
-}
-
-.table tr:hover {
-  background: #f1f5f9;
-}
-
-/* ================= STATUS VISUAL ================= */
-.table td:nth-child(9) {
-  font-weight: 600;
-}
-
-/* ================= RESPONSIVO ================= */
-@media (max-width: 768px) {
-  .resumo {
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .filtros,
-  .botoes-rapidos {
-    flex-direction: column;
-  }
-}
-.vendas-motos-container {
-  padding: 20px;
-  background: #f4f6f9;
-}
-
-/* ================= CARDS ================= */
-
-.cards-resumo {
+.vm-cities-list {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 20px;
-  margin: 20px 0;
-}
-
-.card {
-  background: white;
-  padding: 20px;
+  grid-template-columns: repeat(3, minmax(180px, 1fr));
+  gap: 8px;
+  padding: 10px;
   border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(0,0,0,0.18);
+}
+
+.vm-check {
   display: flex;
-  flex-direction: column;
-}
-
-.card span {
-  font-size: 14px;
-  color: #777;
-}
-
-.card h3 {
-  margin-top: 10px;
-  font-size: 22px;
-  font-weight: bold;
-}
-
-.card.destaque {
-  background: linear-gradient(135deg, #0d6efd, #0a58ca);
-  color: white;
-}
-
-/* ================= FILTROS ================= */
-
-.filtros {
-  background: white;
-  padding: 15px;
-  border-radius: 10px;
-  margin-bottom: 20px;
-  display: flex;
-  gap: 15px;
-  flex-wrap: wrap;
-  box-shadow: 0 3px 8px rgba(0,0,0,0.05);
-}
-
-.filtros input,
-.filtros select {
-  padding: 8px;
-  border-radius: 6px;
-  border: 1px solid #ddd;
-}
-
-/* ================= TABELA ================= */
-
-.table-container {
-  background: white;
-  border-radius: 10px;
-  overflow: auto;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-}
-
-.table {
-  width: 100%;
-  border-collapse: collapse;
+  align-items: center;
+  gap: 10px;
   font-size: 13px;
 }
 
-.table thead {
-  background: #1f2937;
-  color: white;
-  position: sticky;
-  top: 0;
+.vm-check input {
+  width: 16px;
+  height: 16px;
 }
 
-.table th,
-.table td {
-  padding: 10px;
-  text-align: left;
-  border-bottom: 1px solid #eee;
+/* CHIPS */
+.vm-chips {
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
-.table tbody tr:nth-child(even) {
-  background: #f9fafb;
+.vm-chip {
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.06);
+  padding: 8px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 12px;
 }
 
-.table tbody tr:hover {
-  background: #eaf2ff;
+.vm-chip-muted {
+  cursor: default;
+  opacity: 0.75;
 }
 
-/* ================= VALORES NEGATIVOS ================= */
+/* STATS */
+.vm-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(220px, 1fr));
+  gap: 12px;
+  margin-bottom: 14px;
+}
 
-.valor-negativo {
-  color: #dc3545;
-  font-weight: bold;
+.vm-stat {
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(255,255,255,0.04);
+  border-radius: 14px;
+  padding: 12px;
+}
+
+.vm-stat-label {
+  font-size: 12px;
+  opacity: 0.8;
+  margin-bottom: 6px;
+}
+
+.vm-stat-value {
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.vm-stat-highlight {
+  border-color: rgba(0, 200, 120, 0.30);
+  background: rgba(0, 200, 120, 0.10);
+}
+
+/* TABLE CARD */
+.vm-table-card {
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+/* RESPONSIVE */
+@media (max-width: 1100px) {
+  .vm-filters-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .vm-field-wide {
+    grid-column: 1 / -1;
+  }
+
+  .vm-stats {
+    grid-template-columns: repeat(2, minmax(220px, 1fr));
+  }
+
+  .vm-cities-list {
+    grid-template-columns: repeat(2, minmax(180px, 1fr));
+  }
+
+  .vm-topbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .vm-topbar-actions {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 520px) {
+  .vm-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .vm-cities-list {
+    grid-template-columns: 1fr;
+  }
 }
