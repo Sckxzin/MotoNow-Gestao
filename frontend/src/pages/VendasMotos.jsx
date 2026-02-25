@@ -291,7 +291,7 @@ const totalARepassarPorEmpresa = useMemo(() => {
   <hr style={{ width: "100%" }} />
 
   <strong>💸 A repassar EMENEZES: {formatarValor(totalARepassarPorEmpresa.emenezes)}</strong>
-  <strong>💸 A repassar MOTONOW: {formatarValor(totalARepassarPorEmpresa.motonow)}</strong>
+  <strong>💸 A repassar MOTOCENTER/LITORAL: {formatarValor(totalARepassarPorEmpresa.motonow)}</strong>
 </div>
       
 
