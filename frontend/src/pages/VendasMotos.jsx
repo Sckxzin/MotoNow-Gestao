@@ -206,6 +206,9 @@ const totalARepassarPorEmpresa = useMemo(() => {
   vendasFiltradas.forEach(v => {
     const valorARepassar = getValorARepassar(v);
 
+    // só soma se tiver repasse
+    if (valorARepassar == null) return;
+
     if (getEmpresa(v) === "EMENEZES") emenezes += valorARepassar;
     else motonow += valorARepassar;
   });
