@@ -29,37 +29,34 @@ export default function VendasMotos() {
     link.click();
   }
 
-function getValorARepassar(v) {
-  if (v.repasse == null || v.repasse === "" || Number.isNaN(Number(v.repasse))) {
-    return null; // não calcula se não tiver repasse
+  // ✅ valor a repassar: só calcula se tiver repasse
+  function getValorARepassar(v) {
+    const repasse = Number(v.repasse || 0);
+    if (!repasse || Number.isNaN(repasse) || repasse <= 0) return null;
+
+    const valorVenda = Number(v.valor || 0);
+    return valorVenda - repasse;
   }
 
-  const repasse = Number(v.repasse);
-  const valorVenda = Number(v.valor || 0);
+  // ✅ líquido do seu jeito (não subtrai compra e repasse ao mesmo tempo)
+  function calcLiquido(v) {
+    const valor = Number(v.valor || 0);
+    const compra = Number(v.valor_compra || 0);
+    const repasse = Number(v.repasse || 0);
+    const gasolina = Number(v.gasolina || 0);
+    const descontoBrinde = v.brinde ? 100 : 0;
 
-  return valorVenda - repasse;
-function calcLiquido(v) {
-  const valor = Number(v.valor || 0);
-  const compra = Number(v.valor_compra || 0);
-  const repasse = Number(v.repasse || 0);
-  const gasolina = Number(v.gasolina || 0);
-  const descontoBrinde = v.brinde ? 100 : 0;
+    // se tiver repasse, usa ele no lugar do valor_compra
+    const base = repasse > 0 ? repasse : compra;
 
-  // se tiver repasse, ele "substitui" a compra (pra não subtrair 2x)
-  const base = repasse > 0 ? repasse : compra;
+    return valor - base - gasolina - descontoBrinde;
+  }
 
-  return valor - base - gasolina - descontoBrinde;
-}
   /* ================= FILTROS ================= */
   const [empresaFiltro, setEmpresaFiltro] = useState("TODAS");
-
-  // ✅ multi-cidades
-  const [cidadesFiltro, setCidadesFiltro] = useState([]); // array
-
+  const [cidadesFiltro, setCidadesFiltro] = useState([]); // multi
   const [dataInicio, setDataInicio] = useState("");
   const [dataFim, setDataFim] = useState("");
-
-  // ✅ busca por chassi/modelo/cliente
   const [buscaChassi, setBuscaChassi] = useState("");
 
   /* ================= CIDADES PADRÃO ================= */
@@ -154,20 +151,16 @@ function calcLiquido(v) {
       const okEmpresa = empresaFiltro === "TODAS" || empresa === empresaFiltro;
 
       const okCidade = (() => {
-        // nada selecionado ou TODAS
         if (cidadesFiltro.length === 0 || cidadesFiltro.includes("TODAS")) return true;
 
         const filial = (v.filial_venda || "").trim();
 
-        // SEM_CIDADE
         if (cidadesFiltro.includes("SEM_CIDADE") && filial === "") return true;
 
-        // OUTRAS
         if (cidadesFiltro.includes("OUTRAS")) {
           if (filial !== "" && !cidadesPadrao.includes(filial)) return true;
         }
 
-        // cidades específicas
         const cidadesEspecificas = cidadesFiltro.filter(
           x => x !== "SEM_CIDADE" && x !== "OUTRAS" && x !== "TODAS"
         );
@@ -201,8 +194,8 @@ function calcLiquido(v) {
     let motonow = 0;
 
     vendasFiltradas.forEach(v => {
-      if (getEmpresa(v) === "EMENEZES") emenezes += Number(v.valor);
-      else motonow += Number(v.valor);
+      if (getEmpresa(v) === "EMENEZES") emenezes += Number(v.valor || 0);
+      else motonow += Number(v.valor || 0);
     });
 
     return { emenezes, motonow };
@@ -210,41 +203,35 @@ function calcLiquido(v) {
 
   const totalGeralMotos = vendasFiltradas.length;
 
-const totalARepassarPorEmpresa = useMemo(() => {
-  let emenezes = 0;
-  let motonow = 0;
+  const totalARepassarPorEmpresa = useMemo(() => {
+    let emenezes = 0;
+    let motonow = 0;
 
-  vendasFiltradas.forEach(v => {
-    const valorARepassar = getValorARepassar(v);
+    vendasFiltradas.forEach(v => {
+      const valorARepassar = getValorARepassar(v);
+      if (valorARepassar == null) return;
 
-    if (valorARepassar == null) return;
+      if (getEmpresa(v) === "EMENEZES") emenezes += valorARepassar;
+      else motonow += valorARepassar;
+    });
 
-    if (getEmpresa(v) === "EMENEZES") {
-      emenezes += valorARepassar;
-    } else {
-      motonow += valorARepassar;
-    }
-  });
+    return { emenezes, motonow };
+  }, [vendasFiltradas]);
 
-  return { emenezes, motonow };
-}, [vendasFiltradas]);
+  const totalLiquidoPorEmpresa = useMemo(() => {
+    let emenezes = 0;
+    let motonow = 0;
 
-const totalLucroPorEmpresa = useMemo(() => {
-  let emenezes = 0;
-  let motonow = 0;
+    vendasFiltradas.forEach(v => {
+      const liq = calcLiquido(v);
 
-  vendasFiltradas.forEach(v => {
-    const lucro = getLucroReal(v);
+      if (getEmpresa(v) === "EMENEZES") emenezes += liq;
+      else motonow += liq;
+    });
 
-    if (getEmpresa(v) === "EMENEZES") {
-      emenezes += lucro;
-    } else {
-      motonow += lucro;
-    }
-  });
+    return { emenezes, motonow };
+  }, [vendasFiltradas]);
 
-  return { emenezes, motonow };
-}, [vendasFiltradas]);
   /* ================= UI ================= */
   return (
     <div className="vendas-motos-container">
@@ -262,7 +249,6 @@ const totalLucroPorEmpresa = useMemo(() => {
           <option value="MOTONOW">MotoNow</option>
         </select>
 
-        {/* ✅ MULTI-CIDADES (Ctrl/Shift no PC) */}
         <select
           multiple
           value={cidadesFiltro}
@@ -294,8 +280,6 @@ const totalLucroPorEmpresa = useMemo(() => {
         <input type="date" value={dataInicio} onChange={e => setDataInicio(e.target.value)} />
         <input type="date" value={dataFim} onChange={e => setDataFim(e.target.value)} />
 
-    
-
         <button type="button" onClick={limparBusca}>
           Limpar busca
         </button>
@@ -313,21 +297,20 @@ const totalLucroPorEmpresa = useMemo(() => {
 
       {/* RESUMO */}
       <div className="resumo">
-  <strong>🏢 EMENEZES: {formatarValor(totalEmpresa.emenezes)}</strong>
-  <strong>🏢 MOTONOW: {formatarValor(totalEmpresa.motonow)}</strong>
-  <strong>🧮 Total: {totalGeralMotos} motos</strong>
+        <strong>🏢 EMENEZES: {formatarValor(totalEmpresa.emenezes)}</strong>
+        <strong>🏢 MOTONOW: {formatarValor(totalEmpresa.motonow)}</strong>
+        <strong>🧮 Total: {totalGeralMotos} motos</strong>
 
-  <hr style={{ width: "100%" }} />
+        <hr style={{ width: "100%" }} />
 
-  <strong>💸 A repassar EMENEZES: {formatarValor(totalARepassarPorEmpresa.emenezes)}</strong>
-  <strong>💸 A repassar MOTOCENTER/LITORAL: {formatarValor(totalARepassarPorEmpresa.motonow)}</strong>
-</div>
+        <strong>💸 A repassar EMENEZES: {formatarValor(totalARepassarPorEmpresa.emenezes)}</strong>
+        <strong>💸 A repassar MOTONOW: {formatarValor(totalARepassarPorEmpresa.motonow)}</strong>
 
-<hr style={{ width: "100%" }} />
+        <hr style={{ width: "100%" }} />
 
-<strong>📈 Lucro EMENEZES: {formatarValor(totalLucroPorEmpresa.emenezes)}</strong>
-<strong>📈 Lucro MOTONOW: {formatarValor(totalLucroPorEmpresa.motonow)}</strong>
-      
+        <strong>📈 Líquido EMENEZES: {formatarValor(totalLiquidoPorEmpresa.emenezes)}</strong>
+        <strong>📈 Líquido MOTONOW: {formatarValor(totalLiquidoPorEmpresa.motonow)}</strong>
+      </div>
 
       {/* EXPORTAR CSV */}
       <button
@@ -345,6 +328,8 @@ const totalLucroPorEmpresa = useMemo(() => {
               "valor",
               "valor_compra",
               "repasse",
+              "a_repassar",
+              "liquido",
               "pagamento",
               "gasolina",
               "filial",
@@ -363,6 +348,8 @@ const totalLucroPorEmpresa = useMemo(() => {
               valor: v.valor != null ? Number(v.valor).toFixed(2) : "",
               valor_compra: v.valor_compra != null ? Number(v.valor_compra).toFixed(2) : "",
               repasse: v.repasse != null ? Number(v.repasse).toFixed(2) : "",
+              a_repassar: getValorARepassar(v) == null ? "" : Number(getValorARepassar(v)).toFixed(2),
+              liquido: Number(calcLiquido(v)).toFixed(2),
               pagamento: v.forma_pagamento,
               gasolina: v.gasolina != null ? Number(v.gasolina).toFixed(2) : "",
               filial: v.filial_venda || "",
@@ -377,13 +364,13 @@ const totalLucroPorEmpresa = useMemo(() => {
         📥 Exportar CSV
       </button>
 
-       {/* ✅ BUSCA */}
-        <input
-          className="input-busca"
-          placeholder="Buscar por chassi, modelo ou cliente..."
-          value={buscaChassi}
-          onChange={e => setBuscaChassi(e.target.value)}
-        />
+      {/* BUSCA */}
+      <input
+        className="input-busca"
+        placeholder="Buscar por chassi, modelo ou cliente..."
+        value={buscaChassi}
+        onChange={e => setBuscaChassi(e.target.value)}
+      />
 
       {/* TABELA */}
       <div className="table-container">
@@ -408,7 +395,6 @@ const totalLucroPorEmpresa = useMemo(() => {
               <th>Data</th>
               <th>A repassar</th>
               <th>Líquido</th>
-
             </tr>
           </thead>
 
@@ -431,12 +417,8 @@ const totalLucroPorEmpresa = useMemo(() => {
                 <td>{getCNPJ(v)}</td>
                 <td>{v.brinde ? "SIM" : "NÃO"}</td>
                 <td>{new Date(v.created_at).toLocaleDateString("pt-BR")}</td>
-                <td>
-  {getValorARepassar(v) == null
-    ? "-"
-    : formatarValor(getValorARepassar(v))}
-</td>
-<td>{formatarValor(calcLiquido(v))}</td>
+                <td>{getValorARepassar(v) == null ? "-" : formatarValor(getValorARepassar(v))}</td>
+                <td>{formatarValor(calcLiquido(v))}</td>
               </tr>
             ))}
           </tbody>
