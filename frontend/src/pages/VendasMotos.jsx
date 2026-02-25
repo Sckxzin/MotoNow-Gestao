@@ -39,6 +39,15 @@ function getValorARepassar(v) {
 
   return repasse - valorVenda;
 }
+function getLucroReal(v) {
+  const valor = Number(v.valor || 0);
+  const valorCompra = Number(v.valor_compra || 0);
+  const gasolina = Number(v.gasolina || 0);
+  const repasse = Number(v.repasse || 0);
+  const custoBrinde = v.brinde ? 100 : 0;
+
+  return valor - valorCompra - gasolina - repasse - custoBrinde;
+}
   /* ================= FILTROS ================= */
   const [empresaFiltro, setEmpresaFiltro] = useState("TODAS");
 
@@ -217,6 +226,23 @@ const totalARepassarPorEmpresa = useMemo(() => {
 
   return { emenezes, motonow };
 }, [vendasFiltradas]);
+
+const totalLucroPorEmpresa = useMemo(() => {
+  let emenezes = 0;
+  let motonow = 0;
+
+  vendasFiltradas.forEach(v => {
+    const lucro = getLucroReal(v);
+
+    if (getEmpresa(v) === "EMENEZES") {
+      emenezes += lucro;
+    } else {
+      motonow += lucro;
+    }
+  });
+
+  return { emenezes, motonow };
+}, [vendasFiltradas]);
   /* ================= UI ================= */
   return (
     <div className="vendas-motos-container">
@@ -294,6 +320,11 @@ const totalARepassarPorEmpresa = useMemo(() => {
   <strong>💸 A repassar EMENEZES: {formatarValor(totalARepassarPorEmpresa.emenezes)}</strong>
   <strong>💸 A repassar MOTOCENTER/LITORAL: {formatarValor(totalARepassarPorEmpresa.motonow)}</strong>
 </div>
+
+<hr style={{ width: "100%" }} />
+
+<strong>📈 Lucro EMENEZES: {formatarValor(totalLucroPorEmpresa.emenezes)}</strong>
+<strong>📈 Lucro MOTONOW: {formatarValor(totalLucroPorEmpresa.motonow)}</strong>
       
 
       {/* EXPORTAR CSV */}
