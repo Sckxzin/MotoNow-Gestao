@@ -56,7 +56,8 @@ export default function Home() {
   const [corMoto, setCorMoto] = useState("");
   const [chassiMoto, setChassiMoto] = useState("");
   const [anoMoto, setAnoMoto] = useState("");
-  const [valorMotoCadastro, setValorMotoCadastro] = useState("");
+  const [valorCompra, setValorCompra] = useState("");
+  const [repasse, setRepasse] = useState("");
   const [filialMoto, setFilialMoto] = useState("");
   const [cnpjEmpresa, setCnpjEmpresa] = useState("");
   const [santanderMoto, setSantanderMoto] = useState(false);
@@ -282,8 +283,9 @@ export default function Home() {
       !corMoto ||
       !chassiMoto ||
       !anoMoto ||
-      !valorMotoCadastro ||
+      !valorCompra ||
       !filialMoto ||
+      !repasse ||
       !cnpjEmpresa
     ) {
       alert("Preencha todos os campos obrigatórios");
@@ -840,8 +842,12 @@ value="MARAGOGI">MARAGOGI</option>
       <input placeholder="Ano" value={anoMoto}
         onChange={e => setAnoMoto(e.target.value)} />
 
-      <input type="number" placeholder="Valor" value={valorMotoCadastro}
-        onChange={e => setValorMotoCadastro(e.target.value)} />
+      <input type="number" placeholder="Valor" value={valorCompra}
+        onChange={e => setValorCompra(e.target.value)} />
+       
+      <input type="number" placeholder="Repasse" value={repasse}
+        onChange={e => setRepasse(e.target.value)} />
+      
 
       <select value={filialMoto}
         onChange={e => setFilialMoto(e.target.value)}>
