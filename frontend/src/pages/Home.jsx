@@ -389,7 +389,7 @@ export default function Home() {
                 <option value="CATENDE">Catende</option>
                 <option value="XEXEU">Xexeu</option>
                 <option value="MARAGOGI">Maragogi</option>
-                <option value="CHA GRANDE">Cha grande</option
+                <option value="CHA GRANDE">Cha grande</option>
               </select>
             )}
 
@@ -548,7 +548,7 @@ export default function Home() {
             <option value="XEXEU">Xexeu</option>
             <option value="IPOJUCA RICARDO">Ipojuca Ricardo</option>
             <option value="MARAGOGI">Maragogi</option>
-            <option value="CHA GRANDE">Cha grande</option
+            <option value="CHA GRANDE">Cha grande</option>
           </select>
 
           <button
@@ -747,7 +747,7 @@ value="MARAGOGI">MARAGOGI</option>
 <option 
 value="MARAGOGI">MARAGOGI</option>
        <option value="IPOJUCA RICARDO">Ipojuca Ricardo</option>
-        <option value="CHA GRANDE">Cha grande</option
+        <option value="CHA GRANDE">Cha grande</option>
       </select>
 
       <div style={{ display: "flex", gap: 10, marginTop: 15 }}>
@@ -779,7 +779,7 @@ value="MARAGOGI">MARAGOGI</option>
         <option value="XEXEU">Xexeu</option>
         <option value="MARAGOGI">Maragogi</option>
        <option value="IPOJUCA RICARDO">Ipojuca Ricardo</option>
-        <option value="CHA GRANDE">Cha grande</option
+        <option value="CHA GRANDE">Cha grande</option>
       </select>
 
       <div style={{ display: "flex", gap: 10, marginTop: 15 }}>
@@ -818,7 +818,7 @@ value="MARAGOGI">MARAGOGI</option>
   <option value="SAO JOSE">São José</option>
   <option value="CATENDE">Catende</option>
   <option value="XEXEU">Xexeu</option>
-  <option value="CHA GRANDE">Cha grande</option
+  <option value="CHA GRANDE">Cha grande</option>
 </select>
 
 
