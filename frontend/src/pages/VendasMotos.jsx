@@ -38,15 +38,17 @@ function getValorARepassar(v) {
   const valorVenda = Number(v.valor || 0);
 
   return valorVenda - repasse;
-}
-function getLucroReal(v) {
+function calcLiquido(v) {
   const valor = Number(v.valor || 0);
-  const valorCompra = Number(v.valor_compra || 0);
-  const gasolina = Number(v.gasolina || 0);
+  const compra = Number(v.valor_compra || 0);
   const repasse = Number(v.repasse || 0);
-  const custoBrinde = v.brinde ? 100 : 0;
+  const gasolina = Number(v.gasolina || 0);
+  const descontoBrinde = v.brinde ? 100 : 0;
 
-  return valor - valorCompra - gasolina - repasse - custoBrinde;
+  // se tiver repasse, ele "substitui" a compra (pra não subtrair 2x)
+  const base = repasse > 0 ? repasse : compra;
+
+  return valor - base - gasolina - descontoBrinde;
 }
   /* ================= FILTROS ================= */
   const [empresaFiltro, setEmpresaFiltro] = useState("TODAS");
@@ -405,7 +407,7 @@ const totalLucroPorEmpresa = useMemo(() => {
               <th>Brinde</th>
               <th>Data</th>
               <th>A repassar</th>
-              <th>Lucro Real</th>
+              <th>Líquido</th>
 
             </tr>
           </thead>
@@ -434,7 +436,7 @@ const totalLucroPorEmpresa = useMemo(() => {
     ? "-"
     : formatarValor(getValorARepassar(v))}
 </td>
-<td>{formatarValor(getLucroReal(v))}</td>
+<td>{formatarValor(calcLiquido(v))}</td>
               </tr>
             ))}
           </tbody>
