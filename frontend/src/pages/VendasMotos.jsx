@@ -30,11 +30,16 @@ export default function VendasMotos() {
   }
 
 function getValorARepassar(v) {
-  const repasse = Number(v.repasse || 0);
-  const compra = Number(v.valor_compra || 0);
-  return repasse - compra; // ✅ repasse menos compra
-}
+  // se não tem repasse → não calcula
+  if (v.repasse == null || v.repasse === "" || Number.isNaN(Number(v.repasse))) {
+    return null;
+  }
 
+  const repasse = Number(v.repasse);
+  const compra = Number(v.valor_compra || 0);
+
+  return repasse - compra;
+}
   /* ================= FILTROS ================= */
   const [empresaFiltro, setEmpresaFiltro] = useState("TODAS");
 
