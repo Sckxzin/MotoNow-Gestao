@@ -38,7 +38,7 @@ export default function VendasMotos() {
     return valorVenda - repasse;
   }
 
-  // ✅ líquido do seu jeito (não subtrai compra e repasse ao mesmo tempo)
+  // ✅ líquido do seu jeito (se tiver repasse, NÃO usa compra; se não tiver repasse, usa compra)
   function calcLiquido(v) {
     const valor = Number(v.valor || 0);
     const compra = Number(v.valor_compra || 0);
@@ -46,7 +46,6 @@ export default function VendasMotos() {
     const gasolina = Number(v.gasolina || 0);
     const descontoBrinde = v.brinde ? 100 : 0;
 
-    // se tiver repasse, usa ele no lugar do valor_compra
     const base = repasse > 0 ? repasse : compra;
 
     return valor - base - gasolina - descontoBrinde;
@@ -54,10 +53,13 @@ export default function VendasMotos() {
 
   /* ================= FILTROS ================= */
   const [empresaFiltro, setEmpresaFiltro] = useState("TODAS");
-  const [cidadesFiltro, setCidadesFiltro] = useState([]); // multi
+  const [cidadesFiltro, setCidadesFiltro] = useState([]); // array
   const [dataInicio, setDataInicio] = useState("");
   const [dataFim, setDataFim] = useState("");
   const [buscaChassi, setBuscaChassi] = useState("");
+
+  // UI (painel de filtros)
+  const [mostrarCidades, setMostrarCidades] = useState(false);
 
   /* ================= CIDADES PADRÃO ================= */
   const cidadesPadrao = [
@@ -70,6 +72,13 @@ export default function VendasMotos() {
     "MARAGOGI",
     "IPOJUCA RICARDO",
     "CHA GRANDE"
+  ];
+
+  const opcoesCidades = [
+    { value: "TODAS", label: "Todas cidades" },
+    ...cidadesPadrao.map(c => ({ value: c, label: c })),
+    { value: "OUTRAS", label: "Outras cidades" },
+    { value: "SEM_CIDADE", label: "Sem cidade" }
   ];
 
   /* ================= LOAD ================= */
@@ -140,6 +149,29 @@ export default function VendasMotos() {
 
   function limparBusca() {
     setBuscaChassi("");
+  }
+
+  // checkbox multi
+  function toggleCidade(valor) {
+    // se marcar TODAS, limpa as outras e deixa só TODAS
+    if (valor === "TODAS") {
+      if (cidadesFiltro.includes("TODAS")) setCidadesFiltro([]);
+      else setCidadesFiltro(["TODAS"]);
+      return;
+    }
+
+    // se tiver TODAS selecionado e marcar outra, remove TODAS
+    const base = cidadesFiltro.filter(x => x !== "TODAS");
+
+    if (base.includes(valor)) {
+      setCidadesFiltro(base.filter(x => x !== valor));
+    } else {
+      setCidadesFiltro([...base, valor]);
+    }
+  }
+
+  function removerChip(valor) {
+    setCidadesFiltro(prev => prev.filter(x => x !== valor));
   }
 
   /* ================= FILTRAGEM ================= */
@@ -235,145 +267,207 @@ export default function VendasMotos() {
   /* ================= UI ================= */
   return (
     <div className="vendas-motos-container">
-      <h2>🏍 Histórico de Vendas de Motos</h2>
-
-      <button className="btn-voltar" onClick={() => nav("/home")}>
-        ⬅ Voltar
-      </button>
-
-      {/* FILTROS */}
-      <div className="filtros">
-        <select value={empresaFiltro} onChange={e => setEmpresaFiltro(e.target.value)}>
-          <option value="TODAS">Todas Empresas</option>
-          <option value="EMENEZES">Emenezes</option>
-          <option value="MOTONOW">MotoNow</option>
-        </select>
-
-        <select
-          multiple
-          value={cidadesFiltro}
-          onChange={e => {
-            const selecionadas = Array.from(e.target.selectedOptions).map(o => o.value);
-            setCidadesFiltro(selecionadas);
-          }}
-          style={{ height: 160 }}
-          title="Segure Ctrl (ou Shift) para selecionar várias"
-        >
-          <option value="TODAS">Todas Cidades</option>
-
-          {cidadesPadrao.map(c => (
-            <option key={c} value={c}>
-              {c}
-            </option>
-          ))}
-
-          <option value="OUTRAS">Outras cidades</option>
-          <option value="SEM_CIDADE">Sem cidade</option>
-        </select>
-
-        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-          <button type="button" onClick={limparCidades}>
-            Limpar cidades
-          </button>
+      {/* TOPBAR */}
+      <div className="vm-topbar">
+        <div>
+          <h2 className="vm-title">🏍 Histórico de Vendas de Motos</h2>
+          <p className="vm-subtitle">Filtre rápido e exporte exatamente o que está na tela.</p>
         </div>
 
-        <input type="date" value={dataInicio} onChange={e => setDataInicio(e.target.value)} />
-        <input type="date" value={dataFim} onChange={e => setDataFim(e.target.value)} />
+        <div className="vm-topbar-actions">
+          <button className="vm-btn vm-btn-ghost" onClick={() => nav("/home")}>
+            ⬅ Voltar
+          </button>
 
-        <button type="button" onClick={limparBusca}>
-          Limpar busca
-        </button>
+          <button
+            className="vm-btn vm-btn-primary"
+            onClick={() =>
+              exportarCSV(
+                "historico_vendas_motos.csv",
+                [
+                  "modelo",
+                  "cor",
+                  "chassi",
+                  "cliente",
+                  "telefone",
+                  "origem",
+                  "valor",
+                  "valor_compra",
+                  "repasse",
+                  "a_repassar",
+                  "liquido",
+                  "pagamento",
+                  "gasolina",
+                  "filial",
+                  "empresa",
+                  "cnpj",
+                  "brinde",
+                  "data"
+                ],
+                vendasFiltradas.map(v => ({
+                  modelo: v.modelo,
+                  cor: v.cor,
+                  chassi: v.chassi,
+                  cliente: v.nome_cliente,
+                  telefone: v.numero_cliente,
+                  origem: v.como_chegou,
+                  valor: v.valor != null ? Number(v.valor).toFixed(2) : "",
+                  valor_compra: v.valor_compra != null ? Number(v.valor_compra).toFixed(2) : "",
+                  repasse: v.repasse != null ? Number(v.repasse).toFixed(2) : "",
+                  a_repassar: getValorARepassar(v) == null ? "" : Number(getValorARepassar(v)).toFixed(2),
+                  liquido: Number(calcLiquido(v)).toFixed(2),
+                  pagamento: v.forma_pagamento,
+                  gasolina: v.gasolina != null ? Number(v.gasolina).toFixed(2) : "",
+                  filial: v.filial_venda || "",
+                  empresa: getEmpresa(v),
+                  cnpj: getCNPJ(v),
+                  brinde: v.brinde ? "SIM" : "NÃO",
+                  data: new Date(v.created_at).toLocaleDateString("pt-BR")
+                }))
+              )
+            }
+          >
+            📥 Exportar CSV
+          </button>
+        </div>
       </div>
 
-      {/* BOTÕES */}
-      <div className="botoes-rapidos">
-        <button onClick={aplicarHoje}>Hoje</button>
-        <button onClick={aplicar7Dias}>7 dias</button>
-        <button onClick={aplicar30Dias}>30 dias</button>
-        <button onClick={aplicarMesAtual}>Mês atual</button>
-        <button onClick={aplicarMesPassado}>Mês passado</button>
-        <button onClick={limparDatas}>Limpar datas</button>
+      {/* CARD FILTROS */}
+      <div className="vm-card">
+        <div className="vm-filters-grid">
+          <div className="vm-field">
+            <label>Empresa</label>
+            <select value={empresaFiltro} onChange={e => setEmpresaFiltro(e.target.value)}>
+              <option value="TODAS">Todas</option>
+              <option value="EMENEZES">Emenezes</option>
+              <option value="MOTONOW">MotoNow</option>
+            </select>
+          </div>
+
+          <div className="vm-field">
+            <label>Data início</label>
+            <input type="date" value={dataInicio} onChange={e => setDataInicio(e.target.value)} />
+          </div>
+
+          <div className="vm-field">
+            <label>Data fim</label>
+            <input type="date" value={dataFim} onChange={e => setDataFim(e.target.value)} />
+          </div>
+
+          <div className="vm-field vm-field-wide">
+            <label>Busca</label>
+            <input
+              placeholder="Buscar por chassi, modelo ou cliente..."
+              value={buscaChassi}
+              onChange={e => setBuscaChassi(e.target.value)}
+            />
+          </div>
+
+          <div className="vm-field">
+            <label>Cidades</label>
+            <button
+              type="button"
+              className="vm-btn vm-btn-ghost vm-btn-full"
+              onClick={() => setMostrarCidades(v => !v)}
+            >
+              {mostrarCidades ? "▲ Fechar cidades" : "▼ Selecionar cidades"}
+            </button>
+          </div>
+        </div>
+
+        {/* QUICK BUTTONS */}
+        <div className="vm-quickbar">
+          <button className="vm-btn vm-btn-soft" onClick={aplicarHoje}>Hoje</button>
+          <button className="vm-btn vm-btn-soft" onClick={aplicar7Dias}>7 dias</button>
+          <button className="vm-btn vm-btn-soft" onClick={aplicar30Dias}>30 dias</button>
+          <button className="vm-btn vm-btn-soft" onClick={aplicarMesAtual}>Mês atual</button>
+          <button className="vm-btn vm-btn-soft" onClick={aplicarMesPassado}>Mês passado</button>
+          <button className="vm-btn vm-btn-ghost" onClick={limparDatas}>Limpar datas</button>
+          <button className="vm-btn vm-btn-ghost" onClick={limparBusca}>Limpar busca</button>
+          <button className="vm-btn vm-btn-ghost" onClick={limparCidades}>Limpar cidades</button>
+        </div>
+
+        {/* PAINEL CIDADES */}
+        {mostrarCidades && (
+          <div className="vm-cities-panel">
+            <div className="vm-cities-list">
+              {opcoesCidades.map(opt => (
+                <label key={opt.value} className="vm-check">
+                  <input
+                    type="checkbox"
+                    checked={
+                      cidadesFiltro.includes(opt.value) ||
+                      (opt.value === "TODAS" && cidadesFiltro.includes("TODAS"))
+                    }
+                    onChange={() => toggleCidade(opt.value)}
+                  />
+                  <span>{opt.label}</span>
+                </label>
+              ))}
+            </div>
+
+            {/* CHIPS */}
+            <div className="vm-chips">
+              {cidadesFiltro.length === 0 && (
+                <span className="vm-chip vm-chip-muted">Nenhuma cidade selecionada (mostrando todas)</span>
+              )}
+
+              {cidadesFiltro.map(c => (
+                <button
+                  type="button"
+                  key={c}
+                  className="vm-chip"
+                  onClick={() => removerChip(c)}
+                  title="Remover"
+                >
+                  {c} ✕
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* RESUMO */}
-      <div className="resumo">
-        <strong>🏢 EMENEZES: {formatarValor(totalEmpresa.emenezes)}</strong>
-        <strong>🏢 MOTONOW: {formatarValor(totalEmpresa.motonow)}</strong>
-        <strong>🧮 Total: {totalGeralMotos} motos</strong>
+      <div className="vm-stats">
+        <div className="vm-stat">
+          <div className="vm-stat-label">EMENEZES</div>
+          <div className="vm-stat-value">{formatarValor(totalEmpresa.emenezes)}</div>
+        </div>
 
-        <hr style={{ width: "100%" }} />
+        <div className="vm-stat">
+          <div className="vm-stat-label">MOTONOW</div>
+          <div className="vm-stat-value">{formatarValor(totalEmpresa.motonow)}</div>
+        </div>
 
-        <strong>💸 A repassar EMENEZES: {formatarValor(totalARepassarPorEmpresa.emenezes)}</strong>
-        <strong>💸 A repassar MOTOCENTER: {formatarValor(totalARepassarPorEmpresa.motonow)}</strong>
+        <div className="vm-stat">
+          <div className="vm-stat-label">Total motos</div>
+          <div className="vm-stat-value">{totalGeralMotos}</div>
+        </div>
 
-        <hr style={{ width: "100%" }} />
+        <div className="vm-stat">
+          <div className="vm-stat-label">A repassar EMENEZES</div>
+          <div className="vm-stat-value">{formatarValor(totalARepassarPorEmpresa.emenezes)}</div>
+        </div>
 
-        <strong>📈 Líquido EMENEZES: {formatarValor(totalLiquidoPorEmpresa.emenezes)}</strong>
-        <strong>📈 Líquido MOTONOW: {formatarValor(totalLiquidoPorEmpresa.motonow)}</strong>
+        <div className="vm-stat">
+          <div className="vm-stat-label">A repassar MOTOCENTER</div>
+          <div className="vm-stat-value">{formatarValor(totalARepassarPorEmpresa.motonow)}</div>
+        </div>
+
+        <div className="vm-stat vm-stat-highlight">
+          <div className="vm-stat-label">Líquido EMENEZES</div>
+          <div className="vm-stat-value">{formatarValor(totalLiquidoPorEmpresa.emenezes)}</div>
+        </div>
+
+        <div className="vm-stat vm-stat-highlight">
+          <div className="vm-stat-label">Líquido MOTONOW</div>
+          <div className="vm-stat-value">{formatarValor(totalLiquidoPorEmpresa.motonow)}</div>
+        </div>
       </div>
 
-      {/* EXPORTAR CSV */}
-      <button
-        className="btn-exportar"
-        onClick={() =>
-          exportarCSV(
-            "historico_vendas_motos.csv",
-            [
-              "modelo",
-              "cor",
-              "chassi",
-              "cliente",
-              "telefone",
-              "origem",
-              "valor",
-              "valor_compra",
-              "repasse",
-              "a_repassar",
-              "liquido",
-              "pagamento",
-              "gasolina",
-              "filial",
-              "empresa",
-              "cnpj",
-              "brinde",
-              "data"
-            ],
-            vendasFiltradas.map(v => ({
-              modelo: v.modelo,
-              cor: v.cor,
-              chassi: v.chassi,
-              cliente: v.nome_cliente,
-              telefone: v.numero_cliente,
-              origem: v.como_chegou,
-              valor: v.valor != null ? Number(v.valor).toFixed(2) : "",
-              valor_compra: v.valor_compra != null ? Number(v.valor_compra).toFixed(2) : "",
-              repasse: v.repasse != null ? Number(v.repasse).toFixed(2) : "",
-              a_repassar: getValorARepassar(v) == null ? "" : Number(getValorARepassar(v)).toFixed(2),
-              liquido: Number(calcLiquido(v)).toFixed(2),
-              pagamento: v.forma_pagamento,
-              gasolina: v.gasolina != null ? Number(v.gasolina).toFixed(2) : "",
-              filial: v.filial_venda || "",
-              empresa: getEmpresa(v),
-              cnpj: getCNPJ(v),
-              brinde: v.brinde ? "SIM" : "NÃO",
-              data: new Date(v.created_at).toLocaleDateString("pt-BR")
-            }))
-          )
-        }
-      >
-        📥 Exportar CSV
-      </button>
-
-      {/* BUSCA */}
-      <input
-        className="input-busca"
-        placeholder="Buscar por chassi, modelo ou cliente..."
-        value={buscaChassi}
-        onChange={e => setBuscaChassi(e.target.value)}
-      />
-
       {/* TABELA */}
-      <div className="table-container">
+      <div className="table-container vm-table-card">
         <table className="table">
           <thead>
             <tr>
@@ -384,7 +478,7 @@ export default function VendasMotos() {
               <th>Telefone</th>
               <th>Origem</th>
               <th>Valor</th>
-              <th>Valor de compra</th>
+              <th>Compra</th>
               <th>Repasse</th>
               <th>Pagamento</th>
               <th>Gasolina</th>
