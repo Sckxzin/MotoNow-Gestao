@@ -673,7 +673,7 @@ export default function Home() {
 value="MARAGOGI">MARAGOGI</option>
              <option value="IPOJUCA RICARDO">Ipojuca Ricardo</option>
              <option value="OUTRAS CIDADES">DISTRI VALTER </option>
-              <option value="CHA GRANDE">Cha grande</option
+              <option value="CHA GRANDE">Cha grande</option>
             </select>
 
             <label>
