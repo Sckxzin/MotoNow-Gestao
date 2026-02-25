@@ -37,7 +37,7 @@ function getValorARepassar(v) {
   const repasse = Number(v.repasse);
   const valorVenda = Number(v.valor || 0);
 
-  return repasse - valorVenda;
+  return valorVenda - repasse;
 }
 function getLucroReal(v) {
   const valor = Number(v.valor || 0);
