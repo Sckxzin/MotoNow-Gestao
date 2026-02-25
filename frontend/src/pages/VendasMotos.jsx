@@ -372,6 +372,8 @@ const totalARepassarPorEmpresa = useMemo(() => {
               <th>CNPJ</th>
               <th>Brinde</th>
               <th>Data</th>
+              <th>A repassar</th>
+
             </tr>
           </thead>
 
@@ -394,6 +396,11 @@ const totalARepassarPorEmpresa = useMemo(() => {
                 <td>{getCNPJ(v)}</td>
                 <td>{v.brinde ? "SIM" : "NÃO"}</td>
                 <td>{new Date(v.created_at).toLocaleDateString("pt-BR")}</td>
+                <td>
+  {getValorARepassar(v) == null
+    ? "-"
+    : formatarValor(getValorARepassar(v))}
+</td>
               </tr>
             ))}
           </tbody>
