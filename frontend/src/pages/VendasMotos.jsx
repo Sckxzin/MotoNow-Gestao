@@ -10,7 +10,7 @@ export default function VendasMotos() {
   /* ================= HELPERS ================= */
   function formatarValor(valor) {
     if (valor == null || valor === "" || Number.isNaN(Number(valor))) return "-";
-    return Number(valor).toLocaleString("pt-BR", {
+    return Number(valor).toLocaleString("pt-BR", (
       style: "currency",
       currency: "BRL"
     });
