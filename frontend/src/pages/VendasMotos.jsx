@@ -29,6 +29,12 @@ export default function VendasMotos() {
     link.click();
   }
 
+function getValorARepassar(v) {
+  const repasse = Number(v.repasse || 0);
+  const compra = Number(v.valor_compra || 0);
+  return repasse - compra; // ✅ repasse menos compra
+}
+
   /* ================= FILTROS ================= */
   const [empresaFiltro, setEmpresaFiltro] = useState("TODAS");
 
@@ -188,6 +194,20 @@ export default function VendasMotos() {
 
   const totalGeralMotos = vendasFiltradas.length;
 
+const totalARepassarPorEmpresa = useMemo(() => {
+  let emenezes = 0;
+  let motonow = 0;
+
+  vendasFiltradas.forEach(v => {
+    const valorARepassar = getValorARepassar(v);
+
+    if (getEmpresa(v) === "EMENEZES") emenezes += valorARepassar;
+    else motonow += valorARepassar;
+  });
+
+  return { emenezes, motonow };
+}, [vendasFiltradas]);
+
   /* ================= UI ================= */
   return (
     <div className="vendas-motos-container">
@@ -256,10 +276,16 @@ export default function VendasMotos() {
 
       {/* RESUMO */}
       <div className="resumo">
-        <strong>🏢 EMENEZES: {formatarValor(totalEmpresa.emenezes)}</strong>
-        <strong>🏢 MOTONOW: {formatarValor(totalEmpresa.motonow)}</strong>
-        <strong>🧮 Total: {totalGeralMotos} motos</strong>
-      </div>
+  <strong>🏢 EMENEZES: {formatarValor(totalEmpresa.emenezes)}</strong>
+  <strong>🏢 MOTONOW: {formatarValor(totalEmpresa.motonow)}</strong>
+  <strong>🧮 Total: {totalGeralMotos} motos</strong>
+
+  <hr style={{ width: "100%" }} />
+
+  <strong>💸 A repassar EMENEZES: {formatarValor(totalARepassarPorEmpresa.emenezes)}</strong>
+  <strong>💸 A repassar MOTONOW: {formatarValor(totalARepassarPorEmpresa.motonow)}</strong>
+</div>
+      
 
       {/* EXPORTAR CSV */}
       <button
