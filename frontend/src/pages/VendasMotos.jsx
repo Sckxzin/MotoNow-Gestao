@@ -10,7 +10,7 @@ export default function VendasMotos() {
   /* ================= HELPERS ================= */
   function formatarValor(valor) {
     if (valor == null || valor === "" || Number.isNaN(Number(valor))) return "-";
-    return Number(valor).toLocaleString("pt-BR", (
+    return Number(valor).toLocaleString("pt-BR", {
       style: "currency",
       currency: "BRL"
     });
@@ -304,12 +304,12 @@ export default function VendasMotos() {
         <hr style={{ width: "100%" }} />
 
         <strong>💸 A repassar EMENEZES: {formatarValor(totalARepassarPorEmpresa.emenezes)}</strong>
-        <strong>💸 A repassar MOTONOW: {formatarValor(totalARepassarPorEmpresa.motonow)}</strong>
+        <strong>💸 A repassar MOTOCENTER: {formatarValor(totalARepassarPorEmpresa.motonow)}</strong>
 
         <hr style={{ width: "100%" }} />
 
         <strong>📈 Líquido EMENEZES: {formatarValor(totalLiquidoPorEmpresa.emenezes)}</strong>
-        <strong>📈 Líquido MOTOCENTER/LITORAL: {formatarValor(totalLiquidoPorEmpresa.motonow)}</strong>
+        <strong>📈 Líquido MOTONOW: {formatarValor(totalLiquidoPorEmpresa.motonow)}</strong>
       </div>
 
       {/* EXPORTAR CSV */}
