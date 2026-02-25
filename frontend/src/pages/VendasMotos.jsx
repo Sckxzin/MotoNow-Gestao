@@ -309,7 +309,7 @@ export default function VendasMotos() {
         <hr style={{ width: "100%" }} />
 
         <strong>📈 Líquido EMENEZES: {formatarValor(totalLiquidoPorEmpresa.emenezes)}</strong>
-        <strong>📈 Líquido MOTONOW: {formatarValor(totalLiquidoPorEmpresa.motonow)}</strong>
+        <strong>📈 Líquido MOTOCENTER/LITORAL: {formatarValor(totalLiquidoPorEmpresa.motonow)}</strong>
       </div>
 
       {/* EXPORTAR CSV */}
