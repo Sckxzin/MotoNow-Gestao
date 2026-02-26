@@ -100,7 +100,7 @@ app.post("/motos", async (req, res) => {
         santander === true,
         cnpj_empresa || null,
         ano_moto: anoMoto ? Number(anoMoto) : null,
-        valor_compra: valorCompra ? Number(valorCompra) : null
+        valor_compra: valorCompra ? Number(valorCompra) : null,
         repasse: repasse ? Number(repasse) : null
       ]
     );
