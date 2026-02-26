@@ -857,7 +857,7 @@ value="MARAGOGI">MARAGOGI</option>
       <input type="number" placeholder="Valor compra" value={valorCompra}
         onChange={e => setValorCompra(e.target.value)} />
        
-      <input type="number" placeholder="Repasse" value={repasse}
+      <input type="number" placeholder=" Valor Repasse" value={repasse}
         onChange={e => setRepasse(e.target.value)} />
       
 
