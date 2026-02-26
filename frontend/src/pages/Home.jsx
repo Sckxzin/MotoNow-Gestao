@@ -370,7 +370,7 @@ export default function Home() {
           🛒 Carrinho
         </button>
         
-        <button className="tab-btn" onClicl={() => nav("/dasboardauto")}>
+        <button className="tab-btn" onClicl={() => nav("/dashboard-tv")}>
            📺 Dashboard TV
           </button>
       </div>
