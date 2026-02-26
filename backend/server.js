@@ -674,7 +674,7 @@ app.get("/nota-fiscal/:id", async (req, res) => {
 app.get("/vendas", async (req, res) => {
   try {
     const vendasRes = await db.query(
-      `SELECT id, cliente_nome, total, created_at, cidade
+      `SELECT id, cliente_nome, total, created_at, cidade,forma_pagamento,observaçao
        FROM vendas
        ORDER BY created_at DESC`
     );
