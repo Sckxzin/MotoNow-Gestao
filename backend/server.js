@@ -102,7 +102,7 @@ app.post("/motos", async (req, res) => {
         ano_moto ? Number(ano_moto) : null,
         valor_compra ? Number(valor_compra) : null,
         repasse ? Number(repasse) : null
-        });
+       
       ]
     );
 
