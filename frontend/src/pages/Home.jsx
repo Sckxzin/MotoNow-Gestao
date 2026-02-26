@@ -374,7 +374,7 @@ export default function Home() {
         <button className="tab-btn" onClick={() => nav("/dashboard-tv")}>
            📺 Dashboard TV
           </button>
-      (}
+      )}
       </div>
 
       {/* ================= PEÇAS ================= */}
