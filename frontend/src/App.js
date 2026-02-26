@@ -10,6 +10,7 @@ import Vendas from "./pages/Vendas";
 import CadastroMoto from "./pages/CadastroMoto";
 import VendasMotos from "./pages/VendasMotos";
 import Carrinho from "./pages/Carrinho";
+import DashboardAuto from "./pages/DashboardAuto";
 
 export default function App() {
   return (
@@ -25,6 +26,7 @@ export default function App() {
         <Route path="/cadastro-moto" element={<CadastroMoto />} />
         <Route path="/vendas-motos" element={<VendasMotos />} />
         <Route path="/carrinho" element={<Carrinho />} />
+        <Route path="/dashboard-tv" element={<DashboardAuto />} />
       </Routes>
     </BrowserRouter>
   );
