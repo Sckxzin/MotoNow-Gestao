@@ -78,7 +78,6 @@ app.post("/motos", async (req, res) => {
   }
 
   try {
-    // 🔍 verifica chassi duplicado
     const existe = await db.query(
       `SELECT id FROM motos WHERE chassi = $1`,
       [chassi]
@@ -90,8 +89,9 @@ app.post("/motos", async (req, res) => {
 
     await db.query(
       `INSERT INTO motos
-       (modelo, cor, chassi, filial, status, santander, cnpj_empresa, ano_moto, valor_compra, repasse)
-       VALUES ($1,$2,$3,$4,'DISPONIVEL',$5,$6,$7,$8,$9)`,
+        (modelo, cor, chassi, filial, status, santander, cnpj_empresa, ano_moto, valor_compra, repasse)
+       VALUES
+        ($1,$2,$3,$4,'DISPONIVEL',$5,$6,$7,$8,$9,$10)`,
       [
         modelo,
         cor,
@@ -99,15 +99,13 @@ app.post("/motos", async (req, res) => {
         filial,
         santander === true,
         cnpj_empresa || null,
-        ano_moto ? Number(ano_moto) : null,
-        valor_compra ? Number(valor_compra) : null,
-        repasse ? Number(repasse) : null
-       
+        ano_moto != null && ano_moto !== "" ? Number(ano_moto) : null,
+        valor_compra != null && valor_compra !== "" ? Number(valor_compra) : null,
+        repasse != null && repasse !== "" ? Number(repasse) : null
       ]
     );
 
     res.json({ message: "Moto cadastrada com sucesso" });
-
   } catch (err) {
     console.error("Erro cadastrar moto:", err);
     res.status(500).json({ message: "Erro ao cadastrar moto" });
