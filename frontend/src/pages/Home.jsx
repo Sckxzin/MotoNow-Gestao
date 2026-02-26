@@ -297,8 +297,8 @@ export default function Home() {
       modelo: modeloMoto,
       cor: corMoto,
       chassi: chassiMoto,
-      ano: Number(anoMoto),
-      valor: Number(valorCompra),
+      ano_moto: Number(anoMoto),
+      valor_compra: Number(valorCompra),
       repasse: Number(repasse),
       filial: filialMoto,
       cnpj_empresa: cnpjEmpresa,
@@ -316,6 +316,7 @@ export default function Home() {
     setFilialMoto("");
     setCnpjEmpresa("");
     setSantanderMoto(false);
+    setRepasse("");
 
     alert("Moto cadastrada com sucesso!");
 
