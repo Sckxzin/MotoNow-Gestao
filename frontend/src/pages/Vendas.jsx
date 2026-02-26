@@ -219,23 +219,27 @@ export default function Vendas() {
                 </tr>
 
                 {aberta === v.id && (
-                  <tr>
-                    <td colSpan={6}>
-                      <ul>
-                        {v.itens?.map((i, idx) => (
-                          <li key={idx}>
-                            {i.nome} — {i.quantidade} × R$ {Number(i.preco_unitario).toFixed(2)}
-                          </li>
-                        ))}
-                      </ul>
-                    </td>
-                  </tr>
-                )}
-              </React.Fragment>
-            ))}
-          </tbody>
-        </table>
-      )}
-    </div>
-  );
-}
+  <tr>
+    <td colSpan={6}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        <div>
+          <strong>Forma de pagamento:</strong> {v.forma_pagamento || "-"}
+        </div>
+
+        {v.observacao && (
+          <div>
+            <strong>Obs:</strong> {v.observacao}
+          </div>
+        )}
+
+        <ul style={{ margin: 0, paddingLeft: 18 }}>
+          {v.itens?.map((i, idx) => (
+            <li key={idx}>
+              {i.nome} — {i.quantidade} × R$ {Number(i.preco_unitario).toFixed(2)}
+            </li>
+          ))}
+        </ul>
+      </div>
+    </td>
+  </tr>
+)}
