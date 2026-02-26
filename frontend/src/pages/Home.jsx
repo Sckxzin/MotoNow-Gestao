@@ -369,6 +369,10 @@ export default function Home() {
         <button className="tab-btn" onClick={() => nav("/carrinho")}>
           🛒 Carrinho
         </button>
+        
+        <button className="tab-btn" onClicl={() => nav("/dasboardauto)}>
+           📺 Dashboard TV
+          </button>
       </div>
 
       {/* ================= PEÇAS ================= */}
