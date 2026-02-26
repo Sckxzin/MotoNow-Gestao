@@ -48,8 +48,17 @@ export default function NotaFiscal() {
   };
 
   // normaliza para evitar erro por espaço ou maiúscula/minúscula
-  const chaveFilial = (venda.cidade || "").trim();
-  const filialInfo = filiais[chaveFilial] || filiais.Escada;
+ function normalizarCidade(txt = "") {
+  return txt
+    .trim()
+    .toUpperCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "") // remove acentos
+    .replace(/\s+/g, ""); // remove espaços
+}
+
+const chaveFilial = normalizarCidade(venda.cidade);
+const filialInfo = filiais[chaveFilial] || filiais.ESCADA; // ✅ fallback certo
 
   return (
     <div className="nf-container">
