@@ -99,9 +99,9 @@ app.post("/motos", async (req, res) => {
         filial,
         santander === true,
         cnpj_empresa || null,
-        ano_moto: anoMoto ? Number(anoMoto) : null,
-        valor_compra: valorCompra ? Number(valorCompra) : null,
-        repasse: repasse ? Number(repasse) : null
+        anoMoto ? Number(anoMoto) : null,
+        valorCompra ? Number(valorCompra) : null,
+        repasse ? Number(repasse) : null
         });
       ]
     );
