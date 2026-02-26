@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+
+    import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api";
 import "./Vendas.css";
@@ -82,7 +83,7 @@ export default function Vendas() {
     return okEmpresa && okCidade && okData;
   });
 
-  /* ===== FATURAMENTO (SEMPRE PELO FILTRO) ===== */
+  /* ===== RESUMO ===== */
   const faturamentoTotal = vendasFiltradas.reduce(
     (acc, v) => acc + Number(v.total || 0),
     0
@@ -95,11 +96,12 @@ export default function Vendas() {
 
   /* ===== CSV ===== */
   function exportarCSV() {
-    const headers = ["cliente", "cidade", "total", "data"];
+    const headers = ["cliente", "cidade", "total", "forma_pagamento", "data"];
     const linhas = vendasFiltradas.map(v => ({
       cliente: v.cliente_nome,
       cidade: v.cidade,
       total: v.total,
+      forma_pagamento: v.forma_pagamento,
       data: new Date(v.created_at).toLocaleDateString("pt-BR")
     }));
 
@@ -122,7 +124,7 @@ export default function Vendas() {
         <button onClick={() => nav("/home")}>⬅ Voltar</button>
       </div>
 
-      {/* ===== FILTROS ===== */}
+      {/* FILTROS */}
       <div className="filtros">
         <select value={empresaFiltro} onChange={e => setEmpresaFiltro(e.target.value)}>
           <option value="TODAS">Todas Empresas</option>
@@ -146,7 +148,7 @@ export default function Vendas() {
         <input type="date" value={dataFim} onChange={e => setDataFim(e.target.value)} />
       </div>
 
-      {/* ===== BOTÕES RÁPIDOS ===== */}
+      {/* BOTÕES */}
       <div className="botoes-rapidos">
         <button onClick={aplicarHoje}>Hoje</button>
         <button onClick={aplicar7Dias}>7 dias</button>
@@ -157,7 +159,7 @@ export default function Vendas() {
         <button onClick={exportarCSV}>📥 Exportar</button>
       </div>
 
-      {/* ===== FATURAMENTO (POR FILTRO) ===== */}
+      {/* RESUMO */}
       <div className="faturamento-resumo">
         <div className="card-faturamento">
           <span>💰 Faturamento (filtro)</span>
@@ -179,7 +181,7 @@ export default function Vendas() {
         </div>
       </div>
 
-      {/* ===== TABELA ===== */}
+      {/* TABELA */}
       {vendasFiltradas.length === 0 ? (
         <p>Nenhuma venda encontrada.</p>
       ) : (
@@ -219,27 +221,36 @@ export default function Vendas() {
                 </tr>
 
                 {aberta === v.id && (
-  <tr>
-    <td colSpan={6}>
-      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-        <div>
-          <strong>Forma de pagamento:</strong> {v.forma_pagamento || "-"}
-        </div>
+                  <tr>
+                    <td colSpan={6}>
+                      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                        <div>
+                          <strong>Forma de pagamento:</strong>{" "}
+                          {v.forma_pagamento || "-"}
+                        </div>
 
-        {v.observacao && (
-          <div>
-            <strong>Obs:</strong> {v.observacao}
-          </div>
-        )}
+                        {v.observacao && (
+                          <div>
+                            <strong>Obs:</strong> {v.observacao}
+                          </div>
+                        )}
 
-        <ul style={{ margin: 0, paddingLeft: 18 }}>
-          {v.itens?.map((i, idx) => (
-            <li key={idx}>
-              {i.nome} — {i.quantidade} × R$ {Number(i.preco_unitario).toFixed(2)}
-            </li>
-          ))}
-        </ul>
-      </div>
-    </td>
-  </tr>
-)}
+                        <ul style={{ margin: 0, paddingLeft: 18 }}>
+                          {v.itens?.map((i, idx) => (
+                            <li key={idx}>
+                              {i.nome} — {i.quantidade} × R$ {Number(i.preco_unitario).toFixed(2)}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </React.Fragment>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </div>
+  );
+}
