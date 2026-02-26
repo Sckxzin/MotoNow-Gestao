@@ -68,7 +68,9 @@ app.post("/motos", async (req, res) => {
     filial,
     santander,
     cnpj_empresa,
-    valor_compra
+    ano_moto,
+    valor_compra,
+    repasse
   } = req.body;
 
   if (!modelo || !cor || !chassi || !filial) {
@@ -88,8 +90,8 @@ app.post("/motos", async (req, res) => {
 
     await db.query(
       `INSERT INTO motos
-       (modelo, cor, chassi, filial, status, santander, cnpj_empresa, valor_compra)
-       VALUES ($1,$2,$3,$4,'DISPONIVEL',$5,$6,$7)`,
+       (modelo, cor, chassi, filial, status, santander, cnpj_empresa, ano_moto, valor_compra, repasse)
+       VALUES ($1,$2,$3,$4,'DISPONIVEL',$5,$6,$7,$8,$9)`,
       [
         modelo,
         cor,
@@ -97,7 +99,10 @@ app.post("/motos", async (req, res) => {
         filial,
         santander === true,
         cnpj_empresa || null,
-        valor_compra
+        ano_moto: anoMoto ? Number(anoMoto) : null,
+        valor_compra: valorCompra ? Number(valorCompra) : null,
+        repasse: repasse ? Number(repasse) : null
+        });
       ]
     );
 
