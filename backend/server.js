@@ -99,8 +99,8 @@ app.post("/motos", async (req, res) => {
         filial,
         santander === true,
         cnpj_empresa || null,
-        anoMoto ? Number(anoMoto) : null,
-        valorCompra ? Number(valorCompra) : null,
+        ano_moto ? Number(ano_moto) : null,
+        valor_compra ? Number(valor_compra) : null,
         repasse ? Number(repasse) : null
         });
       ]
@@ -766,7 +766,7 @@ app.post("/vender-moto", async (req, res) => {
     gasolina,
     como_chegou,
     filial_venda,
-    numero_cliente,
+    numero_cliente
     
   } = req.body;
 
