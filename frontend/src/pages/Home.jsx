@@ -370,9 +370,11 @@ export default function Home() {
           🛒 Carrinho
         </button>
         
+        {user.role === "DIRETORIA" && (
         <button className="tab-btn" onClick={() => nav("/dashboard-tv")}>
            📺 Dashboard TV
           </button>
+      (}
       </div>
 
       {/* ================= PEÇAS ================= */}
