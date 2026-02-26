@@ -91,7 +91,7 @@ app.post("/motos", async (req, res) => {
       `INSERT INTO motos
         (modelo, cor, chassi, filial, status, santander, cnpj_empresa, ano_moto, valor_compra, repasse)
        VALUES
-        ($1,$2,$3,$4,'DISPONIVEL',$5,$6,$7,$8,$9,$10)`,
+        ($1,$2,$3,$4,'DISPONIVEL',$5,$6,$7,$8,$9)`,
       [
         modelo,
         cor,
