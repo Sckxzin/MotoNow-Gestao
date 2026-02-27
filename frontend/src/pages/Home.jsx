@@ -162,9 +162,8 @@ export default function Home() {
     setFilialVenda("");
     setNumeroCliente("");
   }
-
-  async function confirmarVendaMoto() {
-  if (!clienteNome || !valorMoto || !filialVenda || !telefoneCliente) {
+async function confirmarVendaMoto() {
+  if (!clienteNome || !telefoneCliente || !valorMoto || !filialVenda) {
     alert("Preencha cliente, telefone, valor e filial");
     return;
   }
@@ -173,7 +172,7 @@ export default function Home() {
     moto_id: motoSelecionada.id,
     nome_cliente: clienteNome,
     cpf: cpfCliente || null,
-    telefone: telefoneCliente, // ✅ AGORA VAI
+    telefone: telefoneCliente,
     valor: Number(valorMoto),
     forma_pagamento: formaPagamento || null,
     brinde: !!brinde,
@@ -183,8 +182,7 @@ export default function Home() {
     numero_cliente: numeroCliente || null
   });
 
-  // ⚠️ NÃO marque como VENDIDA aqui se agora é pendente aprovação
-  // (se você já implementou pendência, o status deve virar PENDENTE_APROVACAO)
+  // Se agora é aprovação da diretoria:
   setMotos(prev =>
     prev.map(m =>
       m.id === motoSelecionada.id ? { ...m, status: "PENDENTE_APROVACAO" } : m
@@ -194,15 +192,8 @@ export default function Home() {
   setMotoSelecionada(null);
   alert("Solicitação enviada para diretoria!");
 }
-    setMotos(prev =>
-      prev.map(m =>
-        m.id === motoSelecionada.id ? { ...m, status: "VENDIDA" } : m
-      )
-    );
-
-    setMotoSelecionada(null);
-    alert("Moto vendida com sucesso!");
-  }
+  
+   
 
   async function cadastrarPeca() {
     if (!nomePeca || !valorPeca || !filialPeca) {
