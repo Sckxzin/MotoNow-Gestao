@@ -171,8 +171,6 @@ async function confirmarVendaMoto() {
   await api.post("/vender-moto", {
     moto_id: motoSelecionada.id,
     nome_cliente: clienteNome,
-    cpf: cpfCliente || null,
-    telefone: telefoneCliente,
     valor: Number(valorMoto),
     forma_pagamento: formaPagamento || null,
     brinde: !!brinde,
