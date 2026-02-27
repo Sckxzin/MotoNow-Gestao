@@ -769,7 +769,7 @@ app.post("/vender-moto", async (req, res) => {
     numero_cliente
   } = req.body;
 
-  if (!moto_id || !filial_venda || !nome_cliente || !telefone || !valor) {
+  if (!moto_id || !filial_venda || !nome_cliente || !numero_cliente || !valor) {
     return res.status(400).json({ message: "Dados incompletos" });
   }
 
