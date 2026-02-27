@@ -673,6 +673,8 @@ app.get("/nota-fiscal/:id", async (req, res) => {
   }
 });
 
+
+
 /* ================= HISTÓRICO VENDAS (PEÇAS) ================= */
 app.get("/vendas", async (req, res) => {
   try {
@@ -765,11 +767,10 @@ app.post("/vender-moto", async (req, res) => {
     como_chegou,
     filial_venda,
     numero_cliente
-    
   } = req.body;
 
-  if (!filial_venda) {
-    return res.status(400).json({ message: "Filial da venda não informada" });
+  if (!moto_id || !filial_venda || !nome_cliente || !telefone || !valor) {
+    return res.status(400).json({ message: "Dados incompletos" });
   }
 
   const client = await db.connect();
@@ -777,114 +778,218 @@ app.post("/vender-moto", async (req, res) => {
   try {
     await client.query("BEGIN");
 
+    // pega moto e valida disponível
     const motoRes = await client.query(
-      "SELECT * FROM motos WHERE id = $1 AND status = 'DISPONIVEL'",
+      `SELECT id, modelo, cor, chassi, filial, status, santander, cnpj_empresa, valor_compra, repasse
+       FROM motos
+       WHERE id = $1`,
       [moto_id]
     );
 
-    if (motoRes.rows.length === 0) {
-      throw new Error("Moto indisponível");
-    }
+    if (motoRes.rows.length === 0) throw new Error("Moto não encontrada");
 
     const moto = motoRes.rows[0];
 
-    const cnpjEmpresaFinal = moto.cnpj_empresa || null;
-    const valorCompraFinal = moto.valor_compra ?? null;
-    const repasseFinal = moto.repasse ?? null;
+    if (moto.status !== "DISPONIVEL") {
+      throw new Error("Moto não está disponível para solicitar venda");
+    }
 
-    await client.query(
-      `INSERT INTO vendas_motos (
-        moto_id,
-        modelo,
-        cor,
-        chassi,
-        filial_origem,
-        filial_venda,
-        nome_cliente,
-        cpf,
-        telefone,
-        valor,
-        forma_pagamento,
-        brinde,
-        gasolina,
-        como_chegou,
-        santander,
-        numero_cliente,
-        valor_compra,
-        cnpj_empresa,
-        repasse
+    // cria pendência
+    const pendRes = await client.query(
+      `INSERT INTO vendas_motos_pendentes (
+        moto_id, modelo, cor, chassi,
+        filial_origem, filial_venda,
+        nome_cliente, cpf, telefone, numero_cliente,
+        valor, forma_pagamento, brinde, gasolina, como_chegou,
+        santander, cnpj_empresa, valor_compra, repasse,
+        status
       ) VALUES (
-        $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19
-      )`,
+        $1,$2,$3,$4,
+        $5,$6,
+        $7,$8,$9,$10,
+        $11,$12,$13,$14,$15,
+        $16,$17,$18,$19,
+        'PENDENTE'
+      )
+      RETURNING id`,
       [
-        moto.id,
-        moto.modelo,
-        moto.cor,
-        moto.chassi,
-        moto.filial,
-        filial_venda,
-        nome_cliente,
-        cpf,
-        telefone,
-        valor,
-        forma_pagamento,
-        brinde,
-        gasolina,
-        como_chegou,
-        moto.santander,
-        numero_cliente,
-        valorCompraFinal,
-        cnpjEmpresaFinal,
-        repasseFinal
+        moto.id, moto.modelo, moto.cor, moto.chassi,
+        moto.filial, filial_venda,
+        nome_cliente, cpf || null, telefone, numero_cliente || null,
+        Number(valor), forma_pagamento || null, !!brinde, gasolina ? Number(gasolina) : null, como_chegou || null,
+        !!moto.santander, moto.cnpj_empresa || null, moto.valor_compra != null ? Number(moto.valor_compra) : null, moto.repasse != null ? Number(moto.repasse) : null
       ]
     );
 
+    // trava a moto até aprovar/recusar
     await client.query(
-      "UPDATE motos SET status = 'VENDIDA' WHERE id = $1",
-      [moto_id]
+      `UPDATE motos
+       SET status = 'PENDENTE_APROVACAO'
+       WHERE id = $1`,
+      [moto.id]
     );
 
-// 🔹 SE TEVE BRINDE → DAR BAIXA EM 1 CAPACETE
-if (brinde === true) {
-
-  const capaceteRes = await client.query(
-    `SELECT id, estoque
-     FROM pecas
-     WHERE nome ILIKE '%CAPACETE%'
-       AND cidade = $1
-     LIMIT 1`,
-    [filial_venda]
-  );
-
-  if (capaceteRes.rows.length === 0) {
-    throw new Error("Sem capacete em estoque para brinde");
-  }
-
-  const capacete = capaceteRes.rows[0];
-
-  if (capacete.estoque <= 0) {
-    throw new Error("Estoque de capacete zerado");
-  }
-
-  await client.query(
-    `UPDATE pecas
-     SET estoque = estoque - 1
-     WHERE id = $1`,
-    [capacete.id]
-  );
-}
-
     await client.query("COMMIT");
-    res.json({ message: "Moto vendida com sucesso" });
 
+    res.json({ message: "Solicitação enviada para diretoria", pendenciaId: pendRes.rows[0].id });
   } catch (err) {
     await client.query("ROLLBACK");
-    console.error("ERRO VENDER MOTO:", err);
+    console.error("ERRO SOLICITAR VENDA MOTO:", err);
     res.status(500).json({ message: err.message });
   } finally {
     client.release();
   }
 });
+app.get("/vendas-motos-pendentes", async (req, res) => {
+  try {
+    const r = await db.query(
+      `SELECT *
+       FROM vendas_motos_pendentes
+       WHERE status = 'PENDENTE'
+       ORDER BY created_at DESC`
+    );
+
+    res.json(r.rows);
+  } catch (err) {
+    console.error("Erro listar pendentes:", err);
+    res.status(500).json({ message: "Erro ao buscar pendentes" });
+  }
+});
+app.post("/vendas-motos-pendentes/:id/aprovar", async (req, res) => {
+  const { id } = req.params;
+  const { aprovado_por } = req.body; // pode passar username da diretoria
+
+  const client = await db.connect();
+
+  try {
+    await client.query("BEGIN");
+
+    const pendRes = await client.query(
+      `SELECT * FROM vendas_motos_pendentes WHERE id = $1 FOR UPDATE`,
+      [id]
+    );
+    if (pendRes.rows.length === 0) throw new Error("Pendência não encontrada");
+
+    const p = pendRes.rows[0];
+    if (p.status !== "PENDENTE") throw new Error("Pendência já foi tratada");
+
+    // confere se moto ainda está pendente
+    const motoRes = await client.query(
+      `SELECT id, status FROM motos WHERE id = $1 FOR UPDATE`,
+      [p.moto_id]
+    );
+    if (motoRes.rows.length === 0) throw new Error("Moto não existe mais");
+    if (motoRes.rows[0].status !== "PENDENTE_APROVACAO") throw new Error("Moto não está mais em pendência");
+
+    // ✅ grava histórico oficial
+    await client.query(
+      `INSERT INTO vendas_motos (
+        moto_id, modelo, cor, chassi, filial_origem, filial_venda,
+        nome_cliente, cpf, telefone, valor, forma_pagamento, brinde, gasolina,
+        como_chegou, santander, numero_cliente, valor_compra, repasse, cnpj_empresa
+      ) VALUES (
+        $1,$2,$3,$4,$5,$6,
+        $7,$8,$9,$10,$11,$12,$13,
+        $14,$15,$16,$17,$18,$19
+      )`,
+      [
+        p.moto_id, p.modelo, p.cor, p.chassi, p.filial_origem, p.filial_venda,
+        p.nome_cliente, p.cpf, p.telefone, p.valor, p.forma_pagamento, p.brinde, p.gasolina,
+        p.como_chegou, p.santander, p.numero_cliente, p.valor_compra, p.repasse, p.cnpj_empresa
+      ]
+    );
+
+    // baixa moto
+    await client.query(
+      `UPDATE motos SET status = 'VENDIDA' WHERE id = $1`,
+      [p.moto_id]
+    );
+
+    // baixa capacete se brinde (AGORA É NO MOMENTO DA APROVAÇÃO)
+    if (p.brinde === true) {
+      const capaceteRes = await client.query(
+        `SELECT id, estoque
+         FROM pecas
+         WHERE nome ILIKE '%CAPACETE%'
+           AND cidade = $1
+         LIMIT 1`,
+        [p.filial_venda]
+      );
+
+      if (capaceteRes.rows.length === 0) throw new Error("Sem capacete em estoque para brinde");
+      if (Number(capaceteRes.rows[0].estoque) <= 0) throw new Error("Estoque de capacete zerado");
+
+      await client.query(
+        `UPDATE pecas SET estoque = estoque - 1 WHERE id = $1`,
+        [capaceteRes.rows[0].id]
+      );
+    }
+
+    // marca pendência como aprovada
+    await client.query(
+      `UPDATE vendas_motos_pendentes
+       SET status = 'APROVADA',
+           aprovado_em = now(),
+           aprovado_por = $2
+       WHERE id = $1`,
+      [id, aprovado_por || null]
+    );
+
+    await client.query("COMMIT");
+    res.json({ message: "Venda aprovada e registrada no histórico" });
+  } catch (err) {
+    await client.query("ROLLBACK");
+    console.error("ERRO APROVAR:", err);
+    res.status(500).json({ message: err.message });
+  } finally {
+    client.release();
+  }
+});
+app.post("/vendas-motos-pendentes/:id/recusar", async (req, res) => {
+  const { id } = req.params;
+  const { motivo_recusa, aprovado_por } = req.body;
+
+  const client = await db.connect();
+
+  try {
+    await client.query("BEGIN");
+
+    const pendRes = await client.query(
+      `SELECT * FROM vendas_motos_pendentes WHERE id = $1 FOR UPDATE`,
+      [id]
+    );
+    if (pendRes.rows.length === 0) throw new Error("Pendência não encontrada");
+
+    const p = pendRes.rows[0];
+    if (p.status !== "PENDENTE") throw new Error("Pendência já foi tratada");
+
+    await client.query(
+      `UPDATE motos SET status = 'DISPONIVEL' WHERE id = $1`,
+      [p.moto_id]
+    );
+
+    await client.query(
+      `UPDATE vendas_motos_pendentes
+       SET status = 'RECUSADA',
+           motivo_recusa = $2,
+           aprovado_em = now(),
+           aprovado_por = $3
+       WHERE id = $1`,
+      [id, motivo_recusa || null, aprovado_por || null]
+    );
+
+    await client.query("COMMIT");
+    res.json({ message: "Venda recusada e moto liberada" });
+  } catch (err) {
+    await client.query("ROLLBACK");
+    console.error("ERRO RECUSAR:", err);
+    res.status(500).json({ message: err.message });
+  } finally {
+    client.release();
+  }
+});
+
+
 
 /* ================= SERVER ================= */
 const PORT = process.env.PORT || 8080;
