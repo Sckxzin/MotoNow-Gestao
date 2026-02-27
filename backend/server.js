@@ -753,6 +753,56 @@ app.get("/vendas-motos", async (req, res) => {
 });
 
 
+app.post("/vendas-motos-pendentes/:id/aprovar", async (req, res) => {
+  const { id } = req.params;
+  const { aprovado_por } = req.body;
+
+  const client = await db.connect();
+
+  try {
+    await client.query("BEGIN");
+
+    const pendRes = await client.query(
+      `SELECT * FROM vendas_motos_pendentes WHERE id = $1 FOR UPDATE`,
+      [id]
+    );
+
+    if (pendRes.rows.length === 0)
+      throw new Error("Pendência não encontrada");
+
+    const p = pendRes.rows[0];
+
+    if (p.status !== "PENDENTE")
+      throw new Error("Pendência já foi tratada");
+
+    // 🔥 MARCA A MOTO COMO VENDIDA
+    await client.query(
+      `UPDATE motos SET status = 'VENDIDA' WHERE id = $1`,
+      [p.moto_id]
+    );
+
+    // 🔥 MARCA A VENDA COMO APROVADA
+    await client.query(
+      `UPDATE vendas_motos_pendentes
+       SET status = 'APROVADA',
+           aprovado_em = now(),
+           aprovado_por = $2
+       WHERE id = $1`,
+      [id, aprovado_por || null]
+    );
+
+    await client.query("COMMIT");
+
+    res.json({ message: "Venda aprovada com sucesso!" });
+  } catch (err) {
+    await client.query("ROLLBACK");
+    console.error("ERRO APROVAR:", err);
+    res.status(500).json({ message: err.message });
+  } finally {
+    client.release();
+  }
+});
+
 /* ================= VENDER MOTO ================= */
 app.post("/vender-moto", async (req, res) => {
   const {
