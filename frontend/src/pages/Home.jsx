@@ -163,7 +163,7 @@ export default function Home() {
     setNumeroCliente("");
   }
 async function confirmarVendaMoto() {
-  if (!moto_id || !filial_venda || !nome_cliente || !numero_cliente || !valor) {
+  if (!clienteNome || !valorMoto || !filialVenda) {
     alert("Preencha cliente, telefone, valor e filial");
     return;
   }
@@ -372,12 +372,6 @@ async function confirmarVendaMoto() {
         <button className="tab-btn" onClick={() => nav("/carrinho")}>
           🛒 Carrinho
         </button>
-
-{user.role === "DIRETORIA" && (
-  <button className="tab-btn" onClick={() => nav("/vendas-motos-pendentes")}>
-    🕒 Aprovar Vendas
-  </button>
-)}
         
         {user.role === "DIRETORIA" && (
         <button className="tab-btn" onClick={() => nav("/dashboard-tv")}>
