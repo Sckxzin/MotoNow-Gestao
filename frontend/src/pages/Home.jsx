@@ -372,6 +372,12 @@ async function confirmarVendaMoto() {
         <button className="tab-btn" onClick={() => nav("/carrinho")}>
           🛒 Carrinho
         </button>
+
+{user.role === "DIRETORIA" && (
+  <button className="tab-btn" onClick={() => nav("/vendas-motos-pendentes")}>
+    🕒 Aprovar Vendas
+  </button>
+)}
         
         {user.role === "DIRETORIA" && (
         <button className="tab-btn" onClick={() => nav("/dashboard-tv")}>
