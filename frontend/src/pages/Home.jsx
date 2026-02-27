@@ -227,7 +227,7 @@ export default function Home() {
     // recarrega peças
     api.get("/pecas", { params: { role: user.role, cidade: user.cidade } })
       .then(res => setPecas(res.data || []));
-  }
+  
 
   if (!user) return null;
 
