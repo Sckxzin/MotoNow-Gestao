@@ -163,7 +163,7 @@ export default function Home() {
     setNumeroCliente("");
   }
 async function confirmarVendaMoto() {
-  if (!clienteNome || !telefoneCliente || !valorMoto || !filialVenda) {
+  if (!clienteNome || !valorMoto || !filialVenda) {
     alert("Preencha cliente, telefone, valor e filial");
     return;
   }
