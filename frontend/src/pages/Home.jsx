@@ -164,23 +164,36 @@ export default function Home() {
   }
 
   async function confirmarVendaMoto() {
-    if (!clienteNome || !valorMoto || !filialVenda) {
-      alert("Preencha cliente, valor e filial");
-      return;
-    }
+  if (!clienteNome || !valorMoto || !filialVenda || !telefoneCliente) {
+    alert("Preencha cliente, telefone, valor e filial");
+    return;
+  }
 
-    await api.post("/vender-moto", {
-      moto_id: motoSelecionada.id,
-      nome_cliente: clienteNome,
-      valor: Number(valorMoto),
-      forma_pagamento: formaPagamento,
-      brinde,
-      gasolina: gasolina ? Number(gasolina) : null,
-      como_chegou: comoChegou,
-      filial_venda: filialVenda,
-      numero_cliente: numeroCliente
-    });
+  await api.post("/vender-moto", {
+    moto_id: motoSelecionada.id,
+    nome_cliente: clienteNome,
+    cpf: cpfCliente || null,
+    telefone: telefoneCliente, // ✅ AGORA VAI
+    valor: Number(valorMoto),
+    forma_pagamento: formaPagamento || null,
+    brinde: !!brinde,
+    gasolina: gasolina ? Number(gasolina) : null,
+    como_chegou: comoChegou || null,
+    filial_venda: filialVenda,
+    numero_cliente: numeroCliente || null
+  });
 
+  // ⚠️ NÃO marque como VENDIDA aqui se agora é pendente aprovação
+  // (se você já implementou pendência, o status deve virar PENDENTE_APROVACAO)
+  setMotos(prev =>
+    prev.map(m =>
+      m.id === motoSelecionada.id ? { ...m, status: "PENDENTE_APROVACAO" } : m
+    )
+  );
+
+  setMotoSelecionada(null);
+  alert("Solicitação enviada para diretoria!");
+}
     setMotos(prev =>
       prev.map(m =>
         m.id === motoSelecionada.id ? { ...m, status: "VENDIDA" } : m
