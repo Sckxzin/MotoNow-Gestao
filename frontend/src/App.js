@@ -11,6 +11,7 @@ import CadastroMoto from "./pages/CadastroMoto";
 import VendasMotos from "./pages/VendasMotos";
 import Carrinho from "./pages/Carrinho";
 import DashboardAuto from "./pages/DashboardAuto";
+import VendasMotosPendentes from"./pages/VendasMotosPendentes";
 
 export default function App() {
   return (
@@ -26,6 +27,7 @@ export default function App() {
         <Route path="/cadastro-moto" element={<CadastroMoto />} />
         <Route path="/vendas-motos" element={<VendasMotos />} />
         <Route path="/carrinho" element={<Carrinho />} />
+<Route path="/vendas-motos-pendentes" element={<VendasMotosPendentes />} />
         <Route path="/dashboard-tv" element={<DashboardAuto />} />
       </Routes>
     </BrowserRouter>
