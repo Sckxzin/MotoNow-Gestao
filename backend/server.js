@@ -1,4 +1,4 @@
- require("dotenv").config();
+require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const { Pool } = require("pg");
@@ -6,17 +6,16 @@ const { Pool } = require("pg");
 const app = express();
 
 /* ================= CORS ================= */
-app.use(
-  cors({
-    origin: [
-      "http://localhost:3000",
-      "https://motonow-gestao-production.up.railway.app",
-    ],
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  })
-);
+app.use(cors({
+  origin: [
+    "http://localhost:3000",
+    "https://motonow-gestao-production.up.railway.app"
+  ],
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+}));
 app.options("*", cors());
+
 app.use(express.json());
 
 /* ================= DB ================= */
@@ -26,12 +25,12 @@ const db = new Pool({
   password: process.env.DB_PASS,
   database: process.env.DB_NAME,
   port: process.env.DB_PORT,
-  ssl: { rejectUnauthorized: false },
+  ssl: { rejectUnauthorized: false }
 });
 
 db.connect()
   .then(() => console.log("✅ DB OK"))
-  .catch((err) => console.error("❌ DB ERRO", err));
+  .catch(err => console.error("❌ DB ERRO", err));
 
 /* ================= HEALTH ================= */
 app.get("/health", (req, res) => {
@@ -60,7 +59,6 @@ app.post("/login", async (req, res) => {
     res.status(500).json({ message: "Erro no login" });
   }
 });
-
 /* ================= CADASTRAR MOTO ================= */
 app.post("/motos", async (req, res) => {
   const {
@@ -72,7 +70,7 @@ app.post("/motos", async (req, res) => {
     cnpj_empresa,
     ano_moto,
     valor_compra,
-    repasse,
+    repasse
   } = req.body;
 
   if (!modelo || !cor || !chassi || !filial) {
@@ -80,14 +78,13 @@ app.post("/motos", async (req, res) => {
   }
 
   try {
-    const existe = await db.query(`SELECT id FROM motos WHERE chassi = $1`, [
-      chassi,
-    ]);
+    const existe = await db.query(
+      `SELECT id FROM motos WHERE chassi = $1`,
+      [chassi]
+    );
 
     if (existe.rows.length > 0) {
-      return res
-        .status(409)
-        .json({ message: "Moto com esse chassi já cadastrada" });
+      return res.status(409).json({ message: "Moto com esse chassi já cadastrada" });
     }
 
     await db.query(
@@ -104,7 +101,7 @@ app.post("/motos", async (req, res) => {
         cnpj_empresa || null,
         ano_moto != null && ano_moto !== "" ? Number(ano_moto) : null,
         valor_compra != null && valor_compra !== "" ? Number(valor_compra) : null,
-        repasse != null && repasse !== "" ? Number(repasse) : null,
+        repasse != null && repasse !== "" ? Number(repasse) : null
       ]
     );
 
@@ -128,7 +125,7 @@ app.post("/revisoes", async (req, res) => {
     chassi_moto,
     km,
     tipo_revisao,
-    observacao,
+    observacao
   } = req.body;
 
   if (!cidade || !cliente_nome) {
@@ -141,17 +138,7 @@ app.post("/revisoes", async (req, res) => {
        (cidade, cliente_nome, cliente_telefone, cliente_cpf, modelo_moto, chassi_moto, km, tipo_revisao, observacao, status)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,'ABERTA')
        RETURNING *`,
-      [
-        cidade,
-        cliente_nome,
-        cliente_telefone || null,
-        cliente_cpf || null,
-        modelo_moto || null,
-        chassi_moto || null,
-        km || null,
-        tipo_revisao || null,
-        observacao || null,
-      ]
+      [cidade, cliente_nome, cliente_telefone || null, cliente_cpf || null, modelo_moto || null, chassi_moto || null, km || null, tipo_revisao || null, observacao || null]
     );
 
     res.json(r.rows[0]);
@@ -171,14 +158,14 @@ app.post("/revisoes/:id/itens", async (req, res) => {
   }
 
   try {
+    // pega peça (pra snapshot)
     const p = await db.query(
       `SELECT id, nome, preco, estoque FROM pecas WHERE id = $1`,
       [peca_id]
     );
-    if (p.rows.length === 0)
-      return res.status(404).json({ message: "Peça não encontrada" });
+    if (p.rows.length === 0) return res.status(404).json({ message: "Peça não encontrada" });
 
-    // não baixa estoque aqui (só quando FINALIZAR)
+    // não baixa estoque aqui (só quando FINALIZAR a revisão)
     await db.query(
       `INSERT INTO revisao_itens (revisao_id, peca_id, nome_peca, quantidade, preco_unitario)
        VALUES ($1,$2,$3,$4,$5)`,
@@ -202,9 +189,10 @@ app.post("/revisoes/:id/finalizar", async (req, res) => {
   try {
     await client.query("BEGIN");
 
-    const revRes = await client.query(`SELECT * FROM revisoes WHERE id = $1`, [
-      id,
-    ]);
+    const revRes = await client.query(
+      `SELECT * FROM revisoes WHERE id = $1`,
+      [id]
+    );
     if (revRes.rows.length === 0) throw new Error("Revisão não encontrada");
 
     const revisao = revRes.rows[0];
@@ -217,15 +205,14 @@ app.post("/revisoes/:id/finalizar", async (req, res) => {
       [id]
     );
 
-    // 1) valida estoque
+    // 1) valida estoque antes de baixar tudo
     for (const it of itensRes.rows) {
-      if (!it.peca_id) continue;
+      if (!it.peca_id) continue; // caso item manual sem peça cadastrada
       const est = await client.query(
-        `SELECT estoque FROM pecas WHERE id = $1`,
+        `SELECT estoque, cidade FROM pecas WHERE id = $1`,
         [it.peca_id]
       );
-      if (est.rows.length === 0)
-        throw new Error(`Peça não existe mais (ID ${it.peca_id})`);
+      if (est.rows.length === 0) throw new Error(`Peça não existe mais (ID ${it.peca_id})`);
       if (Number(est.rows[0].estoque) < Number(it.quantidade)) {
         throw new Error(`Estoque insuficiente: ${it.nome_peca}`);
       }
@@ -240,6 +227,7 @@ app.post("/revisoes/:id/finalizar", async (req, res) => {
         [Number(it.quantidade), it.peca_id]
       );
 
+      // opcional (recomendado)
       await client.query(
         `INSERT INTO estoque_movimentos (peca_id, cidade, tipo, quantidade, ref_id, observacao)
          VALUES ($1,$2,'REVISAO',$3,$4,$5)`,
@@ -248,16 +236,17 @@ app.post("/revisoes/:id/finalizar", async (req, res) => {
           revisao.cidade,
           -Number(it.quantidade),
           Number(id),
-          `Revisão #${id} - ${it.nome_peca}`,
+          `Revisão #${id} - ${it.nome_peca}`
         ]
       );
     }
 
     // 3) calcula total
     const totalPecas = itensRes.rows.reduce(
-      (acc, it) => acc + Number(it.preco_unitario) * Number(it.quantidade),
+      (acc, it) => acc + (Number(it.preco_unitario) * Number(it.quantidade)),
       0
     );
+
     const totalFinal = totalPecas + Number(mao_de_obra) - Number(desconto);
 
     await client.query(
@@ -268,17 +257,12 @@ app.post("/revisoes/:id/finalizar", async (req, res) => {
            forma_pagamento = $4,
            status = 'FINALIZADA'
        WHERE id = $5`,
-      [
-        Number(mao_de_obra),
-        Number(desconto),
-        Number(totalFinal),
-        forma_pagamento || null,
-        Number(id),
-      ]
+      [Number(mao_de_obra), Number(desconto), Number(totalFinal), forma_pagamento || null, Number(id)]
     );
 
     await client.query("COMMIT");
     res.json({ message: "Revisão finalizada", total: totalFinal });
+
   } catch (err) {
     await client.query("ROLLBACK");
     console.error("ERRO FINALIZAR REVISAO:", err);
@@ -288,7 +272,7 @@ app.post("/revisoes/:id/finalizar", async (req, res) => {
   }
 });
 
-// listar revisões
+// listar revisões (histórico)
 app.get("/revisoes", async (req, res) => {
   try {
     const r = await db.query(
@@ -303,14 +287,13 @@ app.get("/revisoes", async (req, res) => {
   }
 });
 
-// detalhe revisão (pra “nota” OS)
+// detalhe da revisão (pra “nota” OS)
 app.get("/revisoes/:id", async (req, res) => {
   const { id } = req.params;
 
   try {
     const revRes = await db.query(`SELECT * FROM revisoes WHERE id = $1`, [id]);
-    if (revRes.rows.length === 0)
-      return res.status(404).json({ message: "Revisão não encontrada" });
+    if (revRes.rows.length === 0) return res.status(404).json({ message: "Revisão não encontrada" });
 
     const itensRes = await db.query(
       `SELECT nome_peca, quantidade, preco_unitario
@@ -326,9 +309,18 @@ app.get("/revisoes/:id", async (req, res) => {
   }
 });
 
+
 /* ================= CADASTRAR PEÇA ================= */
 app.post("/pecas", async (req, res) => {
-  const { nome, preco, estoque, cidade, tipo_moto } = req.body;
+  console.log("REQ /pecas:", req.body);
+
+  const {
+    nome,
+    preco,
+    estoque,
+    cidade,
+    tipo_moto
+  } = req.body;
 
   if (!nome || preco == null || estoque == null || !cidade) {
     return res.status(400).json({ message: "Dados incompletos" });
@@ -341,23 +333,26 @@ app.post("/pecas", async (req, res) => {
     );
 
     if (existe.rows.length > 0) {
-      return res
-        .status(409)
-        .json({ message: "Peça já cadastrada nessa filial" });
+      return res.status(409).json({ message: "Peça já cadastrada nessa filial" });
     }
 
     await db.query(
       `INSERT INTO pecas (nome, preco, estoque, cidade, tipo_moto)
        VALUES ($1,$2,$3,$4,$5)`,
-      [nome, Number(preco), Number(estoque), cidade, tipo_moto || null]
+      [nome, preco, estoque, cidade, tipo_moto || null]
     );
 
     res.json({ message: "Peça cadastrada com sucesso" });
+
   } catch (err) {
     console.error("Erro cadastrar peça:", err);
     res.status(500).json({ message: "Erro ao cadastrar peça" });
   }
 });
+
+
+  
+
 
 /* ================= PEÇAS ================= */
 app.get("/pecas", async (req, res) => {
@@ -379,19 +374,27 @@ app.get("/pecas", async (req, res) => {
 
     const result = await db.query(query, params);
     res.json(result.rows);
+
   } catch (err) {
     console.error("Erro ao buscar peças:", err);
     res.status(500).json({ message: "Erro ao buscar peças" });
   }
 });
 
+
 /* ================= TRANSFERIR PEÇA ================= */
 app.post("/transferir-peca", async (req, res) => {
-  const { peca_id, filial_origem, filial_destino, quantidade } = req.body;
+  const {
+    peca_id,
+    filial_origem,
+    filial_destino,
+    quantidade
+  } = req.body;
 
   if (!peca_id || !filial_origem || !filial_destino || !quantidade) {
     return res.status(400).json({ message: "Dados incompletos" });
   }
+
   if (filial_origem === filial_destino) {
     return res.status(400).json({ message: "Filiais iguais" });
   }
@@ -401,6 +404,7 @@ app.post("/transferir-peca", async (req, res) => {
   try {
     await client.query("BEGIN");
 
+    // 🔹 verifica estoque origem
     const origemRes = await client.query(
       `SELECT id, nome, estoque
        FROM pecas
@@ -408,48 +412,61 @@ app.post("/transferir-peca", async (req, res) => {
       [peca_id, filial_origem]
     );
 
-    if (origemRes.rows.length === 0)
+    if (origemRes.rows.length === 0) {
       throw new Error("Peça não encontrada na filial origem");
+    }
 
-    if (Number(origemRes.rows[0].estoque) < Number(quantidade))
+    if (origemRes.rows[0].estoque < quantidade) {
       throw new Error("Estoque insuficiente na filial origem");
+    }
 
     const nomePeca = origemRes.rows[0].nome;
 
-    await client.query(`UPDATE pecas SET estoque = estoque - $1 WHERE id = $2`, [
-      Number(quantidade),
-      peca_id,
-    ]);
+    // 🔻 baixa origem
+    await client.query(
+      `UPDATE pecas
+       SET estoque = estoque - $1
+       WHERE id = $2`,
+      [quantidade, peca_id]
+    );
 
+    // 🔺 verifica destino
     const destinoRes = await client.query(
-      `SELECT id FROM pecas WHERE nome = $1 AND cidade = $2`,
+      `SELECT id FROM pecas
+       WHERE nome = $1 AND cidade = $2`,
       [nomePeca, filial_destino]
     );
 
     if (destinoRes.rows.length === 0) {
+      // cria peça no destino
       await client.query(
-        `INSERT INTO pecas (nome, preco, estoque, cidade, tipo_moto)
-         SELECT nome, preco, $1, $2, tipo_moto
-         FROM pecas
-         WHERE id = $3`,
-        [Number(quantidade), filial_destino, peca_id]
-      );
+  `INSERT INTO pecas (nome, preco, estoque, cidade, tipo_moto)
+   SELECT nome, preco, $1, $2, tipo_moto
+   FROM pecas
+   WHERE id = $3`,
+  [quantidade, filial_destino, peca_id]
+);
     } else {
-      await client.query(`UPDATE pecas SET estoque = estoque + $1 WHERE id = $2`, [
-        Number(quantidade),
-        destinoRes.rows[0].id,
-      ]);
+      // soma estoque
+      await client.query(
+        `UPDATE pecas
+         SET estoque = estoque + $1
+         WHERE id = $2`,
+        [quantidade, destinoRes.rows[0].id]
+      );
     }
 
+    // 📜 histórico
     await client.query(
       `INSERT INTO transferencias_pecas
        (peca_id, nome_peca, filial_origem, filial_destino, quantidade)
        VALUES ($1,$2,$3,$4,$5)`,
-      [peca_id, nomePeca, filial_origem, filial_destino, Number(quantidade)]
+      [peca_id, nomePeca, filial_origem, filial_destino, quantidade]
     );
 
     await client.query("COMMIT");
     res.json({ message: "Transferência realizada com sucesso" });
+
   } catch (err) {
     await client.query("ROLLBACK");
     console.error("ERRO TRANSFERIR PEÇA:", err);
@@ -458,8 +475,7 @@ app.post("/transferir-peca", async (req, res) => {
     client.release();
   }
 });
-
-/* ================= MOTOS ================= */
+/* ================= MOTOS (CORRIGIDO) ================= */
 app.get("/motos", async (req, res) => {
   try {
     const result = await db.query(`
@@ -474,7 +490,10 @@ app.get("/motos", async (req, res) => {
         ano_moto,
         valor_compra,
         repasse,
-        CASE WHEN santander = true THEN true ELSE false END AS santander
+        CASE
+         WHEN santander = true THEN true
+         ELSE false
+        END AS santander
       FROM motos
       ORDER BY id
     `);
@@ -485,7 +504,6 @@ app.get("/motos", async (req, res) => {
     res.status(500).json({ message: "Erro ao buscar motos" });
   }
 });
-
 /* ================= TRANSFERIR MOTO ================= */
 app.post("/transferir-moto", async (req, res) => {
   const { moto_id, filial_destino } = req.body;
@@ -499,38 +517,55 @@ app.post("/transferir-moto", async (req, res) => {
   try {
     await client.query("BEGIN");
 
+    // 🔍 busca moto
     const motoRes = await client.query(
       `SELECT id, modelo, chassi, filial, status
        FROM motos
-       WHERE id = $1
-       FOR UPDATE`,
+       WHERE id = $1`,
       [moto_id]
     );
 
-    if (motoRes.rows.length === 0) throw new Error("Moto não encontrada");
+    if (motoRes.rows.length === 0) {
+      throw new Error("Moto não encontrada");
+    }
 
     const moto = motoRes.rows[0];
 
-    if (moto.status !== "DISPONIVEL")
+    // ❌ não pode transferir vendida
+    if (moto.status !== "DISPONIVEL") {
       throw new Error("Moto não está disponível para transferência");
+    }
 
-    if (moto.filial === filial_destino)
+    // ❌ mesma filial
+    if (moto.filial === filial_destino) {
       throw new Error("Filial de destino é igual à origem");
+    }
 
-    await client.query(`UPDATE motos SET filial = $1 WHERE id = $2`, [
-      filial_destino,
-      moto_id,
-    ]);
+    // 🔄 atualiza filial
+    await client.query(
+      `UPDATE motos
+       SET filial = $1
+       WHERE id = $2`,
+      [filial_destino, moto_id]
+    );
 
+    // 🧾 histórico
     await client.query(
       `INSERT INTO transferencias_motos
        (moto_id, modelo, chassi, filial_origem, filial_destino)
        VALUES ($1,$2,$3,$4,$5)`,
-      [moto.id, moto.modelo, moto.chassi, moto.filial, filial_destino]
+      [
+        moto.id,
+        moto.modelo,
+        moto.chassi,
+        moto.filial,
+        filial_destino
+      ]
     );
 
     await client.query("COMMIT");
     res.json({ message: "Moto transferida com sucesso" });
+
   } catch (err) {
     await client.query("ROLLBACK");
     console.error("ERRO TRANSFERIR MOTO:", err);
@@ -539,6 +574,7 @@ app.post("/transferir-moto", async (req, res) => {
     client.release();
   }
 });
+
 
 /* ================= FINALIZAR VENDA (PEÇAS) ================= */
 app.post("/finalizar-venda", async (req, res) => {
@@ -552,7 +588,7 @@ app.post("/finalizar-venda", async (req, res) => {
     observacao,
     modelo_moto,
     chassi_moto,
-    km,
+    km
   } = req.body;
 
   if (!cliente_nome || !cliente_telefone || !forma_pagamento || !cidade) {
@@ -566,45 +602,33 @@ app.post("/finalizar-venda", async (req, res) => {
 
     const vendaRes = await client.query(
       `INSERT INTO vendas
-       (cliente_nome, cliente_telefone, forma_pagamento, total, cidade, observacao, modelo_moto, chassi_moto, km)
+       (cliente_nome, cliente_telefone, forma_pagamento, total, cidade, observacao, modelo_moto, chassi_moto,km)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
        RETURNING id`,
-      [
-        cliente_nome,
-        cliente_telefone,
-        forma_pagamento,
-        Number(total || 0),
-        cidade,
-        observacao || null,
-        modelo_moto || null,
-        chassi_moto || null,
-        km || null,
-      ]
+      [cliente_nome, cliente_telefone, forma_pagamento, total, cidade, observacao, modelo_moto, chassi_moto, km]
     );
 
     const vendaId = vendaRes.rows[0].id;
 
-    for (const item of itens || []) {
+    for (const item of itens) {
       await client.query(
         `INSERT INTO venda_itens
          (venda_id, peca_id, quantidade, preco_unitario)
          VALUES ($1,$2,$3,$4)`,
-        [
-          vendaId,
-          item.peca_id,
-          Number(item.quantidade),
-          Number(item.preco_unitario),
-        ]
+        [vendaId, item.peca_id, item.quantidade, item.preco_unitario]
       );
 
-      await client.query(`UPDATE pecas SET estoque = estoque - $1 WHERE id = $2`, [
-        Number(item.quantidade),
-        item.peca_id,
-      ]);
+      await client.query(
+        `UPDATE pecas
+         SET estoque = estoque - $1
+         WHERE id = $2`,
+        [item.quantidade, item.peca_id]
+      );
     }
 
     await client.query("COMMIT");
     res.json({ message: "Venda realizada", vendaId });
+
   } catch (err) {
     await client.query("ROLLBACK");
     console.error("ERRO FINALIZAR VENDA:", err);
@@ -639,23 +663,29 @@ app.get("/nota-fiscal/:id", async (req, res) => {
       [id]
     );
 
-    res.json({ venda: vendaRes.rows[0], itens: itensRes.rows });
+    res.json({
+      venda: vendaRes.rows[0],
+      itens: itensRes.rows
+    });
   } catch (err) {
     console.error("Erro nota fiscal:", err);
     res.status(500).json({ message: "Erro ao gerar nota fiscal" });
   }
 });
 
+
+
 /* ================= HISTÓRICO VENDAS (PEÇAS) ================= */
 app.get("/vendas", async (req, res) => {
   try {
     const vendasRes = await db.query(
-      `SELECT id, cliente_nome, total, created_at, cidade, forma_pagamento, observacao
+      `SELECT id, cliente_nome, total, created_at, cidade,forma_pagamento,observacao
        FROM vendas
        ORDER BY created_at DESC`
     );
 
     const vendas = [];
+
     for (const v of vendasRes.rows) {
       const itensRes = await db.query(
         `SELECT vi.quantidade, vi.preco_unitario, p.nome
@@ -664,7 +694,11 @@ app.get("/vendas", async (req, res) => {
          WHERE vi.venda_id = $1`,
         [v.id]
       );
-      vendas.push({ ...v, itens: itensRes.rows });
+
+      vendas.push({
+        ...v,
+        itens: itensRes.rows
+      });
     }
 
     res.json(vendas);
@@ -699,10 +733,13 @@ app.get("/vendas-motos", async (req, res) => {
         created_at,
         valor_compra,
         repasse,
+
+        -- ✅ EMPRESA
         CASE
           WHEN santander = true THEN 'EMENEZES'
           ELSE 'MOTONOW'
         END AS empresa,
+
         cnpj_empresa
       FROM vendas_motos
       ORDER BY created_at DESC
@@ -715,44 +752,24 @@ app.get("/vendas-motos", async (req, res) => {
   }
 });
 
-/* ================= VENDAS MOTOS PENDENTES ================= */
 
-// listar pendentes
-app.get("/vendas-motos-pendentes", async (req, res) => {
-  try {
-    const r = await db.query(
-      `SELECT *
-       FROM vendas_motos_pendentes
-       WHERE status = 'PENDENTE'
-       ORDER BY created_at DESC`
-    );
-    res.json(r.rows);
-  } catch (err) {
-    console.error("Erro listar pendentes:", err);
-    res.status(500).json({ message: "Erro ao buscar pendentes" });
-  }
-});
-
-// solicitar venda (vai pra pendente)
+/* ================= VENDER MOTO ================= */
 app.post("/vender-moto", async (req, res) => {
   const {
     moto_id,
     nome_cliente,
     cpf,
-    telefone, // "enfeite"
+    telefone,
     valor,
     forma_pagamento,
     brinde,
     gasolina,
     como_chegou,
     filial_venda,
-    numero_cliente, // ✅ número real obrigatório
+    numero_cliente
   } = req.body;
 
-  const nomeLimpo = String(nome_cliente || "").trim();
-  const numeroLimpo = String(numero_cliente || "").trim();
-
-  if (!moto_id || !filial_venda || !nomeLimpo || !numeroLimpo || !valor) {
+  if (!moto_id || !filial_venda || !nome_cliente || !telefone || !valor) {
     return res.status(400).json({ message: "Dados incompletos" });
   }
 
@@ -761,11 +778,11 @@ app.post("/vender-moto", async (req, res) => {
   try {
     await client.query("BEGIN");
 
+    // pega moto e valida disponível
     const motoRes = await client.query(
       `SELECT id, modelo, cor, chassi, filial, status, santander, cnpj_empresa, valor_compra, repasse
        FROM motos
-       WHERE id = $1
-       FOR UPDATE`,
+       WHERE id = $1`,
       [moto_id]
     );
 
@@ -777,6 +794,7 @@ app.post("/vender-moto", async (req, res) => {
       throw new Error("Moto não está disponível para solicitar venda");
     }
 
+    // cria pendência
     const pendRes = await client.query(
       `INSERT INTO vendas_motos_pendentes (
         moto_id, modelo, cor, chassi,
@@ -795,39 +813,25 @@ app.post("/vender-moto", async (req, res) => {
       )
       RETURNING id`,
       [
-        moto.id,
-        moto.modelo,
-        moto.cor,
-        moto.chassi,
-        moto.filial,
-        filial_venda,
-        nomeLimpo,
-        cpf || null,
-        telefone || null,
-        numeroLimpo,
-        Number(valor),
-        forma_pagamento || null,
-        !!brinde,
-        gasolina != null && gasolina !== "" ? Number(gasolina) : null,
-        como_chegou || null,
-        !!moto.santander,
-        moto.cnpj_empresa || null,
-        moto.valor_compra != null ? Number(moto.valor_compra) : null,
-        moto.repasse != null ? Number(moto.repasse) : null,
+        moto.id, moto.modelo, moto.cor, moto.chassi,
+        moto.filial, filial_venda,
+        nome_cliente, cpf || null, telefone, numero_cliente || null,
+        Number(valor), forma_pagamento || null, !!brinde, gasolina ? Number(gasolina) : null, como_chegou || null,
+        !!moto.santander, moto.cnpj_empresa || null, moto.valor_compra != null ? Number(moto.valor_compra) : null, moto.repasse != null ? Number(moto.repasse) : null
       ]
     );
 
+    // trava a moto até aprovar/recusar
     await client.query(
-      `UPDATE motos SET status = 'PENDENTE_APROVACAO' WHERE id = $1`,
+      `UPDATE motos
+       SET status = 'PENDENTE_APROVACAO'
+       WHERE id = $1`,
       [moto.id]
     );
 
     await client.query("COMMIT");
 
-    res.json({
-      message: "Solicitação enviada para diretoria",
-      pendenciaId: pendRes.rows[0].id,
-    });
+    res.json({ message: "Solicitação enviada para diretoria", pendenciaId: pendRes.rows[0].id });
   } catch (err) {
     await client.query("ROLLBACK");
     console.error("ERRO SOLICITAR VENDA MOTO:", err);
@@ -836,11 +840,24 @@ app.post("/vender-moto", async (req, res) => {
     client.release();
   }
 });
+app.get("/vendas-motos-pendentes", async (req, res) => {
+  try {
+    const r = await db.query(
+      `SELECT *
+       FROM vendas_motos_pendentes
+       WHERE status = 'PENDENTE'
+       ORDER BY created_at DESC`
+    );
 
-// aprovar (✅ insere no histórico + baixa moto + baixa capacete se brinde)
+    res.json(r.rows);
+  } catch (err) {
+    console.error("Erro listar pendentes:", err);
+    res.status(500).json({ message: "Erro ao buscar pendentes" });
+  }
+});
 app.post("/vendas-motos-pendentes/:id/aprovar", async (req, res) => {
   const { id } = req.params;
-  const { aprovado_por } = req.body;
+  const { aprovado_por } = req.body; // pode passar username da diretoria
 
   const client = await db.connect();
 
@@ -856,74 +873,39 @@ app.post("/vendas-motos-pendentes/:id/aprovar", async (req, res) => {
     const p = pendRes.rows[0];
     if (p.status !== "PENDENTE") throw new Error("Pendência já foi tratada");
 
+    // confere se moto ainda está pendente
     const motoRes = await client.query(
       `SELECT id, status FROM motos WHERE id = $1 FOR UPDATE`,
       [p.moto_id]
     );
     if (motoRes.rows.length === 0) throw new Error("Moto não existe mais");
-    if (motoRes.rows[0].status !== "PENDENTE_APROVACAO")
-      throw new Error("Moto não está mais em pendência");
+    if (motoRes.rows[0].status !== "PENDENTE_APROVACAO") throw new Error("Moto não está mais em pendência");
 
     // ✅ grava histórico oficial
-    // "telefone" é enfeite → salva null, número real vai em numero_cliente
     await client.query(
       `INSERT INTO vendas_motos (
-        moto_id,
-        modelo,
-        cor,
-        chassi,
-        filial_origem,
-        filial_venda,
-        nome_cliente,
-        cpf,
-        telefone,
-        numero_cliente,
-        valor,
-        forma_pagamento,
-        brinde,
-        gasolina,
-        como_chegou,
-        santander,
-        cnpj_empresa,
-        valor_compra,
-        repasse,
-        cidade,
-        data_venda
+        moto_id, modelo, cor, chassi, filial_origem, filial_venda,
+        nome_cliente, cpf, telefone, valor, forma_pagamento, brinde, gasolina,
+        como_chegou, santander, numero_cliente, valor_compra, repasse, cnpj_empresa
       ) VALUES (
-        $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,
-        $11,$12,$13,$14,$15,$16,$17,$18,$19,$20, now()
+        $1,$2,$3,$4,$5,$6,
+        $7,$8,$9,$10,$11,$12,$13,
+        $14,$15,$16,$17,$18,$19
       )`,
       [
-        p.moto_id,
-        p.modelo,
-        p.cor,
-        p.chassi,
-        p.filial_origem,
-        p.filial_venda,
-        p.nome_cliente,
-        p.cpf || null,
-        null, // telefone enfeite
-        p.numero_cliente || null,
-        Number(p.valor || 0),
-        p.forma_pagamento || null,
-        !!p.brinde,
-        // no teu print de vendas_motos, gasolina é TEXT -> salva string
-        p.gasolina != null ? String(p.gasolina) : null,
-        p.como_chegou || null,
-        !!p.santander,
-        p.cnpj_empresa || null,
-        p.valor_compra != null ? Number(p.valor_compra) : null,
-        p.repasse != null ? Number(p.repasse) : null,
-        p.filial_venda || null, // cidade
+        p.moto_id, p.modelo, p.cor, p.chassi, p.filial_origem, p.filial_venda,
+        p.nome_cliente, p.cpf, p.telefone, p.valor, p.forma_pagamento, p.brinde, p.gasolina,
+        p.como_chegou, p.santander, p.numero_cliente, p.valor_compra, p.repasse, p.cnpj_empresa
       ]
     );
 
     // baixa moto
-    await client.query(`UPDATE motos SET status = 'VENDIDA' WHERE id = $1`, [
-      p.moto_id,
-    ]);
+    await client.query(
+      `UPDATE motos SET status = 'VENDIDA' WHERE id = $1`,
+      [p.moto_id]
+    );
 
-    // baixa capacete se brinde
+    // baixa capacete se brinde (AGORA É NO MOMENTO DA APROVAÇÃO)
     if (p.brinde === true) {
       const capaceteRes = await client.query(
         `SELECT id, estoque
@@ -934,14 +916,13 @@ app.post("/vendas-motos-pendentes/:id/aprovar", async (req, res) => {
         [p.filial_venda]
       );
 
-      if (capaceteRes.rows.length === 0)
-        throw new Error("Sem capacete em estoque para brinde");
-      if (Number(capaceteRes.rows[0].estoque) <= 0)
-        throw new Error("Estoque de capacete zerado");
+      if (capaceteRes.rows.length === 0) throw new Error("Sem capacete em estoque para brinde");
+      if (Number(capaceteRes.rows[0].estoque) <= 0) throw new Error("Estoque de capacete zerado");
 
-      await client.query(`UPDATE pecas SET estoque = estoque - 1 WHERE id = $1`, [
-        capaceteRes.rows[0].id,
-      ]);
+      await client.query(
+        `UPDATE pecas SET estoque = estoque - 1 WHERE id = $1`,
+        [capaceteRes.rows[0].id]
+      );
     }
 
     // marca pendência como aprovada
@@ -964,8 +945,6 @@ app.post("/vendas-motos-pendentes/:id/aprovar", async (req, res) => {
     client.release();
   }
 });
-
-// recusar
 app.post("/vendas-motos-pendentes/:id/recusar", async (req, res) => {
   const { id } = req.params;
   const { motivo_recusa, aprovado_por } = req.body;
@@ -984,9 +963,10 @@ app.post("/vendas-motos-pendentes/:id/recusar", async (req, res) => {
     const p = pendRes.rows[0];
     if (p.status !== "PENDENTE") throw new Error("Pendência já foi tratada");
 
-    await client.query(`UPDATE motos SET status = 'DISPONIVEL' WHERE id = $1`, [
-      p.moto_id,
-    ]);
+    await client.query(
+      `UPDATE motos SET status = 'DISPONIVEL' WHERE id = $1`,
+      [p.moto_id]
+    );
 
     await client.query(
       `UPDATE vendas_motos_pendentes
@@ -1008,6 +988,8 @@ app.post("/vendas-motos-pendentes/:id/recusar", async (req, res) => {
     client.release();
   }
 });
+
+
 
 /* ================= SERVER ================= */
 const PORT = process.env.PORT || 8080;
