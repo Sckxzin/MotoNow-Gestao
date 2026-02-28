@@ -1,4 +1,4 @@
-/* eslint-disable no-unused-vars */
+ /* eslint-disable no-unused-vars */
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api";
@@ -162,36 +162,36 @@ export default function Home() {
     setFilialVenda("");
     setNumeroCliente("");
   }
-async function confirmarVendaMoto() {
-  if (!clienteNome || !valorMoto || !filialVenda) {
-    alert("Preencha cliente, telefone, valor e filial");
-    return;
+
+  async function confirmarVendaMoto() {
+    // ✅ seu back exige numero_cliente, então precisa obrigar aqui também
+    if (!clienteNome || !valorMoto || !filialVenda || !numeroCliente) {
+      alert("Preencha cliente, valor, filial e número do cliente");
+      return;
+    }
+
+    await api.post("/vender-moto", {
+      moto_id: motoSelecionada.id,
+      nome_cliente: clienteNome,
+      valor: Number(valorMoto),
+      forma_pagamento: formaPagamento || null,
+      brinde: !!brinde,
+      gasolina: gasolina ? Number(gasolina) : null,
+      como_chegou: comoChegou || null,
+      filial_venda: filialVenda,
+      numero_cliente: String(numeroCliente).trim() // ✅ nunca null
+    });
+
+    // Se agora é aprovação da diretoria:
+    setMotos(prev =>
+      prev.map(m =>
+        m.id === motoSelecionada.id ? { ...m, status: "PENDENTE_APROVACAO" } : m
+      )
+    );
+
+    setMotoSelecionada(null);
+    alert("Solicitação enviada para diretoria!");
   }
-
-  await api.post("/vender-moto", {
-    moto_id: motoSelecionada.id,
-    nome_cliente: clienteNome,
-    valor: Number(valorMoto),
-    forma_pagamento: formaPagamento || null,
-    brinde: !!brinde,
-    gasolina: gasolina ? Number(gasolina) : null,
-    como_chegou: comoChegou || null,
-    filial_venda: filialVenda,
-    numero_cliente: numeroCliente || null
-  });
-
-  // Se agora é aprovação da diretoria:
-  setMotos(prev =>
-    prev.map(m =>
-      m.id === motoSelecionada.id ? { ...m, status: "PENDENTE_APROVACAO" } : m
-    )
-  );
-
-  setMotoSelecionada(null);
-  alert("Solicitação enviada para diretoria!");
-}
-  
-   
 
   async function cadastrarPeca() {
     if (!nomePeca || !valorPeca || !filialPeca) {
@@ -288,7 +288,6 @@ async function confirmarVendaMoto() {
       !valorCompra ||
       !repasse ||
       !filialMoto ||
-      
       !cnpjEmpresa
     ) {
       alert("Preencha todos os campos obrigatórios");
@@ -373,17 +372,17 @@ async function confirmarVendaMoto() {
           🛒 Carrinho
         </button>
 
-{user.role === "DIRETORIA" && (
-  <button className="tab-btn" onClick={() => nav("/vendas-motos-pendentes")}>
-    🕒 Aprovar Vendas
-  </button>
-)}
-        
         {user.role === "DIRETORIA" && (
-        <button className="tab-btn" onClick={() => nav("/dashboard-tv")}>
-           📺 Dashboard TV
+          <button className="tab-btn" onClick={() => nav("/vendas-motos-pendentes")}>
+            🕒 Aprovar Vendas
           </button>
-      )}
+        )}
+
+        {user.role === "DIRETORIA" && (
+          <button className="tab-btn" onClick={() => nav("/dashboard-tv")}>
+            📺 Dashboard TV
+          </button>
+        )}
       </div>
 
       {/* ================= PEÇAS ================= */}
@@ -611,7 +610,6 @@ async function confirmarVendaMoto() {
                   if (santanderFiltro === "NAO") return m.santander === false || m.santander == null;
                   return true;
                 })
-                // ✅ FILTRO CNPJ APLICADO AQUI
                 .filter(m => {
                   const cnpj = (m.cnpj_empresa || "").trim();
                   if (cnpjFiltro === "TODOS") return true;
@@ -684,10 +682,9 @@ async function confirmarVendaMoto() {
               <option value="SAO JOSE">SÃO JOSÉ</option>
               <option value="CATENDE">CATENDE</option>
               <option value="XEXEU">XEXEU</option>
-              <option 
-value="MARAGOGI">MARAGOGI</option>
-             <option value="IPOJUCA RICARDO">Ipojuca Ricardo</option>
-             <option value="OUTRAS CIDADES">DISTRI VALTER </option>
+              <option value="MARAGOGI">MARAGOGI</option>
+              <option value="IPOJUCA RICARDO">Ipojuca Ricardo</option>
+              <option value="OUTRAS CIDADES">DISTRI VALTER</option>
               <option value="CHA GRANDE">Cha grande</option>
             </select>
 
@@ -704,28 +701,27 @@ value="MARAGOGI">MARAGOGI</option>
             />
 
             <input
-              type="Numero cliente"
-              placeholder="Numero cliente"
+              type="tel"
+              placeholder="Número do cliente (obrigatório)"
               value={numeroCliente}
               onChange={e => setNumeroCliente(e.target.value)}
-             />
-             
+            />
 
             <input
               placeholder="Forma de pagamento"
               value={formaPagamento}
               onChange={e => setFormaPagamento(e.target.value)}
             />
-           <select
-        value={comoChegou}
-        onChange={e => setComoChegou(e.target.value)}
-      >
-        <option value="">Como o cliente chegou?</option>
-        <option value="Tenda">Tenda</option>
-        <option value="Veio em loja">Veio em loja</option>
-        <option value="Leads">Leads</option>
-        
-      </select>
+
+            <select
+              value={comoChegou}
+              onChange={e => setComoChegou(e.target.value)}
+            >
+              <option value="">Como o cliente chegou?</option>
+              <option value="Tenda">Tenda</option>
+              <option value="Veio em loja">Veio em loja</option>
+              <option value="Leads">Leads</option>
+            </select>
 
             <button onClick={confirmarVendaMoto}>Confirmar</button>
             <button onClick={() => setMotoSelecionada(null)}>Cancelar</button>
@@ -733,181 +729,180 @@ value="MARAGOGI">MARAGOGI</option>
           </div>
         </div>
       )}
-     {pecaTransferir && (
-  <div className="modal-overlay">
-    <div className="modal">
-      <h3>🔄 Transferir Peça</h3>
 
-      <p><strong>{pecaTransferir.nome}</strong></p>
-      <p>Origem: {pecaTransferir.cidade}</p>
+      {pecaTransferir && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <h3>🔄 Transferir Peça</h3>
 
-      <input
-        type="number"
-        placeholder="Quantidade"
-        value={quantidadeTransferir}
-        onChange={e => setQuantidadeTransferir(e.target.value)}
-      />
+            <p><strong>{pecaTransferir.nome}</strong></p>
+            <p>Origem: {pecaTransferir.cidade}</p>
 
-      <select
-        value={cidadeDestino}
-        onChange={e => setCidadeDestino(e.target.value)}
-      >
-        <option value="">Filial destino</option>
-        <option value="ESCADA">Escada</option>
-        <option value="IPOJUCA">Ipojuca</option>
-        <option value="RIBEIRAO">Ribeirão</option>
-        <option value="SAO JOSE">São José</option>
-        <option value="CATENDE">Catende</option>
-        <option value="XEXEU">Xexeu</option>
-<option 
-value="MARAGOGI">MARAGOGI</option>
-       <option value="IPOJUCA RICARDO">Ipojuca Ricardo</option>
-        <option value="CHA GRANDE">Cha grande</option>
-      </select>
+            <input
+              type="number"
+              placeholder="Quantidade"
+              value={quantidadeTransferir}
+              onChange={e => setQuantidadeTransferir(e.target.value)}
+            />
 
-      <div style={{ display: "flex", gap: 10, marginTop: 15 }}>
-        <button onClick={confirmarTransferencia}>Confirmar</button>
-        <button onClick={() => setPecaTransferir(null)}>Cancelar</button>
-      </div>
-    </div>
-  </div>
-)}
-     {motoTransferir && (
-  <div className="modal-overlay">
-    <div className="modal">
-      <h3>🔄 Transferir Moto</h3>
+            <select
+              value={cidadeDestino}
+              onChange={e => setCidadeDestino(e.target.value)}
+            >
+              <option value="">Filial destino</option>
+              <option value="ESCADA">Escada</option>
+              <option value="IPOJUCA">Ipojuca</option>
+              <option value="RIBEIRAO">Ribeirão</option>
+              <option value="SAO JOSE">São José</option>
+              <option value="CATENDE">Catende</option>
+              <option value="XEXEU">Xexeu</option>
+              <option value="MARAGOGI">MARAGOGI</option>
+              <option value="IPOJUCA RICARDO">Ipojuca Ricardo</option>
+              <option value="CHA GRANDE">Cha grande</option>
+            </select>
 
-      <p><strong>{motoTransferir.modelo}</strong></p>
-      <p>Chassi: {motoTransferir.chassi}</p>
-      <p>Origem: {motoTransferir.filial}</p>
+            <div style={{ display: "flex", gap: 10, marginTop: 15 }}>
+              <button onClick={confirmarTransferencia}>Confirmar</button>
+              <button onClick={() => setPecaTransferir(null)}>Cancelar</button>
+            </div>
+          </div>
+        </div>
+      )}
 
-      <select
-        value={filialDestinoMoto}
-        onChange={e => setFilialDestinoMoto(e.target.value)}
-      >
-        <option value="">Filial destino</option>
-        <option value="ESCADA">Escada</option>
-        <option value="IPOJUCA">Ipojuca</option>
-        <option value="RIBEIRAO">Ribeirão</option>
-        <option value="SAO JOSE">São José</option>
-        <option value="CATENDE">Catende</option>
-        <option value="XEXEU">Xexeu</option>
-        <option value="MARAGOGI">Maragogi</option>
-       <option value="IPOJUCA RICARDO">Ipojuca Ricardo</option>
-        <option value="CHA GRANDE">Cha grande</option>
-      </select>
+      {motoTransferir && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <h3>🔄 Transferir Moto</h3>
 
-      <div style={{ display: "flex", gap: 10, marginTop: 15 }}>
-        <button onClick={confirmarTransferenciaMoto}>Confirmar</button>
-        <button onClick={() => setMotoTransferir(null)}>Cancelar</button>
-      </div>
-    </div>
-  </div>
-)}
-     {modalCadastrar && user.role === "DIRETORIA" && (
-  <div className="modal-overlay">
-    <div className="modal">
-      <h3>Cadastrar</h3>
+            <p><strong>{motoTransferir.modelo}</strong></p>
+            <p>Chassi: {motoTransferir.chassi}</p>
+            <p>Origem: {motoTransferir.filial}</p>
 
-     <input
-  placeholder="Nome"
-  value={nomePeca}
-  onChange={e => setNomePeca(e.target.value)}
-/>
+            <select
+              value={filialDestinoMoto}
+              onChange={e => setFilialDestinoMoto(e.target.value)}
+            >
+              <option value="">Filial destino</option>
+              <option value="ESCADA">Escada</option>
+              <option value="IPOJUCA">Ipojuca</option>
+              <option value="RIBEIRAO">Ribeirão</option>
+              <option value="SAO JOSE">São José</option>
+              <option value="CATENDE">Catende</option>
+              <option value="XEXEU">Xexeu</option>
+              <option value="MARAGOGI">Maragogi</option>
+              <option value="IPOJUCA RICARDO">Ipojuca Ricardo</option>
+              <option value="CHA GRANDE">Cha grande</option>
+            </select>
 
-<input
-  type="number"
-  placeholder="Valor"
-  value={valorPeca}
-  onChange={e => setValorPeca(e.target.value)}
-/>
+            <div style={{ display: "flex", gap: 10, marginTop: 15 }}>
+              <button onClick={confirmarTransferenciaMoto}>Confirmar</button>
+              <button onClick={() => setMotoTransferir(null)}>Cancelar</button>
+            </div>
+          </div>
+        </div>
+      )}
 
-<select
-  value={filialPeca}
-  onChange={e => setFilialPeca(e.target.value)}
->
-  <option value="">Filial</option>
-  <option value="ESCADA">Escada</option>
-  <option value="IPOJUCA">Ipojuca</option>
-  <option value="RIBEIRAO">Ribeirão</option>
-  <option value="SAO JOSE">São José</option>
-  <option value="CATENDE">Catende</option>
-  <option value="XEXEU">Xexeu</option>
-  <option value="CHA GRANDE">Cha grande</option>
-</select>
+      {modalCadastrar && user.role === "DIRETORIA" && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <h3>Cadastrar</h3>
 
+            <input
+              placeholder="Nome"
+              value={nomePeca}
+              onChange={e => setNomePeca(e.target.value)}
+            />
 
-      <div style={{ display: "flex", gap: 10 }}>
-        <button onClick={() => cadastrarPeca()}>
-          Salvar
-        </button>
-        <button onClick={() => setModalCadastrar(false)}>
-          Cancelar
-        </button>
-      </div>
-    </div>
-  </div>
-)}
-             {modalCadastrarMoto && user.role === "DIRETORIA" && (
-  <div className="modal-overlay">
-    <div className="modal">
-      <h3>Cadastrar Moto</h3>
+            <input
+              type="number"
+              placeholder="Valor"
+              value={valorPeca}
+              onChange={e => setValorPeca(e.target.value)}
+            />
 
-      <input placeholder="Modelo" value={modeloMoto}
-        onChange={e => setModeloMoto(e.target.value)} />
+            <select
+              value={filialPeca}
+              onChange={e => setFilialPeca(e.target.value)}
+            >
+              <option value="">Filial</option>
+              <option value="ESCADA">Escada</option>
+              <option value="IPOJUCA">Ipojuca</option>
+              <option value="RIBEIRAO">Ribeirão</option>
+              <option value="SAO JOSE">São José</option>
+              <option value="CATENDE">Catende</option>
+              <option value="XEXEU">Xexeu</option>
+              <option value="CHA GRANDE">Cha grande</option>
+            </select>
 
-      <input placeholder="Cor" value={corMoto}
-        onChange={e => setCorMoto(e.target.value)} />
+            <div style={{ display: "flex", gap: 10 }}>
+              <button onClick={() => cadastrarPeca()}>
+                Salvar
+              </button>
+              <button onClick={() => setModalCadastrar(false)}>
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
-      <input placeholder="Chassi" value={chassiMoto}
-        onChange={e => setChassiMoto(e.target.value)} />
+      {modalCadastrarMoto && user.role === "DIRETORIA" && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <h3>Cadastrar Moto</h3>
 
-      <input placeholder="Ano" value={anoMoto}
-        onChange={e => setAnoMoto(e.target.value)} />
+            <input placeholder="Modelo" value={modeloMoto}
+              onChange={e => setModeloMoto(e.target.value)} />
 
-      <input type="number" placeholder="Valor compra" value={valorCompra}
-        onChange={e => setValorCompra(e.target.value)} />
-       
-      <input type="number" placeholder=" Valor Repasse" value={repasse}
-        onChange={e => setRepasse(e.target.value)} />
-      
+            <input placeholder="Cor" value={corMoto}
+              onChange={e => setCorMoto(e.target.value)} />
 
-      <select value={filialMoto}
-        onChange={e => setFilialMoto(e.target.value)}>
-        <option value="">Filial</option>
-        <option value="ESCADA">Escada</option>
-        <option value="IPOJUCA">Ipojuca</option>
-        <option value="RIBEIRAO">Ribeirão</option>
-        <option value="SAO JOSE">São José</option>
-        <option value="CATENDE">Catende</option>
-        <option value="XEXEU">Xexeu</option>
-        <option value="MARAGOGI">Maragogi</option>
-        <option value="IPOJUCA RICARDO">Ipojuca Ricardo</option>
-        <option value="CHA GRANDE">Cha grande</option>
-      </select>
+            <input placeholder="Chassi" value={chassiMoto}
+              onChange={e => setChassiMoto(e.target.value)} />
 
-      <input placeholder="CNPJ da empresa"
-        value={cnpjEmpresa}
-        onChange={e => setCnpjEmpresa(e.target.value)} />
+            <input placeholder="Ano" value={anoMoto}
+              onChange={e => setAnoMoto(e.target.value)} />
 
-      <label style={{ display: "flex", gap: 6, alignItems: "center" }}>
-        <input
-          type="checkbox"
-          checked={santanderMoto}
-          onChange={e => setSantanderMoto(e.target.checked)}
-        />
-        Financiada Santander
-      </label>
+            <input type="number" placeholder="Valor compra" value={valorCompra}
+              onChange={e => setValorCompra(e.target.value)} />
 
-      <div style={{ display: "flex", gap: 10 }}>
-        <button onClick={cadastrarMoto}>Salvar</button>
-        <button onClick={() => setModalCadastrarMoto(false)}>Cancelar</button>
-      </div>
-    </div>
-  </div>
-)}
+            <input type="number" placeholder=" Valor Repasse" value={repasse}
+              onChange={e => setRepasse(e.target.value)} />
 
+            <select value={filialMoto}
+              onChange={e => setFilialMoto(e.target.value)}>
+              <option value="">Filial</option>
+              <option value="ESCADA">Escada</option>
+              <option value="IPOJUCA">Ipojuca</option>
+              <option value="RIBEIRAO">Ribeirão</option>
+              <option value="SAO JOSE">São José</option>
+              <option value="CATENDE">Catende</option>
+              <option value="XEXEU">Xexeu</option>
+              <option value="MARAGOGI">Maragogi</option>
+              <option value="IPOJUCA RICARDO">Ipojuca Ricardo</option>
+              <option value="CHA GRANDE">Cha grande</option>
+            </select>
 
+            <input placeholder="CNPJ da empresa"
+              value={cnpjEmpresa}
+              onChange={e => setCnpjEmpresa(e.target.value)} />
+
+            <label style={{ display: "flex", gap: 6, alignItems: "center" }}>
+              <input
+                type="checkbox"
+                checked={santanderMoto}
+                onChange={e => setSantanderMoto(e.target.checked)}
+              />
+              Financiada Santander
+            </label>
+
+            <div style={{ display: "flex", gap: 10 }}>
+              <button onClick={cadastrarMoto}>Salvar</button>
+              <button onClick={() => setModalCadastrarMoto(false)}>Cancelar</button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );
