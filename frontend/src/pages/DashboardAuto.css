@@ -1,173 +1,243 @@
-/* ================= BASE ================= */
+/* ================= RESET / TV ================= */
+html, body, #root {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  background: #050607;
+  overflow: hidden; /* TV: sem scroll */
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+}
+
 .dash-auto {
-  min-height: 100vh;
-  background: linear-gradient(180deg, #0f172a 0%, #0b1220 100%);
-  color: #e5e7eb;
-  padding: 30px 40px;
-  font-family: "Inter", "Segoe UI", sans-serif;
+  height: 100vh;
+  width: 100vw;
+  background: radial-gradient(1200px 600px at 30% 10%, rgba(255,255,255,0.04), transparent 55%),
+              radial-gradient(900px 500px at 85% 20%, rgba(255,255,255,0.03), transparent 55%),
+              linear-gradient(180deg, #060708 0%, #050607 100%);
+  color: #EDEDED;
+  padding: 28px 34px;
+  box-sizing: border-box;
 }
 
 /* ================= TOPBAR ================= */
 .dash-topbar {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 30px;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 18px;
 }
 
 .dash-title h2 {
-  font-size: 32px;
-  font-weight: 700;
-  letter-spacing: 1px;
   margin: 0;
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
 }
 
 .dash-title small {
-  font-size: 16px;
-  opacity: 0.6;
+  display: inline-block;
+  margin-top: 6px;
+  font-size: 14px;
+  color: rgba(237,237,237,0.6);
 }
 
-/* ================= BOTÕES ================= */
+/* ================= ACTIONS ================= */
+.dash-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .dash-actions button {
-  background: #1e293b;
-  border: 1px solid #334155;
-  color: #e5e7eb;
-  padding: 8px 14px;
-  margin-left: 8px;
-  border-radius: 8px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: rgba(237,237,237,0.92);
+  padding: 10px 14px;
+  border-radius: 10px;
   cursor: pointer;
-  transition: 0.2s ease;
-  font-weight: 500;
+  transition: 160ms ease;
+  font-weight: 600;
+  letter-spacing: 0.2px;
 }
 
 .dash-actions button:hover {
-  background: #2563eb;
-  border-color: #2563eb;
+  background: rgba(255,255,255,0.10);
+  border-color: rgba(255,255,255,0.18);
+  transform: translateY(-1px);
+}
+
+/* botão “primário” discreto */
+.dash-actions button.primary {
+  background: rgba(255,255,255,0.12);
+  border-color: rgba(255,255,255,0.22);
+}
+
+.dash-actions button.primary:hover {
+  background: rgba(255,255,255,0.16);
 }
 
 /* ================= FILTROS ================= */
 .dash-filtros {
   display: flex;
-  gap: 10px;
   align-items: center;
-  margin-bottom: 25px;
+  justify-content: space-between;
+  gap: 12px;
   flex-wrap: wrap;
+  margin-bottom: 12px;
 }
 
 .dash-filtros select,
-.dash-filtros input {
-  background: #1e293b;
-  border: 1px solid #334155;
-  color: white;
-  padding: 6px 10px;
-  border-radius: 6px;
+.dash-filtros input[type="date"] {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: rgba(237,237,237,0.9);
+  padding: 10px 12px;
+  border-radius: 10px;
+  outline: none;
+}
+
+.dash-filtros select:focus,
+.dash-filtros input[type="date"]:focus {
+  border-color: rgba(255,255,255,0.22);
+}
+
+.dash-quick {
+  display: flex;
+  gap: 10px;
 }
 
 .dash-quick button {
-  background: #0ea5e9;
-  border: none;
-  color: white;
-  padding: 6px 12px;
-  border-radius: 6px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: rgba(237,237,237,0.9);
+  padding: 10px 12px;
+  border-radius: 10px;
   cursor: pointer;
-  font-weight: 500;
-  transition: 0.2s;
+  transition: 160ms ease;
+  font-weight: 700;
 }
 
 .dash-quick button:hover {
-  background: #0284c7;
+  background: rgba(255,255,255,0.12);
+  border-color: rgba(255,255,255,0.18);
 }
 
-/* ================= KPIs ================= */
+/* ================= DOTS ================= */
+.dash-dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin: 10px 0 14px;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  border: none;
+  background: rgba(255,255,255,0.18);
+  cursor: pointer;
+  transition: 160ms ease;
+}
+
+.dot.active {
+  width: 24px;
+  background: rgba(255,255,255,0.55);
+}
+
+/* ================= SLIDE AREA ================= */
+.dash-slide {
+  height: calc(100vh - 28px - 34px - 18px - 12px - 14px - 110px);
+  /* ↑ ajusta a “área do slide” ocupando o resto da tela (TV) */
+  min-height: 520px;
+}
+
+/* ================= KPI GRID ================= */
 .grid-kpis {
+  height: 100%;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(3, minmax(260px, 1fr));
+  grid-auto-rows: 1fr;
+  gap: 16px;
 }
 
+/* KPI card */
 .kpi {
-  background: #111827;
-  padding: 25px;
-  border-radius: 16px;
-  border: 1px solid #1f2937;
-  box-shadow: 0 0 20px rgba(37, 99, 235, 0.1);
-  transition: 0.3s ease;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 18px;
+  padding: 22px;
+  box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
 }
 
-.kpi:hover {
-  transform: translateY(-4px);
+.kpi::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  background: radial-gradient(500px 160px at 20% 0%, rgba(255,255,255,0.10), transparent 60%);
+  pointer-events: none;
 }
 
 .kpi-title {
-  font-size: 16px;
-  opacity: 0.7;
+  font-size: 14px;
+  color: rgba(237,237,237,0.65);
+  font-weight: 600;
+  letter-spacing: 0.2px;
   margin-bottom: 10px;
 }
 
 .kpi-value {
-  font-size: 32px;
-  font-weight: 700;
-  color: #60a5fa;
+  font-size: 36px;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  color: rgba(255,255,255,0.93);
 }
 
 /* ================= PANELS ================= */
 .panel {
-  background: #111827;
+  height: 100%;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.10);
   border-radius: 18px;
-  padding: 25px;
-  border: 1px solid #1f2937;
-  box-shadow: 0 0 25px rgba(37, 99, 235, 0.08);
+  padding: 18px 18px 12px;
+  box-sizing: border-box;
 }
 
 .panel-title {
-  font-size: 22px;
-  font-weight: 600;
-  margin-bottom: 15px;
-  color: #93c5fd;
+  font-size: 18px;
+  font-weight: 800;
+  color: rgba(255,255,255,0.85);
+  letter-spacing: 0.2px;
+  margin-bottom: 10px;
 }
 
 .panel-body {
-  width: 100%;
-}
-
-/* ================= SLIDES ================= */
-.dash-slide {
-  margin-top: 10px;
-}
-
-.dash-dots {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 20px;
-}
-
-.dot {
-  width: 12px;
-  height: 12px;
-  background: #334155;
-  border-radius: 50%;
-  margin: 0 6px;
-  border: none;
-  cursor: pointer;
-  transition: 0.3s;
-}
-
-.dot.active {
-  background: #2563eb;
-  transform: scale(1.2);
+  height: calc(100% - 34px);
 }
 
 /* ================= GRID 2 ================= */
 .grid-2 {
+  height: 100%;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 20px;
+  gap: 16px;
 }
 
 /* ================= HINT ================= */
 .dash-hint {
-  text-align: center;
-  margin-top: 20px;
-  opacity: 0.5;
-  font-size: 14px;
+  position: fixed;
+  left: 20px;
+  bottom: 14px;
+  font-size: 12px;
+  color: rgba(237,237,237,0.45);
+}
+
+/* ================= RESPONSIVO TV MENOR ================= */
+@media (max-width: 1200px) {
+  .grid-kpis {
+    grid-template-columns: repeat(2, minmax(240px, 1fr));
+  }
 }
