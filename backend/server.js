@@ -1,5 +1,4 @@
-JavaScript
-Copiar código
+
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
