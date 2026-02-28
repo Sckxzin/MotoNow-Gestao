@@ -1,3 +1,5 @@
+
+/* eslint-disable no-unused-vars */
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api";
@@ -5,9 +7,18 @@ import "./DashboardAuto.css";
 
 import {
   ResponsiveContainer,
-  BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid,
-  LineChart, Line,
-  PieChart, Pie, Legend
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+  LineChart,
+  Line,
+  PieChart,
+  Pie,
+  Legend,
+  LabelList,
 } from "recharts";
 
 /* ================= HELPERS ================= */
@@ -25,20 +36,28 @@ function formatDateBR(d) {
   return new Date(d).toLocaleDateString("pt-BR");
 }
 
-function startOfDay(d) {
+function startOfDay(d = new Date()) {
   const x = new Date(d);
   x.setHours(0, 0, 0, 0);
   return x;
 }
 
-function addDays(d, days) {
+function addDays(d, n) {
   const x = new Date(d);
-  x.setDate(x.getDate() + days);
+  x.setDate(x.getDate() + n);
   return x;
 }
 
-function isBetween(date, start, end) {
-  return date >= start && date <= end;
+function startOfWeekMonday(d) {
+  const x = startOfDay(d);
+  const day = x.getDay(); // 0 dom, 1 seg...
+  const diff = (day === 0 ? -6 : 1) - day; // volta pra segunda
+  return addDays(x, diff);
+}
+
+function startOfMonth(d) {
+  const x = startOfDay(d);
+  return new Date(x.getFullYear(), x.getMonth(), 1);
 }
 
 /* ================= LÓGICA LÍQUIDO (SEU JEITO) ================= */
@@ -71,16 +90,18 @@ export default function DashboardAuto() {
   // Slides
   const [slide, setSlide] = useState(0);
   const [autoPlay, setAutoPlay] = useState(true);
-  const intervalMs = 7000;
+  const intervalMs = 7000; // 7s por slide
   const timerRef = useRef(null);
 
   useEffect(() => {
-    api.get("/vendas-motos")
-      .then(res => setVendasMotos(res.data || []))
+    api
+      .get("/vendas-motos")
+      .then((res) => setVendasMotos(res.data || []))
       .catch(() => setVendasMotos([]));
 
-    api.get("/vendas")
-      .then(res => setVendasPecas(res.data || []))
+    api
+      .get("/vendas")
+      .then((res) => setVendasPecas(res.data || []))
       .catch(() => setVendasPecas([]));
   }, []);
 
@@ -121,10 +142,11 @@ export default function DashboardAuto() {
 
   /* ================= FILTRAGEM ================= */
   const motosFiltradas = useMemo(() => {
-    return (vendasMotos || []).filter(v => {
+    return (vendasMotos || []).filter((v) => {
       const dataVenda = new Date(v.created_at);
+
       const okData =
-        (!dataInicio || dataVenda >= new Date(dataInicio)) &&
+        (!dataInicio || dataVenda >= new Date(`${dataInicio}T00:00:00`)) &&
         (!dataFim || dataVenda <= new Date(`${dataFim}T23:59:59`));
 
       const emp = getEmpresa(v);
@@ -135,16 +157,16 @@ export default function DashboardAuto() {
   }, [vendasMotos, dataInicio, dataFim, empresaFiltro]);
 
   const pecasFiltradas = useMemo(() => {
-    return (vendasPecas || []).filter(v => {
+    return (vendasPecas || []).filter((v) => {
       const dataVenda = new Date(v.created_at);
       const okData =
-        (!dataInicio || dataVenda >= new Date(dataInicio)) &&
+        (!dataInicio || dataVenda >= new Date(`${dataInicio}T00:00:00`)) &&
         (!dataFim || dataVenda <= new Date(`${dataFim}T23:59:59`));
       return okData;
     });
   }, [vendasPecas, dataInicio, dataFim]);
 
-  /* ================= KPIs BASE ================= */
+  /* ================= KPIs ================= */
   const kpis = useMemo(() => {
     const faturamentoMotos = motosFiltradas.reduce((acc, v) => acc + toNumber(v.valor), 0);
     const liquidoMotos = motosFiltradas.reduce((acc, v) => acc + calcLiquidoMoto(v), 0);
@@ -160,7 +182,7 @@ export default function DashboardAuto() {
       qtdMotos,
       faturamentoPecas,
       qtdVendasPecas,
-      ticketMedioPecas
+      ticketMedioPecas,
     };
   }, [motosFiltradas, pecasFiltradas]);
 
@@ -169,7 +191,7 @@ export default function DashboardAuto() {
   // 1) Vendas por dia (motos)
   const motosPorDia = useMemo(() => {
     const map = new Map();
-    motosFiltradas.forEach(v => {
+    motosFiltradas.forEach((v) => {
       const key = formatDateBR(v.created_at);
       map.set(key, (map.get(key) || 0) + 1);
     });
@@ -183,116 +205,124 @@ export default function DashboardAuto() {
       });
   }, [motosFiltradas]);
 
-  // 2) Top modelos (motos)
+  // 2) Top 10 modelos (motos)
   const topModelos = useMemo(() => {
     const map = new Map();
-    motosFiltradas.forEach(v => {
+    motosFiltradas.forEach((v) => {
       const key = (v.modelo || "SEM MODELO").toUpperCase();
       map.set(key, (map.get(key) || 0) + 1);
     });
+
     return Array.from(map.entries())
       .map(([modelo, total]) => ({ modelo, total }))
       .sort((a, b) => b.total - a.total)
       .slice(0, 10);
   }, [motosFiltradas]);
 
-  // 3) Vendas por cidade (usa filial_venda; se não tiver, cai em filial_origem)
+  // 3) Vendas por cidade (motos) -> usa filial_venda (se não tiver, cai em filial_origem/filial)
   const vendasPorCidade = useMemo(() => {
     const map = new Map();
-    motosFiltradas.forEach(v => {
-      const cidade = (v.filial_venda || v.filial_origem || "N/I").toUpperCase();
+    motosFiltradas.forEach((v) => {
+      const cidade = (v.filial_venda || v.filial_origem || v.filial || "N/I").toUpperCase();
       map.set(cidade, (map.get(cidade) || 0) + 1);
     });
+
     return Array.from(map.entries())
       .map(([cidade, total]) => ({ cidade, total }))
       .sort((a, b) => b.total - a.total);
   }, [motosFiltradas]);
 
-  // 4) Acumulado últimos 7 dias (sempre relativo a HOJE, independe do filtro de data)
-  const acumulado7Dias = useMemo(() => {
-    const hoje = startOfDay(new Date());
-    const inicio = addDays(hoje, -6); // 7 dias incluindo hoje
+  // 4) Vendas acumuladas últimos 7 dias (janela móvel) — desde 07/01/2026 (igual seu print)
+  const rolling7Dias = useMemo(() => {
+    const start = new Date("2026-01-07T00:00:00");
+    const end = new Date();
 
-    // cria os 7 dias zerados
-    const dias = [];
-    for (let i = 0; i < 7; i++) {
-      const d = addDays(inicio, i);
-      dias.push({
-        date: d,
-        dia: d.toLocaleDateString("pt-BR"),
-        vendas: 0,
-        acumulado: 0
-      });
+    const startDay = startOfDay(start);
+    const endDay = startOfDay(end);
+
+    // vendas por dia (data -> quantidade)
+    const porDia = new Map();
+    motosFiltradas.forEach((v) => {
+      const day = startOfDay(new Date(v.created_at)).getTime();
+      porDia.set(day, (porDia.get(day) || 0) + 1);
+    });
+
+    const days = [];
+    for (let d = new Date(startDay); d <= endDay; d = addDays(d, 1)) {
+      days.push(startOfDay(d));
     }
 
-    const filtradas = (vendasMotos || []).filter(v => {
-      const d = startOfDay(new Date(v.created_at));
-      const okJanela = isBetween(d, inicio, hoje);
-      const emp = getEmpresa(v);
-      const okEmpresa = empresaFiltro === "TODAS" || emp === empresaFiltro;
-      return okJanela && okEmpresa;
+    return days.map((day) => {
+      let total7d = 0;
+      for (let i = 0; i < 7; i++) {
+        const w = addDays(day, -i).getTime();
+        total7d += porDia.get(w) || 0;
+      }
+
+      const label = day.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
+      return { dia: label, total7d };
+    });
+  }, [motosFiltradas]);
+
+  // 5) Líquido semanal (motos)
+  const liquidoSemanal = useMemo(() => {
+    const map = new Map(); // key: mondayTime -> total
+    motosFiltradas.forEach((v) => {
+      const d = new Date(v.created_at);
+      const monday = startOfWeekMonday(d).getTime();
+      map.set(monday, (map.get(monday) || 0) + calcLiquidoMoto(v));
     });
 
-    filtradas.forEach(v => {
-      const d = startOfDay(new Date(v.created_at));
-      const idx = Math.floor((d - inicio) / (24 * 60 * 60 * 1000));
-      if (idx >= 0 && idx < 7) dias[idx].vendas += 1;
+    return Array.from(map.entries())
+      .map(([mondayTime, total]) => {
+        const monday = new Date(Number(mondayTime));
+        const label = monday.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
+        return { semana: label, total: Math.round(total * 100) / 100 };
+      })
+      .sort((a, b) => {
+        // ordena por mondayTime de forma segura
+        const parse = (s) => {
+          const [d, m] = s.split("/").map(Number);
+          // ano não vem no label -> aproxima com ano atual; serve para TV
+          const year = new Date().getFullYear();
+          return new Date(year, m - 1, d).getTime();
+        };
+        return parse(a.semana) - parse(b.semana);
+      });
+  }, [motosFiltradas]);
+
+  // 6) Líquido mensal (motos)
+  const liquidoMensal = useMemo(() => {
+    const map = new Map(); // key: YYYY-MM -> total
+    motosFiltradas.forEach((v) => {
+      const d = new Date(v.created_at);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+      map.set(key, (map.get(key) || 0) + calcLiquidoMoto(v));
     });
 
-    let acc = 0;
-    dias.forEach(row => {
-      acc += row.vendas;
-      row.acumulado = acc;
-    });
-
-    return dias.map(({ dia, vendas, acumulado }) => ({ dia, vendas, acumulado }));
-  }, [vendasMotos, empresaFiltro]);
-
-  // 5) Líquido semanal e mensal (sempre relativo a HOJE, independe do filtro de data)
-  const liquidoSemanalMensal = useMemo(() => {
-    const hoje = startOfDay(new Date());
-
-    const inicioSemana = addDays(hoje, -6); // últimos 7 dias
-    const inicioMes = addDays(hoje, -29);   // últimos 30 dias
-
-    const base = (vendasMotos || []).filter(v => {
-      const emp = getEmpresa(v);
-      return empresaFiltro === "TODAS" || emp === empresaFiltro;
-    });
-
-    let liquido7 = 0;
-    let liquido30 = 0;
-
-    base.forEach(v => {
-      const d = startOfDay(new Date(v.created_at));
-      const liq = calcLiquidoMoto(v);
-
-      if (isBetween(d, inicioSemana, hoje)) liquido7 += liq;
-      if (isBetween(d, inicioMes, hoje)) liquido30 += liq;
-    });
-
-    return {
-      liquido7,
-      liquido30
-    };
-  }, [vendasMotos, empresaFiltro]);
+    return Array.from(map.entries())
+      .map(([mes, total]) => ({ mes, total: Math.round(total * 100) / 100 }))
+      .sort((a, b) => a.mes.localeCompare(b.mes));
+  }, [motosFiltradas]);
 
   /* ================= SLIDES ================= */
   const slides = useMemo(() => {
     return [
+      { id: "kpis", title: "Resumo Geral" },
       { id: "motos_dia", title: "Vendas de Motos por Dia" },
-      { id: "liq_sem_mes", title: "Líquido Semanal e Mensal" },
-      { id: "top_modelos", title: "Top 10 Modelos Mais Vendidos" },
-      { id: "acum_7d", title: "Vendas Acumuladas (Últimos 7 dias)" },
-      { id: "cidade", title: "Vendas por Cidade" },
+      { id: "rolling7", title: "Vendas (Últimos 7 dias — Janela Móvel)" },
+      { id: "liq_sem", title: "Líquido Semanal (Motos)" },
+      { id: "liq_mes", title: "Líquido Mensal (Motos)" },
+      { id: "top_modelos", title: "Top 10 Modelos (Motos)" },
+      { id: "cidade", title: "Vendas por Cidade (Motos)" },
     ];
   }, []);
 
   function nextSlide() {
-    setSlide(s => (s + 1) % slides.length);
+    setSlide((s) => (s + 1) % slides.length);
   }
   function prevSlide() {
-    setSlide(s => (s - 1 + slides.length) % slides.length);
+    setSlide((s) => (s - 1 + slides.length) % slides.length);
   }
 
   useEffect(() => {
@@ -312,7 +342,7 @@ export default function DashboardAuto() {
     function onKey(e) {
       if (e.key === "ArrowRight") nextSlide();
       if (e.key === "ArrowLeft") prevSlide();
-      if (e.key.toLowerCase() === " ") setAutoPlay(a => !a);
+      if (e.key.toLowerCase() === " ") setAutoPlay((a) => !a);
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -331,23 +361,21 @@ export default function DashboardAuto() {
         <div className="dash-actions">
           <button onClick={() => nav("/home")}>⬅ Voltar</button>
           <button onClick={prevSlide}>◀</button>
-          <button onClick={() => setAutoPlay(a => !a)}>
-            {autoPlay ? "⏸ Pausar" : "▶ Play"}
-          </button>
+          <button onClick={() => setAutoPlay((a) => !a)}>{autoPlay ? "⏸ Pausar" : "▶ Play"}</button>
           <button onClick={nextSlide}>▶</button>
         </div>
       </div>
 
       {/* FILTROS */}
       <div className="dash-filtros">
-        <select value={empresaFiltro} onChange={e => setEmpresaFiltro(e.target.value)}>
+        <select value={empresaFiltro} onChange={(e) => setEmpresaFiltro(e.target.value)}>
           <option value="TODAS">Todas Empresas</option>
           <option value="EMENEZES">Emenezes</option>
           <option value="MOTONOW">MotoNow</option>
         </select>
 
-        <input type="date" value={dataInicio} onChange={e => setDataInicio(e.target.value)} />
-        <input type="date" value={dataFim} onChange={e => setDataFim(e.target.value)} />
+        <input type="date" value={dataInicio} onChange={(e) => setDataInicio(e.target.value)} />
+        <input type="date" value={dataFim} onChange={(e) => setDataFim(e.target.value)} />
 
         <div className="dash-quick">
           <button onClick={aplicarHoje}>Hoje</button>
@@ -372,8 +400,19 @@ export default function DashboardAuto() {
 
       {/* SLIDE CONTENT */}
       <div className="dash-slide">
+        {slides[slide]?.id === "kpis" && (
+          <div className="grid-kpis">
+            <KpiCard title="Faturamento Motos" value={formatBRL(kpis.faturamentoMotos)} />
+            <KpiCard title="Líquido Motos" value={formatBRL(kpis.liquidoMotos)} />
+            <KpiCard title="Motos vendidas" value={kpis.qtdMotos} />
+            <KpiCard title="Faturamento Peças" value={formatBRL(kpis.faturamentoPecas)} />
+            <KpiCard title="Vendas Peças" value={kpis.qtdVendasPecas} />
+            <KpiCard title="Ticket Médio Peças" value={formatBRL(kpis.ticketMedioPecas)} />
+          </div>
+        )}
+
         {slides[slide]?.id === "motos_dia" && (
-          <Panel title="Vendas de motos por dia (filtros aplicados)">
+          <Panel title="Vendas de motos por dia">
             <ResponsiveContainer width="100%" height={420}>
               <BarChart data={motosPorDia}>
                 <CartesianGrid strokeDasharray="3 3" />
@@ -386,70 +425,85 @@ export default function DashboardAuto() {
           </Panel>
         )}
 
-        {slides[slide]?.id === "liq_sem_mes" && (
-          <div className="grid-2">
-            <Panel title="Líquido (Últimos 7 dias)">
-              <div style={{ padding: 16 }}>
-                <div style={{ fontSize: 44, fontWeight: 800 }}>
-                  {formatBRL(liquidoSemanalMensal.liquido7)}
-                </div>
-                <div style={{ opacity: 0.8, marginTop: 6 }}>
-                  Janela: últimos 7 dias (inclui hoje)
-                </div>
-              </div>
-            </Panel>
+        {slides[slide]?.id === "rolling7" && (
+          <Panel title="Vendas acumuladas nos últimos 7 dias (janela móvel) — desde 07/01/2026">
+            <ResponsiveContainer width="100%" height={460}>
+              <BarChart data={rolling7Dias}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis
+                  dataKey="dia"
+                  interval={0}
+                  angle={-45}
+                  textAnchor="end"
+                  height={90}
+                />
+                <YAxis allowDecimals={false} />
+                <Tooltip />
+                <Bar dataKey="total7d">
+                  <LabelList dataKey="total7d" position="top" />
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </Panel>
+        )}
 
-            <Panel title="Líquido (Últimos 30 dias)">
-              <div style={{ padding: 16 }}>
-                <div style={{ fontSize: 44, fontWeight: 800 }}>
-                  {formatBRL(liquidoSemanalMensal.liquido30)}
-                </div>
-                <div style={{ opacity: 0.8, marginTop: 6 }}>
-                  Janela: últimos 30 dias (inclui hoje)
-                </div>
-              </div>
-            </Panel>
-          </div>
+        {slides[slide]?.id === "liq_sem" && (
+          <Panel title="Líquido semanal (motos)">
+            <ResponsiveContainer width="100%" height={420}>
+              <LineChart data={liquidoSemanal}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="semana" />
+                <YAxis />
+                <Tooltip formatter={(v) => formatBRL(v)} />
+                <Line type="monotone" dataKey="total" dot={false} />
+              </LineChart>
+            </ResponsiveContainer>
+          </Panel>
+        )}
+
+        {slides[slide]?.id === "liq_mes" && (
+          <Panel title="Líquido mensal (motos)">
+            <ResponsiveContainer width="100%" height={420}>
+              <BarChart data={liquidoMensal}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="mes" />
+                <YAxis />
+                <Tooltip formatter={(v) => formatBRL(v)} />
+                <Bar dataKey="total">
+                  <LabelList dataKey="total" position="top" />
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </Panel>
         )}
 
         {slides[slide]?.id === "top_modelos" && (
-          <Panel title="Top 10 modelos mais vendidos (filtros aplicados)">
+          <Panel title="Top 10 modelos mais vendidos">
             <ResponsiveContainer width="100%" height={420}>
               <BarChart data={topModelos} layout="vertical">
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis type="number" allowDecimals={false} />
                 <YAxis type="category" dataKey="modelo" width={160} />
                 <Tooltip />
-                <Bar dataKey="total" />
+                <Bar dataKey="total">
+                  <LabelList dataKey="total" position="right" />
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
           </Panel>
         )}
 
-        {slides[slide]?.id === "acum_7d" && (
-          <Panel title="Vendas acumuladas (últimos 7 dias)">
-            <ResponsiveContainer width="100%" height={420}>
-              <LineChart data={acumulado7Dias}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="dia" />
-                <YAxis allowDecimals={false} />
-                <Tooltip />
-                <Line type="monotone" dataKey="acumulado" dot={false} />
-                <Line type="monotone" dataKey="vendas" dot={false} />
-              </LineChart>
-            </ResponsiveContainer>
-          </Panel>
-        )}
-
         {slides[slide]?.id === "cidade" && (
-          <Panel title="Vendas por cidade (filtros aplicados)">
+          <Panel title="Vendas por cidade (motos)">
             <ResponsiveContainer width="100%" height={420}>
-              <BarChart data={vendasPorCidade}>
+              <BarChart data={vendasPorCidade} layout="vertical">
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="cidade" interval={0} angle={-15} textAnchor="end" height={80} />
-                <YAxis allowDecimals={false} />
+                <XAxis type="number" allowDecimals={false} />
+                <YAxis type="category" dataKey="cidade" width={170} />
                 <Tooltip />
-                <Bar dataKey="total" />
+                <Bar dataKey="total">
+                  <LabelList dataKey="total" position="right" />
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
           </Panel>
@@ -464,6 +518,15 @@ export default function DashboardAuto() {
 }
 
 /* ================= COMPONENTES VISUAIS ================= */
+function KpiCard({ title, value }) {
+  return (
+    <div className="kpi">
+      <div className="kpi-title">{title}</div>
+      <div className="kpi-value">{value}</div>
+    </div>
+  );
+}
+
 function Panel({ title, children }) {
   return (
     <div className="panel">
