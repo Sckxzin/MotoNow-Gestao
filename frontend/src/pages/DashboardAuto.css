@@ -1,243 +1,173 @@
-/* ================= RESET / TV ================= */
-html, body, #root {
-  height: 100%;
-  width: 100%;
-  margin: 0;
-  background: #050607;
-  overflow: hidden; /* TV: sem scroll */
-  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-}
+/* DashboardAuto.css */
+/* IMPORTANTÍSSIMO:
+   NÃO pode ter body / html / * / button / input / select sem prefixo .dash-auto
+   Este arquivo é totalmente escopado para NÃO quebrar o resto do site.
+*/
 
 .dash-auto {
-  height: 100vh;
   width: 100vw;
-  background: radial-gradient(1200px 600px at 30% 10%, rgba(255,255,255,0.04), transparent 55%),
-              radial-gradient(900px 500px at 85% 20%, rgba(255,255,255,0.03), transparent 55%),
-              linear-gradient(180deg, #060708 0%, #050607 100%);
-  color: #EDEDED;
-  padding: 28px 34px;
+  height: 100vh;
+  overflow: hidden;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+}
+
+/* tudo dentro do dashboard */
+.dash-auto * {
   box-sizing: border-box;
 }
 
-/* ================= TOPBAR ================= */
-.dash-topbar {
+/* Topbar */
+.dash-auto .dash-topbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 18px;
-  margin-bottom: 18px;
+  gap: 14px;
 }
 
-.dash-title h2 {
-  margin: 0;
-  font-size: 30px;
-  font-weight: 700;
-  letter-spacing: 0.4px;
-}
-
-.dash-title small {
+.dash-auto .dash-title small {
   display: inline-block;
-  margin-top: 6px;
-  font-size: 14px;
-  color: rgba(237,237,237,0.6);
+  margin-top: 4px;
 }
 
-/* ================= ACTIONS ================= */
-.dash-actions {
+/* Actions */
+.dash-auto .dash-actions {
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
-.dash-actions button {
-  background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.12);
-  color: rgba(237,237,237,0.92);
-  padding: 10px 14px;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: 160ms ease;
-  font-weight: 600;
-  letter-spacing: 0.2px;
+/* Filtros */
+.dash-auto .dash-filtros {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
-.dash-actions button:hover {
+/* Quick buttons */
+.dash-auto .dash-quick {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* Dots */
+.dash-auto .dash-dots {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dash-auto .dot {
+  width: 10px;
+  height: 10px;
+  padding: 0;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.18);
   background: rgba(255,255,255,0.10);
-  border-color: rgba(255,255,255,0.18);
-  transform: translateY(-1px);
+  cursor: pointer;
+  transition: transform 120ms ease, background 120ms ease, border 120ms ease;
 }
 
-/* botão “primário” discreto */
-.dash-actions button.primary {
-  background: rgba(255,255,255,0.12);
-  border-color: rgba(255,255,255,0.22);
-}
-
-.dash-actions button.primary:hover {
+.dash-auto .dot:hover {
+  transform: scale(1.1);
   background: rgba(255,255,255,0.16);
 }
 
-/* ================= FILTROS ================= */
-.dash-filtros {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+.dash-auto .dot.active {
+  background: rgba(255,255,255,0.85);
+  border-color: rgba(255,255,255,0.35);
+}
+
+/* Slide area */
+.dash-auto .dash-slide {
+  width: 100%;
+}
+
+/* KPI grid */
+.dash-auto .grid-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
-  flex-wrap: wrap;
-  margin-bottom: 12px;
+  height: 100%;
 }
 
-.dash-filtros select,
-.dash-filtros input[type="date"] {
-  background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.12);
-  color: rgba(237,237,237,0.9);
-  padding: 10px 12px;
-  border-radius: 10px;
-  outline: none;
+/* layout para telas menores */
+@media (max-width: 1200px) {
+  .dash-auto .grid-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
-.dash-filtros select:focus,
-.dash-filtros input[type="date"]:focus {
-  border-color: rgba(255,255,255,0.22);
-}
-
-.dash-quick {
-  display: flex;
-  gap: 10px;
-}
-
-.dash-quick button {
-  background: rgba(255,255,255,0.08);
-  border: 1px solid rgba(255,255,255,0.12);
-  color: rgba(237,237,237,0.9);
-  padding: 10px 12px;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: 160ms ease;
+/* Hint footer */
+.dash-auto .dash-hint b {
   font-weight: 700;
 }
 
-.dash-quick button:hover {
-  background: rgba(255,255,255,0.12);
+/* ======= CONTROLES (SEM VAZAR) ======= */
+.dash-auto button {
+  appearance: none;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.06);
+  color: rgba(255,255,255,0.92);
+  border-radius: 12px;
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: background 120ms ease, border 120ms ease, transform 120ms ease;
+}
+
+.dash-auto button:hover {
+  background: rgba(255,255,255,0.10);
   border-color: rgba(255,255,255,0.18);
 }
 
-/* ================= DOTS ================= */
-.dash-dots {
-  display: flex;
-  justify-content: center;
-  gap: 8px;
-  margin: 10px 0 14px;
+.dash-auto button:active {
+  transform: translateY(1px);
 }
 
-.dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 999px;
-  border: none;
-  background: rgba(255,255,255,0.18);
+.dash-auto select,
+.dash-auto input[type="date"] {
+  appearance: none;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.06);
+  color: rgba(255,255,255,0.92);
+  border-radius: 12px;
+  padding: 10px 12px;
+  outline: none;
+}
+
+.dash-auto select:focus,
+.dash-auto input[type="date"]:focus {
+  border-color: rgba(140,180,255,0.45);
+  box-shadow: 0 0 0 3px rgba(120,160,255,0.12);
+}
+
+/* Ajuste do calendário (Chrome/Edge) */
+.dash-auto input[type="date"]::-webkit-calendar-picker-indicator {
+  opacity: 0.75;
+  filter: invert(1);
   cursor: pointer;
-  transition: 160ms ease;
 }
 
-.dot.active {
-  width: 24px;
-  background: rgba(255,255,255,0.55);
+/* ======= “Empresa grande”: tipografia + espaçamento ======= */
+.dash-auto h2 {
+  line-height: 1.1;
 }
 
-/* ================= SLIDE AREA ================= */
-.dash-slide {
-  height: calc(100vh - 28px - 34px - 18px - 12px - 14px - 110px);
-  /* ↑ ajusta a “área do slide” ocupando o resto da tela (TV) */
-  min-height: 520px;
+.dash-auto .panel-title {
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
 }
 
-/* ================= KPI GRID ================= */
-.grid-kpis {
-  height: 100%;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(260px, 1fr));
-  grid-auto-rows: 1fr;
-  gap: 16px;
+/* ======= RECHARTS: tirar “grade pesada” e deixar suave =======
+   (você já colocou gridSoft no JSX, aqui só reforça visual geral)
+*/
+.dash-auto .recharts-tooltip-wrapper {
+  outline: none;
 }
 
-/* KPI card */
-.kpi {
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.10);
-  border-radius: 18px;
-  padding: 22px;
-  box-sizing: border-box;
-  position: relative;
-  overflow: hidden;
-}
-
-.kpi::after {
-  content: "";
-  position: absolute;
-  inset: -1px;
-  background: radial-gradient(500px 160px at 20% 0%, rgba(255,255,255,0.10), transparent 60%);
-  pointer-events: none;
-}
-
-.kpi-title {
-  font-size: 14px;
-  color: rgba(237,237,237,0.65);
-  font-weight: 600;
-  letter-spacing: 0.2px;
-  margin-bottom: 10px;
-}
-
-.kpi-value {
-  font-size: 36px;
-  font-weight: 800;
-  letter-spacing: 0.3px;
-  color: rgba(255,255,255,0.93);
-}
-
-/* ================= PANELS ================= */
-.panel {
-  height: 100%;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.10);
-  border-radius: 18px;
-  padding: 18px 18px 12px;
-  box-sizing: border-box;
-}
-
-.panel-title {
-  font-size: 18px;
-  font-weight: 800;
-  color: rgba(255,255,255,0.85);
-  letter-spacing: 0.2px;
-  margin-bottom: 10px;
-}
-
-.panel-body {
-  height: calc(100% - 34px);
-}
-
-/* ================= GRID 2 ================= */
-.grid-2 {
-  height: 100%;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-}
-
-/* ================= HINT ================= */
-.dash-hint {
-  position: fixed;
-  left: 20px;
-  bottom: 14px;
-  font-size: 12px;
-  color: rgba(237,237,237,0.45);
-}
-
-/* ================= RESPONSIVO TV MENOR ================= */
-@media (max-width: 1200px) {
-  .grid-kpis {
-    grid-template-columns: repeat(2, minmax(240px, 1fr));
-  }
+/* ======= opcional: esconder scroll se algum navegador tentar ======= */
+.dash-auto::-webkit-scrollbar {
+  width: 0px;
+  height: 0px;
 }
