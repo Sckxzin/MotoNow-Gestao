@@ -40,16 +40,9 @@ app.get("/health", (req, res) => {
 });
 
 /* ================= REGRA REPASSE SANTANDER POR FILIAL + MODELO ================= */
-const REPASSE_SANTANDER_POR_MODELO = {
-  "JET 125ss": 8900,      // <-- coloque os valores reais
-  "SHI 175 EFI": 14900,
-  "STORM 200": 19199,
-  "JEF 150": 12200,
-  "JET 50": 8500,
-};
 
-// normaliza pra evitar erro por acento / espaço / maiúsculo
-function normFilial(s) {
+// normaliza texto genérico
+function normText(s) {
   return String(s || "")
     .toUpperCase()
     .normalize("NFD")
@@ -57,14 +50,32 @@ function normFilial(s) {
     .trim();
 }
 
+// normaliza modelo para chave (remove espaços e caracteres)
+function normModeloKey(s) {
+  return normText(s).replace(/[^A-Z0-9]/g, ""); // só letras/números
+}
+
+// 🔥 MAP com chaves normalizadas
+const REPASSE_SANTANDER_POR_MODELO = {
+  [normModeloKey("JET 125 SS")]: 8900,
+  [normModeloKey("SHI 175 EFI")]: 14900,
+  [normModeloKey("STORM 200")]: 19199,
+  [normModeloKey("JEF 150")]: 12200,
+  [normModeloKey("JET 50")]: 8500,
+};
+
+function repasseSantanderPorModelo(modelo) {
+  return REPASSE_SANTANDER_POR_MODELO[normModeloKey(modelo)];
+}
+
+// normaliza filial (mantém tua regra)
+function normFilial(s) {
+  return normText(s);
+}
+
 function isFilialRepasseSantanderObrigatorio(filial) {
   const f = normFilial(filial);
-  return (
-    f === "SAO JOSE" ||
-    f === "MARAGOGI" ||
-    f === "CATENDE" ||
-    f === "XEXEU"
-  );
+  return f === "SAO JOSE" || f === "MARAGOGI" || f === "CATENDE" || f === "XEXEU";
 }
 
 function repasseSantanderPorModelo(modelo) {
