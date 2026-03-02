@@ -1,5 +1,4 @@
-
- /* eslint-disable no-unused-vars */
+/* eslint-disable no-unused-vars */
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api";
@@ -7,24 +6,42 @@ import "./Home.css";
 
 /* ================= CONFIG MODELOS (CADASTRO MOTO) ================= */
 const MODELOS_MOTOS = [
-  { modelo: "JET 125ss", compra_motonow: 8390, compra_santander: 8900, santanderDefault: false },
+  { modelo: "JET 125 SS", compra_motonow: 9390, compra_santander: 8900, santanderDefault: false },
   { modelo: "SHI 175 EFI", compra_motonow: 11790, compra_santander: 12900, santanderDefault: true },
   { modelo: "STORM 200", compra_motonow: 17990, compra_santander: 19100, santanderDefault: true },
   { modelo: "JEF 150", compra_motonow: 11090, compra_santander: 12200, santanderDefault: true },
   { modelo: "JET 50", compra_motonow: 7790, compra_santander: 8500, santanderDefault: true },
 ];
 
-/* ================= REGRA REPASSE AUTOMÁTICO (FRONT UX) ================= */
-function norm(s) {
+/* ================= REGRA: REPASSE OBRIGATÓRIO EM FILIAIS ================= */
+const FILIAIS_REPASSE_OBRIGATORIO = ["SAO JOSE", "MARAGOGI", "CATENDE", "XEXEU"];
+
+function normText(s) {
   return String(s || "")
     .toUpperCase()
     .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[\u0300-\u036f]/g, "") // remove acentos
     .trim();
 }
-function repasseObrigatorioFilial(filial) {
-  const f = norm(filial);
-  return f === "SAO JOSE" || f === "MARAGOGI" || f === "CATENDE" || f === "XEXEU";
+
+function normModeloKey(s) {
+  return normText(s).replace(/[^A-Z0-9]/g, "");
+}
+
+const REPASSE_SANTANDER_POR_MODELO = {
+  [normModeloKey("JET 125 SS")]: 8900,
+  [normModeloKey("SHI 175 EFI")]: 14900,
+  [normModeloKey("STORM 200")]: 19199,
+  [normModeloKey("JEF 150")]: 12200,
+  [normModeloKey("JET 50")]: 8500,
+};
+
+function isRepasseObrigatorio(filial) {
+  return FILIAIS_REPASSE_OBRIGATORIO.includes(normText(filial));
+}
+
+function repassePorModelo(modelo) {
+  return REPASSE_SANTANDER_POR_MODELO[normModeloKey(modelo)];
 }
 
 export default function Home() {
@@ -100,10 +117,12 @@ export default function Home() {
 
     setUser(data);
 
-    api.get("/pecas", { params: { role: data.role, cidade: data.cidade } })
-      .then((res) => setPecas(res.data || []));
+    api
+      .get("/pecas", { params: { role: data.role, cidade: data.cidade } })
+      .then((res) => setPecas(res.data || []))
+      .catch(() => setPecas([]));
 
-    api.get("/motos").then((res) => setMotos(res.data || []));
+    api.get("/motos").then((res) => setMotos(res.data || [])).catch(() => setMotos([]));
   }, [nav]);
 
   /* ================= HELPERS ================= */
@@ -132,7 +151,10 @@ export default function Home() {
   ).sort();
 
   function exportarCSV(nomeArquivo, headers, dados) {
-    const csv = [headers.join(";"), ...dados.map((row) => headers.map((h) => `"${row[h] ?? ""}"`).join(";"))].join("\n");
+    const csv = [headers.join(";"), ...dados.map((row) => headers.map((h) => `"${row[h] ?? ""}"`).join(";"))].join(
+      "\n"
+    );
+
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
@@ -172,6 +194,7 @@ export default function Home() {
     setNumeroCliente("");
   }
 
+  // ✅ Solicitação (PENDENTE_APROVACAO)
   async function confirmarVendaMoto() {
     if (!clienteNome || !valorMoto || !filialVenda || !numeroCliente) {
       alert("Preencha cliente, valor, filial e número do cliente");
@@ -225,8 +248,7 @@ export default function Home() {
     setFilialPeca("");
     alert("Peça cadastrada com sucesso!");
 
-    api.get("/pecas", { params: { role: user.role, cidade: user.cidade } })
-      .then((res) => setPecas(res.data || []));
+    api.get("/pecas", { params: { role: user.role, cidade: user.cidade } }).then((res) => setPecas(res.data || []));
   }
 
   if (!user) return null;
@@ -244,9 +266,7 @@ export default function Home() {
       filial_destino: filialDestinoMoto,
     });
 
-    setMotos((prev) =>
-      prev.map((m) => (m.id === motoTransferir.id ? { ...m, filial: filialDestinoMoto } : m))
-    );
+    setMotos((prev) => prev.map((m) => (m.id === motoTransferir.id ? { ...m, filial: filialDestinoMoto } : m)));
 
     setMotoTransferir(null);
     setFilialDestinoMoto("");
@@ -265,6 +285,7 @@ export default function Home() {
       alert("Preencha quantidade e filial destino");
       return;
     }
+
     if (Number(quantidadeTransferir) <= 0) {
       alert("Quantidade inválida");
       return;
@@ -287,26 +308,36 @@ export default function Home() {
 
   /* ================= CADASTRAR MOTO ================= */
   async function cadastrarMoto() {
-    // ✅ repasse NÃO é obrigatório (backend faz automático em certas filiais)
+    // ✅ repasse NÃO é mais obrigatório no front (porque pode ser automático)
     if (!modeloMoto || !corMoto || !chassiMoto || !anoMoto || !valorCompra || !filialMoto || !cnpjEmpresa) {
       alert("Preencha todos os campos obrigatórios");
       return;
     }
 
-    const payload = {
+    // ✅ se filial exigir repasse, calcula automático
+    let repasseFinal = repasse ? Number(repasse) : null;
+    if (isRepasseObrigatorio(filialMoto)) {
+      const r = repassePorModelo(modeloMoto);
+      if (typeof r !== "number") {
+        alert(`Repasse não configurado para o modelo: ${modeloMoto}`);
+        return;
+      }
+      repasseFinal = r;
+      setRepasse(String(r));
+    }
+
+    await api.post("/motos", {
       modelo: modeloMoto,
       cor: corMoto,
       chassi: chassiMoto,
       ano_moto: Number(anoMoto),
       valor_compra: Number(valorCompra),
+      repasse: repasseFinal,
       filial: filialMoto,
       cnpj_empresa: cnpjEmpresa,
       santander: santanderMoto,
-      // repasse só manda se NÃO for filial automática
-      repasse: repasseObrigatorioFilial(filialMoto) ? null : (repasse ? Number(repasse) : null),
-    };
-
-    await api.post("/motos", payload);
+      status: "DISPONIVEL",
+    });
 
     setModalCadastrarMoto(false);
 
@@ -327,24 +358,61 @@ export default function Home() {
   /* ================= JSX ================= */
   return (
     <div className="home-container">
+      {/* HEADER */}
       <div className="home-header">
-        <h2>MotoNow <span>Gestão</span></h2>
-        <span className="user-role">{user.role} • {user.cidade}</span>
-        <button className="btn-sair" onClick={sair}>Sair</button>
+        <h2>
+          MotoNow <span>Gestão</span>
+        </h2>
+        <span className="user-role">
+          {user.role} • {user.cidade}
+        </span>
+        <button className="btn-sair" onClick={sair}>
+          Sair
+        </button>
       </div>
 
+      {/* TABS */}
       <div className="tabs">
-        <button className="tab-btn" onClick={() => setTab("pecas")}>📦 Peças</button>
-        <button className="tab-btn" onClick={() => setTab("motos")}>🏍 Motos</button>
+        <button className="tab-btn" onClick={() => setTab("pecas")}>
+          📦 Peças
+        </button>
+        <button className="tab-btn" onClick={() => setTab("motos")}>
+          🏍 Motos
+        </button>
 
-        {user.role === "DIRETORIA" && <button className="tab-btn" onClick={() => nav("/vendas")}>🧾 Vendas</button>}
-        {user.role === "DIRETORIA" && <button className="tab-btn" onClick={() => setModalCadastrar(true)}>Cadastrar Peças</button>}
-        {user.role === "DIRETORIA" && <button className="tab-btn" onClick={() => nav("/vendas-motos")}>🏍 Histórico Motos</button>}
+        {user.role === "DIRETORIA" && (
+          <button className="tab-btn" onClick={() => nav("/vendas")}>
+            🧾 Vendas
+          </button>
+        )}
 
-        <button className="tab-btn" onClick={() => nav("/carrinho")}>🛒 Carrinho</button>
+        {user.role === "DIRETORIA" && (
+          <button className="tab-btn" onClick={() => setModalCadastrar(true)}>
+            Cadastrar Peças
+          </button>
+        )}
 
-        {user.role === "DIRETORIA" && <button className="tab-btn" onClick={() => nav("/vendas-motos-pendentes")}>🕒 Aprovar Vendas</button>}
-        {user.role === "DIRETORIA" && <button className="tab-btn" onClick={() => nav("/dashboard-tv")}>📺 Dashboard TV</button>}
+        {user.role === "DIRETORIA" && (
+          <button className="tab-btn" onClick={() => nav("/vendas-motos")}>
+            🏍 Histórico Motos
+          </button>
+        )}
+
+        <button className="tab-btn" onClick={() => nav("/carrinho")}>
+          🛒 Carrinho
+        </button>
+
+        {user.role === "DIRETORIA" && (
+          <button className="tab-btn" onClick={() => nav("/vendas-motos-pendentes")}>
+            🕒 Aprovar Vendas
+          </button>
+        )}
+
+        {user.role === "DIRETORIA" && (
+          <button className="tab-btn" onClick={() => nav("/dashboard-tv")}>
+            📺 Dashboard TV
+          </button>
+        )}
       </div>
 
       {/* ================= PEÇAS ================= */}
@@ -366,7 +434,11 @@ export default function Home() {
             )}
 
             <select className="select-filial" value={tipoFiltroPecas} onChange={(e) => setTipoFiltroPecas(e.target.value)}>
-              {tiposPecas.map((t) => <option key={t} value={t}>{t}</option>)}
+              {tiposPecas.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
             </select>
 
             <input className="input-busca" placeholder="Buscar peça..." value={busca} onChange={(e) => setBusca(e.target.value)} />
@@ -410,14 +482,23 @@ export default function Home() {
                 .map((p) => (
                   <tr key={p.id}>
                     <td>{p.nome}</td>
-                    <td><strong>{p.tipo_moto || "UNIVERSAL"}</strong></td>
+                    <td>
+                      <strong>{p.tipo_moto || "UNIVERSAL"}</strong>
+                    </td>
                     <td>{p.cidade}</td>
                     <td>{p.estoque}</td>
                     <td>R$ {Number(p.preco).toFixed(2)}</td>
                     <td>
                       <div style={{ display: "flex", gap: 6 }}>
-                        <button className="action-btn" onClick={() => adicionarCarrinho(p)}>🛒</button>
-                        {user.role === "DIRETORIA" && <button className="action-btn" onClick={() => abrirTransferencia(p)}>🔄</button>}
+                        <button className="action-btn" onClick={() => adicionarCarrinho(p)}>
+                          🛒
+                        </button>
+
+                        {user.role === "DIRETORIA" && (
+                          <button className="action-btn" onClick={() => abrirTransferencia(p)}>
+                            🔄
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -433,7 +514,8 @@ export default function Home() {
           <div className="resumo-motos">
             {Object.entries(resumoMotos).map(([c, d]) => (
               <div key={c} className="resumo-card">
-                <strong>{c}</strong><br />
+                <strong>{c}</strong>
+                <br />
                 🟢 {d.disponiveis} | 🔴 {d.vendidas}
               </div>
             ))}
@@ -442,12 +524,7 @@ export default function Home() {
           <input className="input-busca" placeholder="Buscar por modelo ou chassi..." value={busca} onChange={(e) => setBusca(e.target.value)} />
 
           {user.role === "DIRETORIA" && (
-            <button className="tab-btn" onClick={() => {
-              setModalCadastrarMoto(true);
-              // reset (evita abrir com lixo antigo)
-              setModeloMoto(""); setSantanderMoto(false); setValorCompra(""); setRepasse("");
-              setCorMoto(""); setChassiMoto(""); setAnoMoto(""); setFilialMoto(""); setCnpjEmpresa("");
-            }}>
+            <button className="tab-btn" onClick={() => setModalCadastrarMoto(true)}>
               ➕ Cadastrar Moto
             </button>
           )}
@@ -464,7 +541,11 @@ export default function Home() {
             <select className="select-filial" value={cnpjFiltro} onChange={(e) => setCnpjFiltro(e.target.value)}>
               <option value="TODOS">Todos CNPJs</option>
               <option value="SEM_CNPJ">Sem CNPJ</option>
-              {cnpjsDisponiveis.map((cnpj) => <option key={cnpj} value={cnpj}>{cnpj}</option>)}
+              {cnpjsDisponiveis.map((cnpj) => (
+                <option key={cnpj} value={cnpj}>
+                  {cnpj}
+                </option>
+              ))}
             </select>
           )}
 
@@ -542,15 +623,26 @@ export default function Home() {
                     <td>{m.ano_moto}</td>
                     <td>{m.cor}</td>
                     <td>{m.chassi}</td>
-                    <td><span className={`cidade-tag ${m.filial.toLowerCase().replace(/\s/g, "-")}`}>{m.filial}</span></td>
+                    <td>
+                      <span className={`cidade-tag ${String(m.filial || "").toLowerCase().replace(/\s/g, "-")}`}>{m.filial}</span>
+                    </td>
                     <td>{m.santander === true ? "SIM" : "NÃO"}</td>
                     <td>{m.cnpj_empresa || "-"}</td>
-                    <td><span className={`status ${String(m.status || "").toLowerCase()}`}>{m.status}</span></td>
+                    <td>
+                      <span className={`status ${String(m.status || "").toLowerCase()}`}>{m.status}</span>
+                    </td>
                     <td>
                       <div style={{ display: "flex", gap: 6, justifyContent: "center" }}>
-                        {m.status === "DISPONIVEL" && <button className="action-btn" onClick={() => abrirVendaMoto(m)}>Vender</button>}
+                        {m.status === "DISPONIVEL" && (
+                          <button className="action-btn" onClick={() => abrirVendaMoto(m)}>
+                            Vender
+                          </button>
+                        )}
+
                         {user.role === "DIRETORIA" && m.status === "DISPONIVEL" && (
-                          <button className="action-btn" onClick={() => setMotoTransferir(m)}>🔄</button>
+                          <button className="action-btn" onClick={() => setMotoTransferir(m)}>
+                            🔄
+                          </button>
                         )}
                       </div>
                     </td>
@@ -568,6 +660,7 @@ export default function Home() {
             <h3>Venda da Moto</h3>
 
             <input placeholder="Cliente" value={clienteNome} onChange={(e) => setClienteNome(e.target.value)} />
+
             <input type="number" placeholder="Valor" value={valorMoto} onChange={(e) => setValorMoto(e.target.value)} />
 
             <select value={filialVenda} onChange={(e) => setFilialVenda(e.target.value)}>
@@ -589,7 +682,9 @@ export default function Home() {
             </label>
 
             <input type="number" placeholder="Gasolina (opcional)" value={gasolina} onChange={(e) => setGasolina(e.target.value)} />
+
             <input placeholder="Número cliente" value={numeroCliente} onChange={(e) => setNumeroCliente(e.target.value)} />
+
             <input placeholder="Forma de pagamento" value={formaPagamento} onChange={(e) => setFormaPagamento(e.target.value)} />
 
             <select value={comoChegou} onChange={(e) => setComoChegou(e.target.value)}>
@@ -610,7 +705,9 @@ export default function Home() {
         <div className="modal-overlay">
           <div className="modal">
             <h3>🔄 Transferir Peça</h3>
-            <p><strong>{pecaTransferir.nome}</strong></p>
+            <p>
+              <strong>{pecaTransferir.nome}</strong>
+            </p>
             <p>Origem: {pecaTransferir.cidade}</p>
 
             <input type="number" placeholder="Quantidade" value={quantidadeTransferir} onChange={(e) => setQuantidadeTransferir(e.target.value)} />
@@ -642,7 +739,9 @@ export default function Home() {
           <div className="modal">
             <h3>🔄 Transferir Moto</h3>
 
-            <p><strong>{motoTransferir.modelo}</strong></p>
+            <p>
+              <strong>{motoTransferir.modelo}</strong>
+            </p>
             <p>Chassi: {motoTransferir.chassi}</p>
             <p>Origem: {motoTransferir.filial}</p>
 
@@ -674,6 +773,7 @@ export default function Home() {
             <h3>Cadastrar</h3>
 
             <input placeholder="Nome" value={nomePeca} onChange={(e) => setNomePeca(e.target.value)} />
+
             <input type="number" placeholder="Valor" value={valorPeca} onChange={(e) => setValorPeca(e.target.value)} />
 
             <select value={filialPeca} onChange={(e) => setFilialPeca(e.target.value)}>
@@ -701,6 +801,7 @@ export default function Home() {
           <div className="modal">
             <h3>Cadastrar Moto</h3>
 
+            {/* ✅ MODELO (SELECT) + AUTO COMPRA/SANTANDER + (se filial exigir repasse, seta) */}
             <select
               value={modeloMoto}
               onChange={(e) => {
@@ -717,38 +818,50 @@ export default function Home() {
                 setSantanderMoto(!!cfg.santanderDefault);
                 const compra = cfg.santanderDefault ? cfg.compra_santander : cfg.compra_motonow;
                 setValorCompra(String(compra));
+
+                // ✅ se filial exige repasse, seta automático
+                if (isRepasseObrigatorio(filialMoto)) {
+                  const r = repassePorModelo(novoModelo);
+                  if (typeof r === "number") setRepasse(String(r));
+                }
               }}
             >
               <option value="">Selecione o modelo</option>
               {MODELOS_MOTOS.map((m) => (
-                <option key={m.modelo} value={m.modelo}>{m.modelo}</option>
+                <option key={m.modelo} value={m.modelo}>
+                  {m.modelo}
+                </option>
               ))}
             </select>
 
             <input placeholder="Cor" value={corMoto} onChange={(e) => setCorMoto(e.target.value)} />
+
             <input placeholder="Chassi" value={chassiMoto} onChange={(e) => setChassiMoto(e.target.value)} />
+
             <input placeholder="Ano" value={anoMoto} onChange={(e) => setAnoMoto(e.target.value)} />
+
             <input type="number" placeholder="Valor compra" value={valorCompra} onChange={(e) => setValorCompra(e.target.value)} />
 
+            {/* ✅ Repasse: trava quando filial exige */}
             <input
               type="number"
-              placeholder={repasseObrigatorioFilial(filialMoto) ? "Repasse (automático)" : "Valor Repasse"}
+              placeholder="Valor Repasse"
               value={repasse}
-              disabled={repasseObrigatorioFilial(filialMoto)}
+              disabled={isRepasseObrigatorio(filialMoto)}
               onChange={(e) => setRepasse(e.target.value)}
             />
-            {repasseObrigatorioFilial(filialMoto) && (
-              <div style={{ fontSize: 12, opacity: 0.75, marginTop: -6 }}>
-                Repasse será aplicado automaticamente para essa filial.
-              </div>
-            )}
 
             <select
               value={filialMoto}
               onChange={(e) => {
                 const f = e.target.value;
                 setFilialMoto(f);
-                if (repasseObrigatorioFilial(f)) setRepasse("");
+
+                // ✅ se filial exige repasse, seta automático
+                if (isRepasseObrigatorio(f)) {
+                  const r = repassePorModelo(modeloMoto);
+                  if (typeof r === "number") setRepasse(String(r));
+                }
               }}
             >
               <option value="">Filial</option>
@@ -765,6 +878,7 @@ export default function Home() {
 
             <input placeholder="CNPJ da empresa" value={cnpjEmpresa} onChange={(e) => setCnpjEmpresa(e.target.value)} />
 
+            {/* ✅ checkbox controla o valor_compra */}
             <label style={{ display: "flex", gap: 6, alignItems: "center" }}>
               <input
                 type="checkbox"
