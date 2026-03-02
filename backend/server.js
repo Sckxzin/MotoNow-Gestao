@@ -41,7 +41,7 @@ app.get("/health", (req, res) => {
 
 /* ================= REGRA REPASSE SANTANDER POR FILIAL + MODELO ================= */
 const REPASSE_SANTANDER_POR_MODELO = {
-  "JET 125 SS": 8900,      // <-- coloque os valores reais
+  "JET 125ss": 8900,      // <-- coloque os valores reais
   "SHI 175 EFI": 14900,
   "STORM 200": 19199,
   "JEF 150": 12200,
