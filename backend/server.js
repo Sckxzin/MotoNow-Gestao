@@ -829,6 +829,16 @@ app.post("/vender-moto", async (req, res) => {
 
     const moto = motoRes.rows[0];
 
+let repasseFinal = moto.repasse ?? null;
+
+if (isFilialRepasseSantanderObrigatorio(filial_venda)) {
+  const r = repasseSantanderPorModelo(moto.modelo);
+  if (typeof r !== "number") {
+    throw new Error(`Repasse Santander não configurado para o modelo: ${moto.modelo}`);
+  }
+  repasseFinal = Number(r);
+}
+
     if (moto.status !== "DISPONIVEL") {
       throw new Error("Moto indisponível");
     }
@@ -884,7 +894,7 @@ app.post("/vender-moto", async (req, res) => {
         !!moto.santander,
         moto.cnpj_empresa || null,
         moto.valor_compra ?? null,
-        moto.repasse ?? null,
+        repasseFinal,
       ]
     );
 
@@ -930,6 +940,16 @@ app.post("/vendas-motos-pendentes/:id/aprovar", async (req, res) => {
 
     const p = pendRes.rows[0];
     if (p.status !== "PENDENTE") throw new Error("Pendência já foi tratada");
+
+let repasseFinal = p.repasse ?? null;
+
+if (isFilialRepasseSantanderObrigatorio(p.filial_venda)) {
+  const r = repasseSantanderPorModelo(p.modelo);
+  if (typeof r !== "number") {
+    throw new Error(`Repasse Santander não configurado para o modelo: ${p.modelo}`);
+  }
+  repasseFinal = Number(r);
+}
 
     const motoRes = await client.query(
       `SELECT id, status FROM motos WHERE id = $1 FOR UPDATE`,
