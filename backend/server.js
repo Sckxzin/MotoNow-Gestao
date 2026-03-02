@@ -39,6 +39,39 @@ app.get("/health", (req, res) => {
   res.json({ status: "ok" });
 });
 
+/* ================= REGRA REPASSE SANTANDER POR FILIAL + MODELO ================= */
+const REPASSE_SANTANDER_POR_MODELO = {
+  "JET 125 SS": 8900,      // <-- coloque os valores reais
+  "SHI 175 EFI": 14900,
+  "STORM 200": 19199,
+  "JEF 150": 12200,
+  "JET 50": 8500,
+};
+
+// normaliza pra evitar erro por acento / espaço / maiúsculo
+function normFilial(s) {
+  return String(s || "")
+    .toUpperCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "") // remove acentos
+    .trim();
+}
+
+function isFilialRepasseSantanderObrigatorio(filial) {
+  const f = normFilial(filial);
+  return (
+    f === "SAO JOSE" ||
+    f === "MARAGOGI" ||
+    f === "CATENDE" ||
+    f === "XEXEU"
+  );
+}
+
+function repasseSantanderPorModelo(modelo) {
+  const key = String(modelo || "").toUpperCase().trim();
+  return REPASSE_SANTANDER_POR_MODELO[key];
+}
+
 /* ================= LOGIN ================= */
 app.post("/login", async (req, res) => {
   const { username, password } = req.body;
@@ -90,7 +123,18 @@ app.post("/motos", async (req, res) => {
         .status(409)
         .json({ message: "Moto com esse chassi já cadastrada" });
     }
+let repasseFinal =
+  repasse != null && repasse !== "" ? Number(repasse) : null;
 
+if (isFilialRepasseSantanderObrigatorio(filial)) {
+  const r = repasseSantanderPorModelo(modelo);
+  if (typeof r !== "number") {
+    return res.status(400).json({
+      message: `Repasse Santander não configurado para o modelo: ${modelo}`,
+    });
+  }
+  repasseFinal = Number(r);
+}
     await db.query(
       `INSERT INTO motos
         (modelo, cor, chassi, filial, status, santander, cnpj_empresa, ano_moto, valor_compra, repasse)
@@ -107,7 +151,7 @@ app.post("/motos", async (req, res) => {
         valor_compra != null && valor_compra !== ""
           ? Number(valor_compra)
           : null,
-        repasse != null && repasse !== "" ? Number(repasse) : null,
+        repasseFinal,
       ]
     );
 
@@ -187,6 +231,17 @@ app.post("/transferir-moto", async (req, res) => {
        WHERE id = $2`,
       [filial_destino, moto_id]
     );
+if (isFilialRepasseSantanderObrigatorio(filial_destino)) {
+  const r = repasseSantanderPorModelo(moto.modelo);
+  if (typeof r !== "number") {
+    throw new Error(`Repasse Santander não configurado para o modelo: ${moto.modelo}`);
+  }
+
+  await client.query(
+    `UPDATE motos SET repasse = $1 WHERE id = $2`,
+    [Number(r), moto_id]
+  );
+}
 
     await client.query(
       `INSERT INTO transferencias_motos
