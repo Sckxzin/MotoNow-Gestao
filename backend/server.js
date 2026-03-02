@@ -57,7 +57,7 @@ function normModeloKey(s) {
 
 // 🔥 MAP com chaves normalizadas
 const REPASSE_SANTANDER_POR_MODELO = {
-  [normModeloKey("JET 125ss")]: 8900,
+  [normModeloKey("JET 125 SS")]: 8900,
   [normModeloKey("SHI 175 EFI")]: 14900,
   [normModeloKey("STORM 200")]: 19199,
   [normModeloKey("JEF 150")]: 12200,
@@ -1014,7 +1014,7 @@ if (isFilialRepasseSantanderObrigatorio(p.filial_venda)) {
         p.numero_cliente,
         p.valor_compra,
         p.cnpj_empresa,
-        repasseFinal,
+        p. repasseFinal,
       ]
     );
 
