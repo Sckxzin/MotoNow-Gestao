@@ -4,6 +4,15 @@ import { useNavigate } from "react-router-dom";
 import api from "../api";
 import "./Home.css";
 
+/* ================= CONFIG MODELOS (CADASTRO MOTO) ================= */
+const MODELOS_MOTOS = [
+  { modelo: "JET 125 SS", compra_motonow: 9390, compra_santander: 8900, santanderDefault: false },
+  { modelo: "SHI 175 EFI", compra_motonow: 11790, compra_santander: 12900, santanderDefault: true },
+  { modelo: "STORM 200", compra_motonow: 17990, compra_santander: 19100, santanderDefault: true },
+  { modelo: "JEF 150", compra_motonow: 11090, compra_santander: 12200, santanderDefault: true },
+  { modelo: "JET 50", compra_motonow: 7790, compra_santander: 8500, santanderDefault: true },
+];
+
 export default function Home() {
   const nav = useNavigate();
 
@@ -21,17 +30,13 @@ export default function Home() {
   const [tipoFiltroPecas, setTipoFiltroPecas] = useState("TODOS");
   const [santanderFiltro, setSantanderFiltro] = useState("TODOS");
 
-  // ✅ NOVO: filtro de CNPJ (motos)
+  // ✅ filtro de CNPJ (motos)
   const [cnpjFiltro, setCnpjFiltro] = useState("TODOS");
 
   const [modalCadastrar, setModalCadastrar] = useState(false);
   const [nomePeca, setNomePeca] = useState("");
   const [valorPeca, setValorPeca] = useState("");
   const [filialPeca, setFilialPeca] = useState("");
-
-
-
-
 
   /* ===== MODAL VENDA MOTO ===== */
   const [motoSelecionada, setMotoSelecionada] = useState(null);
@@ -43,15 +48,6 @@ export default function Home() {
   const [comoChegou, setComoChegou] = useState("");
   const [filialVenda, setFilialVenda] = useState("");
   const [numeroCliente, setNumeroCliente] = useState("");
-
-const MODELOS_MOTOS = [
-  { modelo: "JET 125 SS", compra_motonow: 9390, compra_santander: 8900, santanderDefault: false },
-  { modelo: "SHI 175 EFI", compra_motonow: 11790, compra_santander: 12900, santanderDefault: true },
-  { modelo: "STORM 200", compra_motonow: 17990, compra_santander: 19100, santanderDefault: true },
-{ modelo: "JEF 150", compra_motonow: 11090, compra_santander: 12200, santanderDefault: true },
-{ modelo: "JET 50", compra_motonow: 7790, compra, compra_santander: 8500, santanderDefault: true }
-  // adiciona todos os seus...
-];
 
   /* ===== TRANSFERIR MOTO ===== */
   const [motoTransferir, setMotoTransferir] = useState(null);
@@ -76,9 +72,9 @@ const MODELOS_MOTOS = [
   const [santanderMoto, setSantanderMoto] = useState(false);
 
   const pecasFiltradas = pecas
-    .filter(p => p.nome?.toLowerCase().includes(busca.toLowerCase()))
-    .filter(p => cidadeFiltroPecas === "TODAS" || p.cidade === cidadeFiltroPecas)
-    .filter(p => tipoFiltroPecas === "TODOS" || p.tipo_moto === tipoFiltroPecas);
+    .filter((p) => p.nome?.toLowerCase().includes(busca.toLowerCase()))
+    .filter((p) => cidadeFiltroPecas === "TODAS" || p.cidade === cidadeFiltroPecas)
+    .filter((p) => tipoFiltroPecas === "TODOS" || p.tipo_moto === tipoFiltroPecas);
 
   /* ================= LOAD ================= */
   useEffect(() => {
@@ -90,10 +86,11 @@ const MODELOS_MOTOS = [
 
     setUser(data);
 
-    api.get("/pecas", { params: { role: data.role, cidade: data.cidade } })
-      .then(res => setPecas(res.data || []));
+    api
+      .get("/pecas", { params: { role: data.role, cidade: data.cidade } })
+      .then((res) => setPecas(res.data || []));
 
-    api.get("/motos").then(res => setMotos(res.data || []));
+    api.get("/motos").then((res) => setMotos(res.data || []));
   }, [nav]);
 
   /* ================= HELPERS ================= */
@@ -104,7 +101,7 @@ const MODELOS_MOTOS = [
 
   function calcularResumoMotos(lista) {
     const resumo = {};
-    lista.forEach(m => {
+    lista.forEach((m) => {
       if (!resumo[m.filial]) resumo[m.filial] = { disponiveis: 0, vendidas: 0 };
       if (m.status === "DISPONIVEL") resumo[m.filial].disponiveis++;
       if (m.status === "VENDIDA") resumo[m.filial].vendidas++;
@@ -114,25 +111,17 @@ const MODELOS_MOTOS = [
 
   const resumoMotos = calcularResumoMotos(motos);
 
-  const tiposPecas = [
-    "TODOS",
-    ...Array.from(new Set(pecas.map(p => p.tipo_moto).filter(Boolean)))
-  ];
+  const tiposPecas = ["TODOS", ...Array.from(new Set(pecas.map((p) => p.tipo_moto).filter(Boolean)))];
 
-  // ✅ NOVO: lista de CNPJs disponíveis (para o select)
+  // ✅ lista de CNPJs disponíveis (para o select)
   const cnpjsDisponiveis = Array.from(
-    new Set(
-      motos
-        .map(m => (m.cnpj_empresa || "").trim())
-        .filter(cnpj => cnpj !== "")
-    )
+    new Set(motos.map((m) => (m.cnpj_empresa || "").trim()).filter((cnpj) => cnpj !== ""))
   ).sort();
 
   function exportarCSV(nomeArquivo, headers, dados) {
-    const csv = [
-      headers.join(";"),
-      ...dados.map(row => headers.map(h => `"${row[h] ?? ""}"`).join(";"))
-    ].join("\n");
+    const csv = [headers.join(";"), ...dados.map((row) => headers.map((h) => `"${row[h] ?? ""}"`).join(";"))].join(
+      "\n"
+    );
 
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const link = document.createElement("a");
@@ -144,7 +133,7 @@ const MODELOS_MOTOS = [
   /* ================= CARRINHO ================= */
   function adicionarCarrinho(peca) {
     const carrinho = JSON.parse(localStorage.getItem("carrinho")) || [];
-    const existente = carrinho.find(i => i.peca_id === peca.id);
+    const existente = carrinho.find((i) => i.peca_id === peca.id);
 
     if (existente) existente.quantidade += 1;
     else {
@@ -152,7 +141,7 @@ const MODELOS_MOTOS = [
         peca_id: peca.id,
         nome: peca.nome,
         quantidade: 1,
-        preco_unitario: Number(peca.preco)
+        preco_unitario: Number(peca.preco),
       });
     }
 
@@ -173,9 +162,8 @@ const MODELOS_MOTOS = [
     setNumeroCliente("");
   }
 
-  // ✅ AGORA: solicita venda -> pendência -> diretoria aprova
+  // ✅ Solicitação (PENDENTE_APROVACAO)
   async function confirmarVendaMoto() {
-    // ✅ número do cliente é obrigatório (é o que você usa no histórico)
     if (!clienteNome || !valorMoto || !filialVenda || !numeroCliente) {
       alert("Preencha cliente, valor, filial e número do cliente");
       return;
@@ -191,17 +179,11 @@ const MODELOS_MOTOS = [
         gasolina: gasolina ? Number(gasolina) : null,
         como_chegou: comoChegou || null,
         filial_venda: filialVenda,
-        numero_cliente: String(numeroCliente) // ✅ garante string
+        numero_cliente: String(numeroCliente),
       });
 
-      // ✅ não marca como VENDIDA aqui
-      // status vira PENDENTE_APROVACAO até diretoria aprovar
-      setMotos(prev =>
-        prev.map(m =>
-          m.id === motoSelecionada.id
-            ? { ...m, status: "PENDENTE_APROVACAO" }
-            : m
-        )
+      setMotos((prev) =>
+        prev.map((m) => (m.id === motoSelecionada.id ? { ...m, status: "PENDENTE_APROVACAO" } : m))
       );
 
       setMotoSelecionada(null);
@@ -213,6 +195,7 @@ const MODELOS_MOTOS = [
     }
   }
 
+  /* ================= CADASTRAR PEÇA ================= */
   async function cadastrarPeca() {
     if (!nomePeca || !valorPeca || !filialPeca) {
       alert("Preencha todos os campos");
@@ -224,7 +207,7 @@ const MODELOS_MOTOS = [
       preco: Number(valorPeca),
       cidade: filialPeca,
       estoque: 0,
-      tipo_moto: null
+      tipo_moto: null,
     });
 
     setModalCadastrar(false);
@@ -233,12 +216,12 @@ const MODELOS_MOTOS = [
     setFilialPeca("");
     alert("Peça cadastrada com sucesso!");
 
-    api.get("/pecas", { params: { role: user.role, cidade: user.cidade } })
-      .then(res => setPecas(res.data || []));
+    api.get("/pecas", { params: { role: user.role, cidade: user.cidade } }).then((res) => setPecas(res.data || []));
   }
 
   if (!user) return null;
 
+  /* ================= TRANSFERIR MOTO ================= */
   async function confirmarTransferenciaMoto() {
     if (!filialDestinoMoto) {
       alert("Selecione a filial destino");
@@ -248,20 +231,17 @@ const MODELOS_MOTOS = [
     await api.post("/transferir-moto", {
       moto_id: motoTransferir.id,
       filial_origem: motoTransferir.filial,
-      filial_destino: filialDestinoMoto
+      filial_destino: filialDestinoMoto,
     });
 
-    setMotos(prev =>
-      prev.map(m =>
-        m.id === motoTransferir.id ? { ...m, filial: filialDestinoMoto } : m
-      )
-    );
+    setMotos((prev) => prev.map((m) => (m.id === motoTransferir.id ? { ...m, filial: filialDestinoMoto } : m)));
 
     setMotoTransferir(null);
     setFilialDestinoMoto("");
     alert("Moto transferida com sucesso!");
   }
 
+  /* ================= TRANSFERIR PEÇA ================= */
   function abrirTransferencia(peca) {
     setPecaTransferir(peca);
     setQuantidadeTransferir("");
@@ -283,32 +263,20 @@ const MODELOS_MOTOS = [
       peca_id: pecaTransferir.id,
       quantidade: Number(quantidadeTransferir),
       filial_origem: pecaTransferir.cidade,
-      filial_destino: cidadeDestino
+      filial_destino: cidadeDestino,
     });
 
-    setPecas(prev =>
-      prev.map(p =>
-        p.id === pecaTransferir.id
-          ? { ...p, estoque: p.estoque - Number(quantidadeTransferir) }
-          : p
-      )
+    setPecas((prev) =>
+      prev.map((p) => (p.id === pecaTransferir.id ? { ...p, estoque: p.estoque - Number(quantidadeTransferir) } : p))
     );
 
     setPecaTransferir(null);
     alert("Transferência realizada com sucesso!");
   }
 
+  /* ================= CADASTRAR MOTO ================= */
   async function cadastrarMoto() {
-    if (
-      !modeloMoto ||
-      !corMoto ||
-      !chassiMoto ||
-      !anoMoto ||
-      !valorCompra ||
-      !repasse ||
-      !filialMoto ||
-      !cnpjEmpresa
-    ) {
+    if (!modeloMoto || !corMoto || !chassiMoto || !anoMoto || !valorCompra || !repasse || !filialMoto || !cnpjEmpresa) {
       alert("Preencha todos os campos obrigatórios");
       return;
     }
@@ -323,7 +291,7 @@ const MODELOS_MOTOS = [
       filial: filialMoto,
       cnpj_empresa: cnpjEmpresa,
       santander: santanderMoto,
-      status: "DISPONIVEL"
+      status: "DISPONIVEL",
     });
 
     setModalCadastrarMoto(false);
@@ -339,7 +307,7 @@ const MODELOS_MOTOS = [
     setRepasse("");
 
     alert("Moto cadastrada com sucesso!");
-    api.get("/motos").then(res => setMotos(res.data || []));
+    api.get("/motos").then((res) => setMotos(res.data || []));
   }
 
   /* ================= JSX ================= */
@@ -407,11 +375,7 @@ const MODELOS_MOTOS = [
         <>
           <div style={{ display: "flex", gap: 10, marginBottom: 15 }}>
             {user.role === "DIRETORIA" && (
-              <select
-                className="select-filial"
-                value={cidadeFiltroPecas}
-                onChange={e => setCidadeFiltroPecas(e.target.value)}
-              >
+              <select className="select-filial" value={cidadeFiltroPecas} onChange={(e) => setCidadeFiltroPecas(e.target.value)}>
                 <option value="TODAS">Todas as cidades</option>
                 <option value="ESCADA">Escada</option>
                 <option value="IPOJUCA">Ipojuca</option>
@@ -424,24 +388,15 @@ const MODELOS_MOTOS = [
               </select>
             )}
 
-            <select
-              className="select-filial"
-              value={tipoFiltroPecas}
-              onChange={e => setTipoFiltroPecas(e.target.value)}
-            >
-              {tiposPecas.map(t => (
+            <select className="select-filial" value={tipoFiltroPecas} onChange={(e) => setTipoFiltroPecas(e.target.value)}>
+              {tiposPecas.map((t) => (
                 <option key={t} value={t}>
                   {t}
                 </option>
               ))}
             </select>
 
-            <input
-              className="input-busca"
-              placeholder="Buscar peça..."
-              value={busca}
-              onChange={e => setBusca(e.target.value)}
-            />
+            <input className="input-busca" placeholder="Buscar peça..." value={busca} onChange={(e) => setBusca(e.target.value)} />
           </div>
 
           <button
@@ -449,15 +404,13 @@ const MODELOS_MOTOS = [
               exportarCSV(
                 "pecas_filtradas.csv",
                 ["nome", "tipo", "filial", "quantidade", "valor", "created_at"],
-                pecasFiltradas.map(p => ({
+                pecasFiltradas.map((p) => ({
                   nome: p.nome,
                   tipo: p.tipo_moto || "UNIVERSAL",
                   filial: p.cidade,
                   quantidade: p.estoque,
                   valor: Number(p.preco).toFixed(2),
-                  created_at: p.created_at
-                    ? new Date(p.created_at).toLocaleDateString("pt-BR")
-                    : ""
+                  created_at: p.created_at ? new Date(p.created_at).toLocaleDateString("pt-BR") : "",
                 }))
               )
             }
@@ -478,13 +431,15 @@ const MODELOS_MOTOS = [
             </thead>
             <tbody>
               {pecas
-                .filter(p => p.nome.toLowerCase().includes(busca.toLowerCase()))
-                .filter(p => cidadeFiltroPecas === "TODAS" || p.cidade === cidadeFiltroPecas)
-                .filter(p => tipoFiltroPecas === "TODOS" || p.tipo_moto === tipoFiltroPecas)
-                .map(p => (
+                .filter((p) => p.nome.toLowerCase().includes(busca.toLowerCase()))
+                .filter((p) => cidadeFiltroPecas === "TODAS" || p.cidade === cidadeFiltroPecas)
+                .filter((p) => tipoFiltroPecas === "TODOS" || p.tipo_moto === tipoFiltroPecas)
+                .map((p) => (
                   <tr key={p.id}>
                     <td>{p.nome}</td>
-                    <td><strong>{p.tipo_moto || "UNIVERSAL"}</strong></td>
+                    <td>
+                      <strong>{p.tipo_moto || "UNIVERSAL"}</strong>
+                    </td>
                     <td>{p.cidade}</td>
                     <td>{p.estoque}</td>
                     <td>R$ {Number(p.preco).toFixed(2)}</td>
@@ -521,12 +476,7 @@ const MODELOS_MOTOS = [
             ))}
           </div>
 
-          <input
-            className="input-busca"
-            placeholder="Buscar por modelo ou chassi..."
-            value={busca}
-            onChange={e => setBusca(e.target.value)}
-          />
+          <input className="input-busca" placeholder="Buscar por modelo ou chassi..." value={busca} onChange={(e) => setBusca(e.target.value)} />
 
           {user.role === "DIRETORIA" && (
             <button className="tab-btn" onClick={() => setModalCadastrarMoto(true)}>
@@ -535,27 +485,18 @@ const MODELOS_MOTOS = [
           )}
 
           {user.role === "DIRETORIA" && (
-            <select
-              className="select-filial"
-              value={santanderFiltro}
-              onChange={e => setSantanderFiltro(e.target.value)}
-            >
+            <select className="select-filial" value={santanderFiltro} onChange={(e) => setSantanderFiltro(e.target.value)}>
               <option value="TODOS">Todos</option>
               <option value="SIM">MOTONOW</option>
               <option value="NAO">EMENEZES</option>
             </select>
           )}
 
-          {/* ✅ NOVO SELECT: CNPJ */}
           {user.role === "DIRETORIA" && (
-            <select
-              className="select-filial"
-              value={cnpjFiltro}
-              onChange={e => setCnpjFiltro(e.target.value)}
-            >
+            <select className="select-filial" value={cnpjFiltro} onChange={(e) => setCnpjFiltro(e.target.value)}>
               <option value="TODOS">Todos CNPJs</option>
               <option value="SEM_CNPJ">Sem CNPJ</option>
-              {cnpjsDisponiveis.map(cnpj => (
+              {cnpjsDisponiveis.map((cnpj) => (
                 <option key={cnpj} value={cnpj}>
                   {cnpj}
                 </option>
@@ -563,11 +504,7 @@ const MODELOS_MOTOS = [
             </select>
           )}
 
-          <select
-            className="select-filial"
-            value={cidadeFiltroMotos}
-            onChange={e => setCidadeFiltroMotos(e.target.value)}
-          >
+          <select className="select-filial" value={cidadeFiltroMotos} onChange={(e) => setCidadeFiltroMotos(e.target.value)}>
             <option value="TODAS">Todas</option>
             <option value="ESCADA">Escada</option>
             <option value="IPOJUCA">Ipojuca</option>
@@ -585,7 +522,7 @@ const MODELOS_MOTOS = [
               exportarCSV(
                 "motos_disponiveis.csv",
                 ["modelo", "cor", "chassi", "ano", "valor", "filial", "status", "cnpj", "created_at"],
-                motos.map(m => ({
+                motos.map((m) => ({
                   modelo: m.modelo,
                   cor: m.cor,
                   chassi: m.chassi,
@@ -594,7 +531,7 @@ const MODELOS_MOTOS = [
                   filial: m.filial,
                   status: m.status,
                   cnpj: m.cnpj_empresa,
-                  created_at: m.created_at ? new Date(m.created_at).toLocaleDateString("pt-BR") : ""
+                  created_at: m.created_at ? new Date(m.created_at).toLocaleDateString("pt-BR") : "",
                 }))
               )
             }
@@ -618,42 +555,36 @@ const MODELOS_MOTOS = [
             </thead>
             <tbody>
               {motos
-                .filter(m => cidadeFiltroMotos === "TODAS" || m.filial === cidadeFiltroMotos)
-                .filter(m => {
+                .filter((m) => cidadeFiltroMotos === "TODAS" || m.filial === cidadeFiltroMotos)
+                .filter((m) => {
                   if (santanderFiltro === "TODOS") return true;
                   if (santanderFiltro === "SIM") return m.santander === true;
                   if (santanderFiltro === "NAO") return m.santander === false || m.santander == null;
                   return true;
                 })
-                .filter(m => {
+                .filter((m) => {
                   const cnpj = (m.cnpj_empresa || "").trim();
                   if (cnpjFiltro === "TODOS") return true;
                   if (cnpjFiltro === "SEM_CNPJ") return cnpj === "";
                   return cnpj === cnpjFiltro;
                 })
-                .filter(m => {
+                .filter((m) => {
                   const q = busca.toLowerCase();
-                  return (
-                    busca === "" ||
-                    m.modelo?.toLowerCase().includes(q) ||
-                    m.chassi?.toLowerCase().includes(q)
-                  );
+                  return busca === "" || m.modelo?.toLowerCase().includes(q) || m.chassi?.toLowerCase().includes(q);
                 })
-                .map(m => (
+                .map((m) => (
                   <tr key={m.id}>
                     <td>{m.modelo}</td>
                     <td>{m.ano_moto}</td>
                     <td>{m.cor}</td>
                     <td>{m.chassi}</td>
                     <td>
-                      <span className={`cidade-tag ${m.filial.toLowerCase().replace(/\s/g, "-")}`}>
-                        {m.filial}
-                      </span>
+                      <span className={`cidade-tag ${m.filial.toLowerCase().replace(/\s/g, "-")}`}>{m.filial}</span>
                     </td>
                     <td>{m.santander === true ? "SIM" : "NÃO"}</td>
                     <td>{m.cnpj_empresa || "-"}</td>
                     <td>
-                      <span className={`status ${m.status.toLowerCase()}`}>{m.status}</span>
+                      <span className={`status ${String(m.status || "").toLowerCase()}`}>{m.status}</span>
                     </td>
                     <td>
                       <div style={{ display: "flex", gap: 6, justifyContent: "center" }}>
@@ -683,20 +614,11 @@ const MODELOS_MOTOS = [
           <div className="modal">
             <h3>Venda da Moto</h3>
 
-            <input
-              placeholder="Cliente"
-              value={clienteNome}
-              onChange={e => setClienteNome(e.target.value)}
-            />
+            <input placeholder="Cliente" value={clienteNome} onChange={(e) => setClienteNome(e.target.value)} />
 
-            <input
-              type="number"
-              placeholder="Valor"
-              value={valorMoto}
-              onChange={e => setValorMoto(e.target.value)}
-            />
+            <input type="number" placeholder="Valor" value={valorMoto} onChange={(e) => setValorMoto(e.target.value)} />
 
-            <select value={filialVenda} onChange={e => setFilialVenda(e.target.value)}>
+            <select value={filialVenda} onChange={(e) => setFilialVenda(e.target.value)}>
               <option value="">Filial da venda</option>
               <option value="ESCADA">ESCADA</option>
               <option value="IPOJUCA">IPOJUCA</option>
@@ -711,34 +633,16 @@ const MODELOS_MOTOS = [
             </select>
 
             <label>
-              <input
-                type="checkbox"
-                checked={brinde}
-                onChange={e => setBrinde(e.target.checked)}
-              />{" "}
-              Brinde
+              <input type="checkbox" checked={brinde} onChange={(e) => setBrinde(e.target.checked)} /> Brinde
             </label>
 
-            <input
-              type="number"
-              placeholder="Gasolina (opcional)"
-              value={gasolina}
-              onChange={e => setGasolina(e.target.value)}
-            />
+            <input type="number" placeholder="Gasolina (opcional)" value={gasolina} onChange={(e) => setGasolina(e.target.value)} />
 
-            <input
-              placeholder="Número cliente"
-              value={numeroCliente}
-              onChange={e => setNumeroCliente(e.target.value)}
-            />
+            <input placeholder="Número cliente" value={numeroCliente} onChange={(e) => setNumeroCliente(e.target.value)} />
 
-            <input
-              placeholder="Forma de pagamento"
-              value={formaPagamento}
-              onChange={e => setFormaPagamento(e.target.value)}
-            />
+            <input placeholder="Forma de pagamento" value={formaPagamento} onChange={(e) => setFormaPagamento(e.target.value)} />
 
-            <select value={comoChegou} onChange={e => setComoChegou(e.target.value)}>
+            <select value={comoChegou} onChange={(e) => setComoChegou(e.target.value)}>
               <option value="">Como o cliente chegou?</option>
               <option value="Tenda">Tenda</option>
               <option value="Veio em loja">Veio em loja</option>
@@ -756,18 +660,14 @@ const MODELOS_MOTOS = [
         <div className="modal-overlay">
           <div className="modal">
             <h3>🔄 Transferir Peça</h3>
-
-            <p><strong>{pecaTransferir.nome}</strong></p>
+            <p>
+              <strong>{pecaTransferir.nome}</strong>
+            </p>
             <p>Origem: {pecaTransferir.cidade}</p>
 
-            <input
-              type="number"
-              placeholder="Quantidade"
-              value={quantidadeTransferir}
-              onChange={e => setQuantidadeTransferir(e.target.value)}
-            />
+            <input type="number" placeholder="Quantidade" value={quantidadeTransferir} onChange={(e) => setQuantidadeTransferir(e.target.value)} />
 
-            <select value={cidadeDestino} onChange={e => setCidadeDestino(e.target.value)}>
+            <select value={cidadeDestino} onChange={(e) => setCidadeDestino(e.target.value)}>
               <option value="">Filial destino</option>
               <option value="ESCADA">Escada</option>
               <option value="IPOJUCA">Ipojuca</option>
@@ -794,14 +694,13 @@ const MODELOS_MOTOS = [
           <div className="modal">
             <h3>🔄 Transferir Moto</h3>
 
-            <p><strong>{motoTransferir.modelo}</strong></p>
+            <p>
+              <strong>{motoTransferir.modelo}</strong>
+            </p>
             <p>Chassi: {motoTransferir.chassi}</p>
             <p>Origem: {motoTransferir.filial}</p>
 
-            <select
-              value={filialDestinoMoto}
-              onChange={e => setFilialDestinoMoto(e.target.value)}
-            >
+            <select value={filialDestinoMoto} onChange={(e) => setFilialDestinoMoto(e.target.value)}>
               <option value="">Filial destino</option>
               <option value="ESCADA">Escada</option>
               <option value="IPOJUCA">Ipojuca</option>
@@ -828,20 +727,11 @@ const MODELOS_MOTOS = [
           <div className="modal">
             <h3>Cadastrar</h3>
 
-            <input
-              placeholder="Nome"
-              value={nomePeca}
-              onChange={e => setNomePeca(e.target.value)}
-            />
+            <input placeholder="Nome" value={nomePeca} onChange={(e) => setNomePeca(e.target.value)} />
 
-            <input
-              type="number"
-              placeholder="Valor"
-              value={valorPeca}
-              onChange={e => setValorPeca(e.target.value)}
-            />
+            <input type="number" placeholder="Valor" value={valorPeca} onChange={(e) => setValorPeca(e.target.value)} />
 
-            <select value={filialPeca} onChange={e => setFilialPeca(e.target.value)}>
+            <select value={filialPeca} onChange={(e) => setFilialPeca(e.target.value)}>
               <option value="">Filial</option>
               <option value="ESCADA">Escada</option>
               <option value="IPOJUCA">Ipojuca</option>
@@ -853,7 +743,7 @@ const MODELOS_MOTOS = [
             </select>
 
             <div style={{ display: "flex", gap: 10 }}>
-              <button onClick={() => cadastrarPeca()}>Salvar</button>
+              <button onClick={cadastrarPeca}>Salvar</button>
               <button onClick={() => setModalCadastrar(false)}>Cancelar</button>
             </div>
           </div>
@@ -866,45 +756,45 @@ const MODELOS_MOTOS = [
           <div className="modal">
             <h3>Cadastrar Moto</h3>
 
+            {/* ✅ MODELO (SELECT) + AUTO COMPRA/SANTANDER */}
             <select
-  value={modeloMoto}
-  onChange={(e) => {
-    const novoModelo = e.target.value;
-    setModeloMoto(novoModelo);
+              value={modeloMoto}
+              onChange={(e) => {
+                const novoModelo = e.target.value;
+                setModeloMoto(novoModelo);
 
-    const cfg = MODELOS_MOTOS.find(m => m.modelo === novoModelo);
-    if (!cfg) return;
+                const cfg = MODELOS_MOTOS.find((m) => m.modelo === novoModelo);
+                if (!cfg) {
+                  setSantanderMoto(false);
+                  setValorCompra("");
+                  return;
+                }
 
-    // opcional: Santander automático ao escolher modelo
-    setSantanderMoto(!!cfg.santanderDefault);
+                setSantanderMoto(!!cfg.santanderDefault);
+                const compra = cfg.santanderDefault ? cfg.compra_santander : cfg.compra_motonow;
+                setValorCompra(String(compra));
+              }}
+            >
+              <option value="">Selecione o modelo</option>
+              {MODELOS_MOTOS.map((m) => (
+                <option key={m.modelo} value={m.modelo}>
+                  {m.modelo}
+                </option>
+              ))}
+            </select>
 
-    // set valor compra baseado no default
-    const compra = cfg.santanderDefault ? cfg.compra_santander : cfg.compra_motonow;
-    setValorCompra(String(compra));
-  }}
->
-  <option value="">Selecione o modelo</option>
-  {MODELOS_MOTOS.map(m => (
-    <option key={m.modelo} value={m.modelo}>{m.modelo}</option>
-  ))}
-</select>
+            <input placeholder="Cor" value={corMoto} onChange={(e) => setCorMoto(e.target.value)} />
 
-            <input placeholder="Cor" value={corMoto}
-              onChange={e => setCorMoto(e.target.value)} />
+            <input placeholder="Chassi" value={chassiMoto} onChange={(e) => setChassiMoto(e.target.value)} />
 
-            <input placeholder="Chassi" value={chassiMoto}
-              onChange={e => setChassiMoto(e.target.value)} />
+            <input placeholder="Ano" value={anoMoto} onChange={(e) => setAnoMoto(e.target.value)} />
 
-            <input placeholder="Ano" value={anoMoto}
-              onChange={e => setAnoMoto(e.target.value)} />
+            {/* ✅ valor compra automático (pode deixar editável se quiser) */}
+            <input type="number" placeholder="Valor compra" value={valorCompra} onChange={(e) => setValorCompra(e.target.value)} />
 
-            <input type="number" placeholder="Valor compra" value={valorCompra}
-              onChange={e => setValorCompra(e.target.value)} />
+            <input type="number" placeholder="Valor Repasse" value={repasse} onChange={(e) => setRepasse(e.target.value)} />
 
-            <input type="number" placeholder=" Valor Repasse" value={repasse}
-              onChange={e => setRepasse(e.target.value)} />
-
-            <select value={filialMoto} onChange={e => setFilialMoto(e.target.value)}>
+            <select value={filialMoto} onChange={(e) => setFilialMoto(e.target.value)}>
               <option value="">Filial</option>
               <option value="ESCADA">Escada</option>
               <option value="IPOJUCA">Ipojuca</option>
@@ -917,29 +807,26 @@ const MODELOS_MOTOS = [
               <option value="CHA GRANDE">Cha grande</option>
             </select>
 
-            <input placeholder="CNPJ da empresa"
-              value={cnpjEmpresa}
-              onChange={e => setCnpjEmpresa(e.target.value)} />
+            <input placeholder="CNPJ da empresa" value={cnpjEmpresa} onChange={(e) => setCnpjEmpresa(e.target.value)} />
 
+            {/* ✅ checkbox controla o valor_compra */}
             <label style={{ display: "flex", gap: 6, alignItems: "center" }}>
-              
-               <label style={{ display: "flex", gap: 6, alignItems: "center" }}>
-  <input
-    type="checkbox"
-    checked={santanderMoto}
-    onChange={(e) => {
-      const isSant = e.target.checked;
-      setSantanderMoto(isSant);
+              <input
+                type="checkbox"
+                checked={santanderMoto}
+                onChange={(e) => {
+                  const isSant = e.target.checked;
+                  setSantanderMoto(isSant);
 
-      const cfg = MODELOS_MOTOS.find(m => m.modelo === modeloMoto);
-      if (!cfg) return;
+                  const cfg = MODELOS_MOTOS.find((m) => m.modelo === modeloMoto);
+                  if (!cfg) return;
 
-      const compra = isSant ? cfg.compra_santander : cfg.compra_motonow;
-      setValorCompra(String(compra));
-    }}
-  />
-  Financiada Santander
-</label>
+                  const compra = isSant ? cfg.compra_santander : cfg.compra_motonow;
+                  setValorCompra(String(compra));
+                }}
+              />
+              Financiada Santander
+            </label>
 
             <div style={{ display: "flex", gap: 10 }}>
               <button onClick={cadastrarMoto}>Salvar</button>
