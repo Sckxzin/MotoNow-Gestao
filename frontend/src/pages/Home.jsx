@@ -29,6 +29,10 @@ export default function Home() {
   const [valorPeca, setValorPeca] = useState("");
   const [filialPeca, setFilialPeca] = useState("");
 
+
+
+
+
   /* ===== MODAL VENDA MOTO ===== */
   const [motoSelecionada, setMotoSelecionada] = useState(null);
   const [clienteNome, setClienteNome] = useState("");
@@ -39,6 +43,15 @@ export default function Home() {
   const [comoChegou, setComoChegou] = useState("");
   const [filialVenda, setFilialVenda] = useState("");
   const [numeroCliente, setNumeroCliente] = useState("");
+
+const MODELOS_MOTOS = [
+  { modelo: "JET 125 SS", compra_motonow: 9390, compra_santander: 8900, santanderDefault: false },
+  { modelo: "SHI 175 EFI", compra_motonow: 11790, compra_santander: 12900, santanderDefault: true },
+  { modelo: "STORM 200", compra_motonow: 17990, compra_santander: 19100, santanderDefault: true },
+{ modelo: "JEF 150", compra_motonow: 11090, compra_santander: 12200, santanderDefault: true },
+{ modelo: "JET 50", compra_motonow: 7790, compra, compra_santander: 8500, santanderDefault: true }
+  // adiciona todos os seus...
+];
 
   /* ===== TRANSFERIR MOTO ===== */
   const [motoTransferir, setMotoTransferir] = useState(null);
@@ -853,8 +866,28 @@ export default function Home() {
           <div className="modal">
             <h3>Cadastrar Moto</h3>
 
-            <input placeholder="Modelo" value={modeloMoto}
-              onChange={e => setModeloMoto(e.target.value)} />
+            <select
+  value={modeloMoto}
+  onChange={(e) => {
+    const novoModelo = e.target.value;
+    setModeloMoto(novoModelo);
+
+    const cfg = MODELOS_MOTOS.find(m => m.modelo === novoModelo);
+    if (!cfg) return;
+
+    // opcional: Santander automático ao escolher modelo
+    setSantanderMoto(!!cfg.santanderDefault);
+
+    // set valor compra baseado no default
+    const compra = cfg.santanderDefault ? cfg.compra_santander : cfg.compra_motonow;
+    setValorCompra(String(compra));
+  }}
+>
+  <option value="">Selecione o modelo</option>
+  {MODELOS_MOTOS.map(m => (
+    <option key={m.modelo} value={m.modelo}>{m.modelo}</option>
+  ))}
+</select>
 
             <input placeholder="Cor" value={corMoto}
               onChange={e => setCorMoto(e.target.value)} />
@@ -889,13 +922,24 @@ export default function Home() {
               onChange={e => setCnpjEmpresa(e.target.value)} />
 
             <label style={{ display: "flex", gap: 6, alignItems: "center" }}>
-              <input
-                type="checkbox"
-                checked={santanderMoto}
-                onChange={e => setSantanderMoto(e.target.checked)}
-              />
-              Financiada Santander
-            </label>
+              
+               <label style={{ display: "flex", gap: 6, alignItems: "center" }}>
+  <input
+    type="checkbox"
+    checked={santanderMoto}
+    onChange={(e) => {
+      const isSant = e.target.checked;
+      setSantanderMoto(isSant);
+
+      const cfg = MODELOS_MOTOS.find(m => m.modelo === modeloMoto);
+      if (!cfg) return;
+
+      const compra = isSant ? cfg.compra_santander : cfg.compra_motonow;
+      setValorCompra(String(compra));
+    }}
+  />
+  Financiada Santander
+</label>
 
             <div style={{ display: "flex", gap: 10 }}>
               <button onClick={cadastrarMoto}>Salvar</button>
