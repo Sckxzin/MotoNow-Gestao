@@ -1003,7 +1003,7 @@ if (isFilialRepasseSantanderObrigatorio(p.filial_venda)) {
         p.numero_cliente,
         p.valor_compra,
         p.cnpj_empresa,
-        p.repasse,
+        p.repasseFinal,
       ]
     );
 
