@@ -409,11 +409,11 @@ export default function Home() {
           </button>
         )}
 
-{user.role === "DIRETORIA" && (
-  <button className="tab-btn" onClick={() => nav("/emplacamentos")}>
-    🪪 Emplacamentos
-  </button>
-)}
+        {user.role === "DIRETORIA" && (
+          <button className="tab-btn" onClick={() => nav("/emplacamentos")}>
+            🪪 Emplacamentos
+         </button>
+        )}
 
         {user.role === "DIRETORIA" && (
           <button className="tab-btn" onClick={() => nav("/dashboard-tv")}>
