@@ -78,6 +78,81 @@ function isFilialRepasseSantanderObrigatorio(filial) {
   return f === "SAO JOSE" || f === "MARAGOGI" || f === "CATENDE" || f === "XEXEU";
 }
 
+function isDiretoria(req) {
+  const role = String(req.query.role || req.headers["x-role"] || "").toUpperCase();
+  return role === "DIRETORIA";
+}
+
+// LISTAR
+app.get("/emplacamentos", async (req, res) => {
+  try {
+    if (!isDiretoria(req)) return res.status(403).json({ message: "Acesso negado" });
+
+    const r = await db.query(`
+      SELECT
+        id, cliente, moto, cidade, data,
+        valor, custo,
+        (COALESCE(valor,0) - COALESCE(custo,0)) AS loja,
+        forma_pagamento,
+        created_at
+      FROM emplacamentos
+      ORDER BY data DESC, id DESC
+    `);
+
+    res.json(r.rows);
+  } catch (err) {
+    console.error("Erro emplacamentos:", err);
+    res.status(500).json({ message: "Erro ao buscar emplacamentos" });
+  }
+});
+
+// CADASTRAR
+app.post("/emplacamentos", async (req, res) => {
+  try {
+    if (!isDiretoria(req)) return res.status(403).json({ message: "Acesso negado" });
+
+    const { cliente, moto, cidade, data, valor, custo, forma_pagamento } = req.body;
+
+    if (!cliente || !moto || !cidade || !data || valor == null || custo == null) {
+      return res.status(400).json({ message: "Dados incompletos" });
+    }
+
+    const r = await db.query(
+      `INSERT INTO emplacamentos (cliente, moto, cidade, data, valor, custo, forma_pagamento)
+       VALUES ($1,$2,$3,$4,$5,$6,$7)
+       RETURNING id`,
+      [
+        String(cliente).trim(),
+        String(moto).trim(),
+        String(cidade).trim(),
+        data, // YYYY-MM-DD
+        Number(valor),
+        Number(custo),
+        forma_pagamento ? String(forma_pagamento).trim() : null,
+      ]
+    );
+
+    res.json({ message: "Emplacamento cadastrado", id: r.rows[0].id });
+  } catch (err) {
+    console.error("Erro cadastrar emplacamento:", err);
+    res.status(500).json({ message: "Erro ao cadastrar emplacamento" });
+  }
+});
+
+// (Opcional) DELETAR
+app.delete("/emplacamentos/:id", async (req, res) => {
+  try {
+    if (!isDiretoria(req)) return res.status(403).json({ message: "Acesso negado" });
+
+    const { id } = req.params;
+    await db.query(`DELETE FROM emplacamentos WHERE id = $1`, [id]);
+    res.json({ message: "Removido" });
+  } catch (err) {
+    console.error("Erro deletar emplacamento:", err);
+    res.status(500).json({ message: "Erro ao remover" });
+  }
+});
+
 
 /* ================= LOGIN ================= */
 app.post("/login", async (req, res) => {
