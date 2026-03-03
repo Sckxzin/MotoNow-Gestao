@@ -1,4 +1,4 @@
-/* eslint-disable no-unused-vars */
+./* eslint-disable no-unused-vars */
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api";
@@ -408,6 +408,11 @@ export default function Home() {
             🕒 Aprovar Vendas
           </button>
         )}
+{user.role === "DIRETORIA" && (
+  <button className="tab-btn" onClick={() => nav("/emplacamentos")}>
+    🪪 Emplacamentos
+  </button>
+)}
 
         {user.role === "DIRETORIA" && (
           <button className="tab-btn" onClick={() => nav("/dashboard-tv")}>
