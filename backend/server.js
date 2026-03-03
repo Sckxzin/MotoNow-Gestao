@@ -78,10 +78,6 @@ function isFilialRepasseSantanderObrigatorio(filial) {
   return f === "SAO JOSE" || f === "MARAGOGI" || f === "CATENDE" || f === "XEXEU";
 }
 
-function repasseSantanderPorModelo(modelo) {
-  const key = String(modelo || "").toUpperCase().trim();
-  return REPASSE_SANTANDER_POR_MODELO[key];
-}
 
 /* ================= LOGIN ================= */
 app.post("/login", async (req, res) => {
@@ -1014,7 +1010,7 @@ if (isFilialRepasseSantanderObrigatorio(p.filial_venda)) {
         p.numero_cliente,
         p.valor_compra,
         p.cnpj_empresa,
-        p. repasseFinal,
+        repasseFinal,
       ]
     );
 
