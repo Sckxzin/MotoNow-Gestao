@@ -48,7 +48,7 @@ export default function VendasMotos() {
 
     const base = repasse > 0 ? repasse : compra;
 
-    return valor - base - gasolina - descontoBrinde;
+    return valor - base;
   }
 
   /* ================= FILTROS ================= */
