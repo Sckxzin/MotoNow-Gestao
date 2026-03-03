@@ -78,25 +78,9 @@ function isFilialRepasseSantanderObrigatorio(filial) {
   return f === "SAO JOSE" || f === "MARAGOGI" || f === "CATENDE" || f === "XEXEU";
 }
 
-function normModeloKey(s) {
-  return String(s || "")
-    .toUpperCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^A-Z0-9]/g, "")
-    .trim();
-}
-
-const REPASSE_SANTANDER_POR_MODELO = {
-  [normModeloKey("JET 125 SS")]: 8900,
-  [normModeloKey("SHI 175 EFI")]: 14900,
-  [normModeloKey("STORM 200")]: 19199,
-  [normModeloKey("JEF 150")]: 12200,
-  [normModeloKey("JET 50")]: 8500,
-};
-
 function repasseSantanderPorModelo(modelo) {
-  return REPASSE_SANTANDER_POR_MODELO[normModeloKey(modelo)];
+  const key = String(modelo || "").toUpperCase().trim();
+  return REPASSE_SANTANDER_POR_MODELO[key];
 }
 
 /* ================= LOGIN ================= */
