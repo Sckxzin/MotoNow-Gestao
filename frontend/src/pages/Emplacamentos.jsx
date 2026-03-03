@@ -34,9 +34,7 @@ export default function Emplacamentos() {
   }, [nav]);
 
   async function carregar() {
-    const res = await api.get("/emplacamentos", {
-      params: { role: "DIRETORIA" },
-    });
+    const res = await api.get("/emplacamentos", { params: { role: "DIRETORIA" } });
     setLista(res.data || []);
   }
 
@@ -93,26 +91,20 @@ export default function Emplacamentos() {
             <th>Forma</th>
           </tr>
         </thead>
+
         <tbody>
           {lista.map((e) => {
-            const lucro =
-              Number(e.valor || 0) - Number(e.custo || 0);
+            const lucro = Number(e.valor || 0) - Number(e.custo || 0);
 
             return (
               <tr key={e.id}>
                 <td>{e.cliente}</td>
                 <td>{e.moto}</td>
                 <td>{e.cidade}</td>
-                <td>
-                  {e.data
-                    ? new Date(e.data).toLocaleDateString("pt-BR")
-                    : "-"}
-                </td>
+                <td>{e.data ? new Date(e.data).toLocaleDateString("pt-BR") : "-"}</td>
                 <td>R$ {Number(e.valor).toFixed(2)}</td>
                 <td>R$ {Number(e.custo).toFixed(2)}</td>
-                <td className="lucro">
-                  R$ {lucro.toFixed(2)}
-                </td>
+                <td className="emplac-lucro">R$ {lucro.toFixed(2)}</td>
                 <td>{e.forma_pagamento || "-"}</td>
               </tr>
             );
@@ -121,8 +113,8 @@ export default function Emplacamentos() {
       </table>
 
       {modal && (
-        <div className="modal-overlay">
-          <div className="modal">
+        <div className="emplac-modal-overlay">
+          <div className="emplac-modal">
             <h3>Novo Emplacamento</h3>
 
             <input placeholder="Cliente" value={cliente} onChange={(e) => setCliente(e.target.value)} />
@@ -132,7 +124,7 @@ export default function Emplacamentos() {
             <input type="number" placeholder="Valor" value={valor} onChange={(e) => setValor(e.target.value)} />
             <input type="number" placeholder="Custo" value={custo} onChange={(e) => setCusto(e.target.value)} />
 
-            <div className="preview-lucro">
+            <div className="emplac-preview-lucro">
               Loja (lucro): R$ {(Number(valor || 0) - Number(custo || 0)).toFixed(2)}
             </div>
 
@@ -142,7 +134,7 @@ export default function Emplacamentos() {
               onChange={(e) => setFormaPagamento(e.target.value)}
             />
 
-            <div className="modal-actions">
+            <div className="emplac-modal-actions">
               <button onClick={salvar}>Salvar</button>
               <button onClick={() => setModal(false)}>Cancelar</button>
             </div>
