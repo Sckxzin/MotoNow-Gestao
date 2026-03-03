@@ -1,3 +1,4 @@
+
 import { useEffect, useState, useMemo } from "react";
 import api from "../api";
 import { useNavigate } from "react-router-dom";
@@ -48,7 +49,7 @@ export default function VendasMotos() {
 
     const base = repasse > 0 ? repasse : compra;
 
-    return valor - base;
+    return valor - base - gasolina - descontoBrinde;
   }
 
   /* ================= FILTROS ================= */
