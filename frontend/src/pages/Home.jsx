@@ -6,11 +6,12 @@ import "./Home.css";
 
 /* ================= CONFIG MODELOS (CADASTRO MOTO) ================= */
 const MODELOS_MOTOS = [
-  { modelo: "JET 125 SS", compra_motonow: 9390, compra_santander: 8900, santanderDefault: false },
+  { modelo: "JET 125 SS", compra_motonow: 8390, compra_santander: 8900, santanderDefault: false },
   { modelo: "SHI 175 EFI", compra_motonow: 11790, compra_santander: 12900, santanderDefault: true },
   { modelo: "STORM 200", compra_motonow: 17990, compra_santander: 19100, santanderDefault: true },
   { modelo: "JEF 150", compra_motonow: 11090, compra_santander: 12200, santanderDefault: true },
-  { modelo: "JET 50", compra_motonow: 7790, compra_santander: 8500, santanderDefault: true },
+  { modelo: "JET 50", compra_motonow: 7990, compra_santander: 8500, santanderDefault: true },
+  { modelo: "URBAN 150 EFI", compra_motonow: 16990, compra_santander: 18100, santanderDefault: true},
 ];
 
 /* ================= REGRA: REPASSE OBRIGATÓRIO EM FILIAIS ================= */
