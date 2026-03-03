@@ -408,6 +408,7 @@ export default function Home() {
             🕒 Aprovar Vendas
           </button>
         )}
+
 {user.role === "DIRETORIA" && (
   <button className="tab-btn" onClick={() => nav("/emplacamentos")}>
     🪪 Emplacamentos
