@@ -60,7 +60,7 @@ const REPASSE_SANTANDER_POR_MODELO = {
   [normModeloKey("JET 125 SS")]: 8900,
   [normModeloKey("SHI 175 EFI")]: 14900,
   [normModeloKey("STORM 200")]: 19199,
-  [normModeloKey("JEF 150")]: 12200,
+  [normModeloKey("JEF 150s")]: 12200,
   [normModeloKey("JET 50")]: 8500,
 };
 
