@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api";
 import "./Emplacamentos.css";
@@ -10,6 +10,15 @@ export default function Emplacamentos() {
   const [lista, setLista] = useState([]);
   const [modal, setModal] = useState(false);
 
+  // filtro
+  const [cidadeFiltro, setCidadeFiltro] = useState("TODAS");
+  const [dataInicio, setDataInicio] = useState("");
+  const [dataFim, setDataFim] = useState("");
+
+  // edição
+  const [editando, setEditando] = useState(null); // objeto ou null
+
+  // form
   const [cliente, setCliente] = useState("");
   const [moto, setMoto] = useState("");
   const [cidade, setCidade] = useState("");
@@ -31,11 +40,55 @@ export default function Emplacamentos() {
 
     setUser(dataUser);
     carregar();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nav]);
 
   async function carregar() {
-    const res = await api.get("/emplacamentos", { params: { role: "DIRETORIA" } });
-    setLista(res.data || []);
+    try {
+      const res = await api.get("/emplacamentos", { params: { role: "DIRETORIA" } });
+      setLista(res.data || []);
+    } catch (e) {
+      alert("Erro ao carregar emplacamentos");
+      console.error(e);
+      setLista([]);
+    }
+  }
+
+  function abrirNovo() {
+    setEditando(null);
+    setCliente("");
+    setMoto("");
+    setCidade("");
+    setData("");
+    setValor("");
+    setCusto("");
+    setFormaPagamento("");
+    setModal(true);
+  }
+
+  function abrirEditar(item) {
+    setEditando(item);
+
+    setCliente(item.cliente || "");
+    setMoto(item.moto || "");
+    setCidade(item.cidade || "");
+
+    // garante yyyy-mm-dd no input date
+    const dt = item.data ? new Date(item.data) : null;
+    const iso = dt && !Number.isNaN(dt.getTime())
+      ? new Date(dt.getTime() - dt.getTimezoneOffset() * 60000).toISOString().slice(0, 10)
+      : "";
+    setData(iso);
+
+    setValor(item.valor != null ? String(item.valor) : "");
+    setCusto(item.custo != null ? String(item.custo) : "");
+    setFormaPagamento(item.forma_pagamento || "");
+    setModal(true);
+  }
+
+  function fecharModal() {
+    setModal(false);
+    setEditando(null);
   }
 
   async function salvar() {
@@ -44,26 +97,73 @@ export default function Emplacamentos() {
       return;
     }
 
-    await api.post(`/emplacamentos?role=DIRETORIA`, {
+    const payload = {
       cliente,
       moto,
       cidade,
-      data,
+      data, // yyyy-mm-dd
       valor: Number(valor),
       custo: Number(custo),
       forma_pagamento: formaPagamento || null,
+    };
+
+    try {
+      if (editando?.id) {
+        // ✅ EDITAR
+        await api.put(`/emplacamentos/${editando.id}?role=DIRETORIA`, payload);
+      } else {
+        // ✅ NOVO
+        await api.post(`/emplacamentos?role=DIRETORIA`, payload);
+      }
+
+      fecharModal();
+      await carregar();
+    } catch (e) {
+      const msg = e?.response?.data?.message || "Erro ao salvar";
+      alert(msg);
+      console.error(e);
+    }
+  }
+
+  // opções de cidade (baseado no que tem na lista)
+  const cidadesDisponiveis = useMemo(() => {
+    const set = new Set();
+    (lista || []).forEach((e) => {
+      const c = (e.cidade || "").trim();
+      if (c) set.add(c);
     });
+    return Array.from(set).sort();
+  }, [lista]);
 
-    setModal(false);
-    setCliente("");
-    setMoto("");
-    setCidade("");
-    setData("");
-    setValor("");
-    setCusto("");
-    setFormaPagamento("");
+  // aplica filtros
+  const listaFiltrada = useMemo(() => {
+    return (lista || []).filter((e) => {
+      const c = (e.cidade || "").trim();
 
-    carregar();
+      // cidade
+      const okCidade = cidadeFiltro === "TODAS" || c === cidadeFiltro;
+
+      // data
+      const dt = e.data ? new Date(e.data) : null;
+      const okDt = dt && !Number.isNaN(dt.getTime());
+
+      const okInicio = !dataInicio || (okDt && dt >= new Date(`${dataInicio}T00:00:00`));
+      const okFim = !dataFim || (okDt && dt <= new Date(`${dataFim}T23:59:59`));
+
+      return okCidade && okInicio && okFim;
+    });
+  }, [lista, cidadeFiltro, dataInicio, dataFim]);
+
+  function limparFiltros() {
+    setCidadeFiltro("TODAS");
+    setDataInicio("");
+    setDataFim("");
+  }
+
+  function formatBRL(n) {
+    const v = Number(n);
+    if (!Number.isFinite(v)) return "-";
+    return v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
   }
 
   if (!user) return null;
@@ -72,9 +172,36 @@ export default function Emplacamentos() {
     <div className="emplac-container">
       <div className="emplac-header">
         <h2>🪪 Emplacamentos</h2>
-        <div>
-          <button onClick={() => setModal(true)}>➕ Novo</button>
+        <div className="emplac-header-actions">
+          <button onClick={abrirNovo}>➕ Novo</button>
           <button onClick={() => nav("/home")}>⬅ Voltar</button>
+        </div>
+      </div>
+
+      {/* ✅ FILTROS */}
+      <div className="emplac-filtros">
+        <div className="emplac-field">
+          <label>Cidade</label>
+          <select value={cidadeFiltro} onChange={(e) => setCidadeFiltro(e.target.value)}>
+            <option value="TODAS">Todas</option>
+            {cidadesDisponiveis.map((c) => (
+              <option key={c} value={c}>{c}</option>
+            ))}
+          </select>
+        </div>
+
+        <div className="emplac-field">
+          <label>Data início</label>
+          <input type="date" value={dataInicio} onChange={(e) => setDataInicio(e.target.value)} />
+        </div>
+
+        <div className="emplac-field">
+          <label>Data fim</label>
+          <input type="date" value={dataFim} onChange={(e) => setDataFim(e.target.value)} />
+        </div>
+
+        <div className="emplac-field emplac-field-actions">
+          <button className="emplac-btn-ghost" onClick={limparFiltros}>Limpar</button>
         </div>
       </div>
 
@@ -89,11 +216,12 @@ export default function Emplacamentos() {
             <th>Custo</th>
             <th>Loja (Lucro)</th>
             <th>Forma</th>
+            <th>Ações</th>
           </tr>
         </thead>
 
         <tbody>
-          {lista.map((e) => {
+          {listaFiltrada.map((e) => {
             const lucro = Number(e.valor || 0) - Number(e.custo || 0);
 
             return (
@@ -102,20 +230,34 @@ export default function Emplacamentos() {
                 <td>{e.moto}</td>
                 <td>{e.cidade}</td>
                 <td>{e.data ? new Date(e.data).toLocaleDateString("pt-BR") : "-"}</td>
-                <td>R$ {Number(e.valor).toFixed(2)}</td>
-                <td>R$ {Number(e.custo).toFixed(2)}</td>
-                <td className="emplac-lucro">R$ {lucro.toFixed(2)}</td>
+                <td>{formatBRL(e.valor)}</td>
+                <td>{formatBRL(e.custo)}</td>
+                <td className="emplac-lucro">{formatBRL(lucro)}</td>
                 <td>{e.forma_pagamento || "-"}</td>
+                <td>
+                  <button className="emplac-btn-edit" onClick={() => abrirEditar(e)}>
+                    ✏️ Editar
+                  </button>
+                </td>
               </tr>
             );
           })}
+
+          {listaFiltrada.length === 0 && (
+            <tr>
+              <td colSpan={9} style={{ textAlign: "center", opacity: 0.7, padding: 14 }}>
+                Nenhum registro com esses filtros.
+              </td>
+            </tr>
+          )}
         </tbody>
       </table>
 
+      {/* MODAL */}
       {modal && (
         <div className="emplac-modal-overlay">
           <div className="emplac-modal">
-            <h3>Novo Emplacamento</h3>
+            <h3>{editando ? "Editar Emplacamento" : "Novo Emplacamento"}</h3>
 
             <input placeholder="Cliente" value={cliente} onChange={(e) => setCliente(e.target.value)} />
             <input placeholder="Moto" value={moto} onChange={(e) => setMoto(e.target.value)} />
@@ -125,7 +267,7 @@ export default function Emplacamentos() {
             <input type="number" placeholder="Custo" value={custo} onChange={(e) => setCusto(e.target.value)} />
 
             <div className="emplac-preview-lucro">
-              Loja (lucro): R$ {(Number(valor || 0) - Number(custo || 0)).toFixed(2)}
+              Loja (lucro): {formatBRL(Number(valor || 0) - Number(custo || 0))}
             </div>
 
             <input
@@ -136,7 +278,7 @@ export default function Emplacamentos() {
 
             <div className="emplac-modal-actions">
               <button onClick={salvar}>Salvar</button>
-              <button onClick={() => setModal(false)}>Cancelar</button>
+              <button onClick={fecharModal}>Cancelar</button>
             </div>
           </div>
         </div>
