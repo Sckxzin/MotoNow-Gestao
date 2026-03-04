@@ -15,6 +15,10 @@ export default function Emplacamentos() {
   const [dataInicio, setDataInicio] = useState("");
   const [dataFim, setDataFim] = useState("");
 
+  // ✅ NOVO: abas status
+  // TODOS | PENDENTES | PAGO | ENTREGUE
+  const [abaStatus, setAbaStatus] = useState("TODOS");
+
   // edição
   const [editando, setEditando] = useState(null); // objeto ou null
 
@@ -26,6 +30,10 @@ export default function Emplacamentos() {
   const [valor, setValor] = useState("");
   const [custo, setCusto] = useState("");
   const [formaPagamento, setFormaPagamento] = useState("");
+
+  // ✅ NOVO: campos só no editar
+  const [pago, setPago] = useState(false);
+  const [entregue, setEntregue] = useState(false);
 
   useEffect(() => {
     const raw = localStorage.getItem("user");
@@ -63,6 +71,11 @@ export default function Emplacamentos() {
     setValor("");
     setCusto("");
     setFormaPagamento("");
+
+    // ✅ no NOVO, não mexe nisso (fica default false no banco)
+    setPago(false);
+    setEntregue(false);
+
     setModal(true);
   }
 
@@ -75,14 +88,20 @@ export default function Emplacamentos() {
 
     // garante yyyy-mm-dd no input date
     const dt = item.data ? new Date(item.data) : null;
-    const iso = dt && !Number.isNaN(dt.getTime())
-      ? new Date(dt.getTime() - dt.getTimezoneOffset() * 60000).toISOString().slice(0, 10)
-      : "";
+    const iso =
+      dt && !Number.isNaN(dt.getTime())
+        ? new Date(dt.getTime() - dt.getTimezoneOffset() * 60000).toISOString().slice(0, 10)
+        : "";
     setData(iso);
 
     setValor(item.valor != null ? String(item.valor) : "");
     setCusto(item.custo != null ? String(item.custo) : "");
     setFormaPagamento(item.forma_pagamento || "");
+
+    // ✅ pega do banco
+    setPago(!!item.pago);
+    setEntregue(!!item.entregue);
+
     setModal(true);
   }
 
@@ -97,7 +116,7 @@ export default function Emplacamentos() {
       return;
     }
 
-    const payload = {
+    const payloadBase = {
       cliente,
       moto,
       cidade,
@@ -109,11 +128,15 @@ export default function Emplacamentos() {
 
     try {
       if (editando?.id) {
-        // ✅ EDITAR
-        await api.put(`/emplacamentos/${editando.id}?role=DIRETORIA`, payload);
+        // ✅ EDITAR (aqui vai pago/entregue)
+        await api.put(`/emplacamentos/${editando.id}?role=DIRETORIA`, {
+          ...payloadBase,
+          pago: !!pago,
+          entregue: !!entregue,
+        });
       } else {
-        // ✅ NOVO
-        await api.post(`/emplacamentos?role=DIRETORIA`, payload);
+        // ✅ NOVO (não envia pago/entregue)
+        await api.post(`/emplacamentos?role=DIRETORIA`, payloadBase);
       }
 
       fecharModal();
@@ -150,14 +173,26 @@ export default function Emplacamentos() {
       const okInicio = !dataInicio || (okDt && dt >= new Date(`${dataInicio}T00:00:00`));
       const okFim = !dataFim || (okDt && dt <= new Date(`${dataFim}T23:59:59`));
 
-      return okCidade && okInicio && okFim;
+      // ✅ aba status
+      const isPago = !!e.pago;
+      const isEntregue = !!e.entregue;
+      const okAba = (() => {
+        if (abaStatus === "TODOS") return true;
+        if (abaStatus === "PAGO") return isPago === true;
+        if (abaStatus === "ENTREGUE") return isEntregue === true;
+        if (abaStatus === "PENDENTES") return !isPago || !isEntregue; // pendente se falta algum
+        return true;
+      })();
+
+      return okCidade && okInicio && okFim && okAba;
     });
-  }, [lista, cidadeFiltro, dataInicio, dataFim]);
+  }, [lista, cidadeFiltro, dataInicio, dataFim, abaStatus]);
 
   function limparFiltros() {
     setCidadeFiltro("TODAS");
     setDataInicio("");
     setDataFim("");
+    setAbaStatus("TODOS");
   }
 
   function formatBRL(n) {
@@ -176,6 +211,34 @@ export default function Emplacamentos() {
           <button onClick={abrirNovo}>➕ Novo</button>
           <button onClick={() => nav("/home")}>⬅ Voltar</button>
         </div>
+      </div>
+
+      {/* ✅ ABAS */}
+      <div className="emplac-tabs">
+        <button
+          className={`emplac-tab ${abaStatus === "TODOS" ? "active" : ""}`}
+          onClick={() => setAbaStatus("TODOS")}
+        >
+          Todos
+        </button>
+        <button
+          className={`emplac-tab ${abaStatus === "PENDENTES" ? "active" : ""}`}
+          onClick={() => setAbaStatus("PENDENTES")}
+        >
+          Pendentes
+        </button>
+        <button
+          className={`emplac-tab ${abaStatus === "PAGO" ? "active" : ""}`}
+          onClick={() => setAbaStatus("PAGO")}
+        >
+          Pago
+        </button>
+        <button
+          className={`emplac-tab ${abaStatus === "ENTREGUE" ? "active" : ""}`}
+          onClick={() => setAbaStatus("ENTREGUE")}
+        >
+          Entregue
+        </button>
       </div>
 
       {/* ✅ FILTROS */}
@@ -216,6 +279,8 @@ export default function Emplacamentos() {
             <th>Custo</th>
             <th>Loja (Lucro)</th>
             <th>Forma</th>
+            <th>Pago</th>
+            <th>Entregue</th>
             <th>Ações</th>
           </tr>
         </thead>
@@ -234,6 +299,8 @@ export default function Emplacamentos() {
                 <td>{formatBRL(e.custo)}</td>
                 <td className="emplac-lucro">{formatBRL(lucro)}</td>
                 <td>{e.forma_pagamento || "-"}</td>
+                <td>{e.pago ? "✅" : "—"}</td>
+                <td>{e.entregue ? "✅" : "—"}</td>
                 <td>
                   <button className="emplac-btn-edit" onClick={() => abrirEditar(e)}>
                     ✏️ Editar
@@ -245,7 +312,7 @@ export default function Emplacamentos() {
 
           {listaFiltrada.length === 0 && (
             <tr>
-              <td colSpan={9} style={{ textAlign: "center", opacity: 0.7, padding: 14 }}>
+              <td colSpan={11} style={{ textAlign: "center", opacity: 0.7, padding: 14 }}>
                 Nenhum registro com esses filtros.
               </td>
             </tr>
@@ -275,6 +342,29 @@ export default function Emplacamentos() {
               value={formaPagamento}
               onChange={(e) => setFormaPagamento(e.target.value)}
             />
+
+            {/* ✅ SOMENTE NO EDITAR */}
+            {editando?.id && (
+              <div className="emplac-status-box">
+                <label className="emplac-check">
+                  <input
+                    type="checkbox"
+                    checked={pago}
+                    onChange={(e) => setPago(e.target.checked)}
+                  />
+                  Pago
+                </label>
+
+                <label className="emplac-check">
+                  <input
+                    type="checkbox"
+                    checked={entregue}
+                    onChange={(e) => setEntregue(e.target.checked)}
+                  />
+                  Entregue
+                </label>
+              </div>
+            )}
 
             <div className="emplac-modal-actions">
               <button onClick={salvar}>Salvar</button>
