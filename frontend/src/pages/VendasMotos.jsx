@@ -39,18 +39,21 @@ export default function VendasMotos() {
     return valorVenda - repasse;
   }
 
-  // ✅ líquido do seu jeito (se tiver repasse, NÃO usa compra; se não tiver repasse, usa compra)
+  // ✅ LÍQUIDO (REGRA NOVA)
+  // - Se tiver repasse: valor_venda - valor_compra - a_repassar
+  // - Se não tiver repasse: valor_venda - valor_compra
   function calcLiquido(v) {
-    const valor = Number(v.valor || 0);
-    const compra = Number(v.valor_compra || 0);
+    const valorVenda = Number(v.valor || 0);
+    const valorCompra = Number(v.valor_compra || 0);
     const repasse = Number(v.repasse || 0);
-    const gasolina = Number(v.gasolina || 0);
-    const descontoBrinde = v.brinde ? 100 : 0;
-    
 
-    const base = repasse > 0 ? repasse : compra;
+    const aRepassar = getValorARepassar(v); // pode ser null
 
-    return valor - base;
+    if (repasse > 0 && aRepassar != null) {
+      return valorVenda - valorCompra - Number(aRepassar || 0);
+    }
+
+    return valorVenda - valorCompra;
   }
 
   /* ================= FILTROS ================= */
