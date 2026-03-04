@@ -84,6 +84,8 @@ function isDiretoria(req) {
   return role === "DIRETORIA";
 }
 
+/* ================= EMPLACAMENTOS ================= */
+
 // LISTAR
 app.get("/emplacamentos", async (req, res) => {
   try {
@@ -91,23 +93,30 @@ app.get("/emplacamentos", async (req, res) => {
 
     const r = await db.query(`
       SELECT
-        id, cliente, moto, cidade, data,
-        valor, custo,
+        id,
+        cliente,
+        moto,
+        cidade,
+        data,
+        valor,
+        custo,
         (COALESCE(valor,0) - COALESCE(custo,0)) AS loja,
         forma_pagamento,
+        pago,
+        entregue,
         created_at
       FROM emplacamentos
-      ORDER BY data DESC, id DESC
+      ORDER BY data DESC NULLS LAST, id DESC
     `);
 
     res.json(r.rows);
   } catch (err) {
-    console.error("Erro emplacamentos:", err);
+    console.error("Erro emplacamentos (GET):", err);
     res.status(500).json({ message: "Erro ao buscar emplacamentos" });
   }
 });
 
-// CADASTRAR
+// CADASTRAR (não recebe pago/entregue)
 app.post("/emplacamentos", async (req, res) => {
   try {
     if (!isDiretoria(req)) return res.status(403).json({ message: "Acesso negado" });
@@ -119,8 +128,8 @@ app.post("/emplacamentos", async (req, res) => {
     }
 
     const r = await db.query(
-      `INSERT INTO emplacamentos (cliente, moto, cidade, data, valor, custo, forma_pagamento)
-       VALUES ($1,$2,$3,$4,$5,$6,$7)
+      `INSERT INTO emplacamentos (cliente, moto, cidade, data, valor, custo, forma_pagamento, pago, entregue)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,false,false)
        RETURNING id`,
       [
         String(cliente).trim(),
@@ -135,8 +144,67 @@ app.post("/emplacamentos", async (req, res) => {
 
     res.json({ message: "Emplacamento cadastrado", id: r.rows[0].id });
   } catch (err) {
-    console.error("Erro cadastrar emplacamento:", err);
+    console.error("Erro emplacamentos (POST):", err);
     res.status(500).json({ message: "Erro ao cadastrar emplacamento" });
+  }
+});
+
+// EDITAR (aqui salva pago/entregue também)
+app.put("/emplacamentos/:id", async (req, res) => {
+  try {
+    if (!isDiretoria(req)) return res.status(403).json({ message: "Acesso negado" });
+
+    const { id } = req.params;
+
+    const {
+      cliente,
+      moto,
+      cidade,
+      data,
+      valor,
+      custo,
+      forma_pagamento,
+      pago,
+      entregue,
+    } = req.body;
+
+    if (!cliente || !moto || !cidade || !data || valor == null || custo == null) {
+      return res.status(400).json({ message: "Dados incompletos" });
+    }
+
+    const r = await db.query(
+      `UPDATE emplacamentos
+       SET cliente = $1,
+           moto = $2,
+           cidade = $3,
+           data = $4,
+           valor = $5,
+           custo = $6,
+           forma_pagamento = $7,
+           pago = $8,
+           entregue = $9
+       WHERE id = $10
+       RETURNING id`,
+      [
+        String(cliente).trim(),
+        String(moto).trim(),
+        String(cidade).trim(),
+        data, // YYYY-MM-DD
+        Number(valor),
+        Number(custo),
+        forma_pagamento ? String(forma_pagamento).trim() : null,
+        Boolean(pago),
+        Boolean(entregue),
+        Number(id),
+      ]
+    );
+
+    if (r.rowCount === 0) return res.status(404).json({ message: "Emplacamento não encontrado" });
+
+    res.json({ message: "Emplacamento atualizado", id: r.rows[0].id });
+  } catch (err) {
+    console.error("Erro emplacamentos (PUT):", err);
+    res.status(500).json({ message: "Erro ao atualizar emplacamento" });
   }
 });
 
@@ -149,10 +217,11 @@ app.delete("/emplacamentos/:id", async (req, res) => {
     await db.query(`DELETE FROM emplacamentos WHERE id = $1`, [id]);
     res.json({ message: "Removido" });
   } catch (err) {
-    console.error("Erro deletar emplacamento:", err);
+    console.error("Erro emplacamentos (DELETE):", err);
     res.status(500).json({ message: "Erro ao remover" });
   }
 });
+
 
 
 /* ================= LOGIN ================= */
