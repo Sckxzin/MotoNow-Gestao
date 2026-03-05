@@ -37,6 +37,7 @@ const REPASSE_SANTANDER_POR_MODELO = {
   [normModeloKey("STORM 200")]: 19199,
   [normModeloKey("JEF 150")]: 12200,
   [normModeloKey("JET 50")]: 8500,
+  [nirmModeloKey("NEW JET 125)]: 9500,
 };
 
 function isRepasseObrigatorio(filial) {
