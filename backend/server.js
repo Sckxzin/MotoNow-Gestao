@@ -64,7 +64,7 @@ const REPASSE_SANTANDER_POR_MODELO = {
   [normModeloKey("JET 50")]: 8500,
   [normModeloKey("SHI 175 CARB")]:12900,
   [normModeloKey("NEW JET 125")]:9500,
-  [normModeloKey("URBAN 150 EFI")]18100,
+  [normModeloKey("URBAN 150 EFI")]:18100,
 };
 
 function repasseSantanderPorModelo(modelo) {
