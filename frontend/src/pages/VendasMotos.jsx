@@ -1,5 +1,4 @@
-
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import api from "../api";
 import { useNavigate } from "react-router-dom";
 import "./VendasMotos.css";
@@ -158,14 +157,12 @@ export default function VendasMotos() {
 
   // checkbox multi
   function toggleCidade(valor) {
-    // se marcar TODAS, limpa as outras e deixa só TODAS
     if (valor === "TODAS") {
       if (cidadesFiltro.includes("TODAS")) setCidadesFiltro([]);
       else setCidadesFiltro(["TODAS"]);
       return;
     }
 
-    // se tiver TODAS selecionado e marcar outra, remove TODAS
     const base = cidadesFiltro.filter(x => x !== "TODAS");
 
     if (base.includes(valor)) {
@@ -261,13 +258,141 @@ export default function VendasMotos() {
 
     vendasFiltradas.forEach(v => {
       const liq = calcLiquido(v);
-
       if (getEmpresa(v) === "EMENEZES") emenezes += liq;
       else motonow += liq;
     });
 
     return { emenezes, motonow };
   }, [vendasFiltradas]);
+
+  /* ================= COLUNAS (SELETOR) ================= */
+  const STORAGE_KEY_COLS = "vm_cols_v1";
+
+  const COLUNAS = useMemo(() => ([
+    { key: "modelo", label: "Modelo" },
+    { key: "cor", label: "Cor" },
+    { key: "chassi", label: "Chassi" },
+    { key: "cliente", label: "Cliente" },
+    { key: "telefone", label: "Telefone" },
+    { key: "origem", label: "Origem" },
+    { key: "valor", label: "Valor" },
+    { key: "compra", label: "Compra" },
+    { key: "repasse", label: "Repasse" },
+    { key: "pagamento", label: "Pagamento" },
+    { key: "gasolina", label: "Gasolina" },
+    { key: "filial", label: "Filial" },
+    { key: "empresa", label: "Empresa" },
+    { key: "cnpj", label: "CNPJ" },
+    { key: "brinde", label: "Brinde" },
+    { key: "data", label: "Data" },
+    { key: "a_repassar", label: "A repassar" },
+    { key: "liquido", label: "Líquido" },
+  ]), []);
+
+  const defaultCols = useMemo(() => (
+    ["modelo", "chassi", "cliente", "valor", "compra", "repasse", "a_repassar", "liquido", "filial", "empresa", "data"]
+  ), []);
+
+  const [mostrarColunas, setMostrarColunas] = useState(false);
+
+  const [colunasAtivas, setColunasAtivas] = useState(() => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY_COLS);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (_) {}
+    return defaultCols;
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY_COLS, JSON.stringify(colunasAtivas));
+    } catch (_) {}
+  }, [colunasAtivas]);
+
+  function toggleColuna(key) {
+    setColunasAtivas(prev => {
+      if (prev.includes(key)) {
+        const novo = prev.filter(k => k !== key);
+        return novo.length === 0 ? prev : novo; // evita ficar sem nada
+      }
+      return [...prev, key];
+    });
+  }
+
+  function marcarTodasColunas() {
+    setColunasAtivas(COLUNAS.map(c => c.key));
+  }
+
+  function marcarBasico() {
+    setColunasAtivas(["modelo", "chassi", "cliente", "filial", "data"]);
+  }
+
+  function marcarFinanceiro() {
+    setColunasAtivas(["modelo", "valor", "compra", "repasse", "a_repassar", "liquido", "empresa", "data"]);
+  }
+
+  function limparColunas() {
+    setColunasAtivas(defaultCols);
+  }
+
+  function getCellValue(v, key) {
+    switch (key) {
+      case "modelo": return v.modelo;
+      case "cor": return v.cor;
+      case "chassi": return v.chassi;
+      case "cliente": return v.nome_cliente;
+      case "telefone": return v.numero_cliente;
+      case "origem": return v.como_chegou;
+      case "valor": return formatarValor(v.valor);
+      case "compra": return formatarValor(v.valor_compra);
+      case "repasse": return formatarValor(v.repasse);
+      case "pagamento": return v.forma_pagamento || "-";
+      case "gasolina": return v.gasolina ? formatarValor(v.gasolina) : "-";
+      case "filial": return v.filial_venda || "-";
+      case "empresa": return getEmpresa(v);
+      case "cnpj": return getCNPJ(v);
+      case "brinde": return v.brinde ? "SIM" : "NÃO";
+      case "data": return new Date(v.created_at).toLocaleDateString("pt-BR");
+      case "a_repassar": return getValorARepassar(v) == null ? "-" : formatarValor(getValorARepassar(v));
+      case "liquido": return formatarValor(calcLiquido(v));
+      default: return "";
+    }
+  }
+
+  function getCsvValue(v, key) {
+    switch (key) {
+      case "modelo": return v.modelo;
+      case "cor": return v.cor;
+      case "chassi": return v.chassi;
+      case "cliente": return v.nome_cliente;
+      case "telefone": return v.numero_cliente;
+      case "origem": return v.como_chegou;
+      case "valor": return v.valor != null ? Number(v.valor).toFixed(2) : "";
+      case "compra": return v.valor_compra != null ? Number(v.valor_compra).toFixed(2) : "";
+      case "repasse": return v.repasse != null ? Number(v.repasse).toFixed(2) : "";
+      case "pagamento": return v.forma_pagamento || "";
+      case "gasolina": return v.gasolina != null ? Number(v.gasolina).toFixed(2) : "";
+      case "filial": return v.filial_venda || "";
+      case "empresa": return getEmpresa(v);
+      case "cnpj": return getCNPJ(v);
+      case "brinde": return v.brinde ? "SIM" : "NÃO";
+      case "data": return new Date(v.created_at).toLocaleDateString("pt-BR");
+      case "a_repassar": {
+        const ar = getValorARepassar(v);
+        return ar == null ? "" : Number(ar).toFixed(2);
+      }
+      case "liquido": return Number(calcLiquido(v)).toFixed(2);
+      default: return "";
+    }
+  }
+
+  const colunasOrdenadas = useMemo(() => {
+    const order = COLUNAS.map(c => c.key);
+    return [...colunasAtivas].sort((a, b) => order.indexOf(a) - order.indexOf(b));
+  }, [colunasAtivas, COLUNAS]);
 
   /* ================= UI ================= */
   return (
@@ -285,57 +410,67 @@ export default function VendasMotos() {
           </button>
 
           <button
+            className="vm-btn vm-btn-ghost"
+            onClick={() => setMostrarColunas(v => !v)}
+            title="Escolher colunas"
+          >
+            🧩 Colunas
+          </button>
+
+          <button
             className="vm-btn vm-btn-primary"
-            onClick={() =>
+            onClick={() => {
+              const headers = colunasOrdenadas;
               exportarCSV(
                 "historico_vendas_motos.csv",
-                [
-                  "modelo",
-                  "cor",
-                  "chassi",
-                  "cliente",
-                  "telefone",
-                  "origem",
-                  "valor",
-                  "valor_compra",
-                  "repasse",
-                  "a_repassar",
-                  "liquido",
-                  "pagamento",
-                  "gasolina",
-                  "filial",
-                  "empresa",
-                  "cnpj",
-                  "brinde",
-                  "data"
-                ],
-                vendasFiltradas.map(v => ({
-                  modelo: v.modelo,
-                  cor: v.cor,
-                  chassi: v.chassi,
-                  cliente: v.nome_cliente,
-                  telefone: v.numero_cliente,
-                  origem: v.como_chegou,
-                  valor: v.valor != null ? Number(v.valor).toFixed(2) : "",
-                  valor_compra: v.valor_compra != null ? Number(v.valor_compra).toFixed(2) : "",
-                  repasse: v.repasse != null ? Number(v.repasse).toFixed(2) : "",
-                  a_repassar: getValorARepassar(v) == null ? "" : Number(getValorARepassar(v)).toFixed(2),
-                  liquido: Number(calcLiquido(v)).toFixed(2),
-                  pagamento: v.forma_pagamento,
-                  gasolina: v.gasolina != null ? Number(v.gasolina).toFixed(2) : "",
-                  filial: v.filial_venda || "",
-                  empresa: getEmpresa(v),
-                  cnpj: getCNPJ(v),
-                  brinde: v.brinde ? "SIM" : "NÃO",
-                  data: new Date(v.created_at).toLocaleDateString("pt-BR")
-                }))
-              )
-            }
+                headers,
+                vendasFiltradas.map(v => {
+                  const row = {};
+                  headers.forEach(h => (row[h] = getCsvValue(v, h)));
+                  return row;
+                })
+              );
+            }}
           >
             📥 Exportar CSV
           </button>
         </div>
       </div>
+
+      {/* SELETOR DE COLUNAS */}
+      {mostrarColunas && (
+        <div className="vm-card" style={{ marginTop: 12 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center" }}>
+            <div>
+              <strong>Escolha as colunas</strong>
+              <div style={{ opacity: 0.75, fontSize: 12 }}>
+                Dica: suas escolhas ficam salvas neste navegador.
+              </div>
+            </div>
+
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <button className="vm-btn vm-btn-soft" onClick={marcarTodasColunas}>Todas</button>
+              <button className="vm-btn vm-btn-soft" onClick={marcarBasico}>Básico</button>
+              <button className="vm-btn vm-btn-soft" onClick={marcarFinanceiro}>Financeiro</button>
+              <button className="vm-btn vm-btn-ghost" onClick={limparColunas}>Reset</button>
+              <button className="vm-btn vm-btn-ghost" onClick={() => setMostrarColunas(false)}>Fechar</button>
+            </div>
+          </div>
+
+          <div style={{ marginTop: 12, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 10 }}>
+            {COLUNAS.map(c => (
+              <label key={c.key} className="vm-check" style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                <input
+                  type="checkbox"
+                  checked={colunasAtivas.includes(c.key)}
+                  onChange={() => toggleColuna(c.key)}
+                />
+                <span>{c.label}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* CARD FILTROS */}
       <div className="vm-card">
@@ -476,50 +611,29 @@ export default function VendasMotos() {
         <table className="table">
           <thead>
             <tr>
-              <th>Modelo</th>
-              <th>Cor</th>
-              <th>Chassi</th>
-              <th>Cliente</th>
-              <th>Telefone</th>
-              <th>Origem</th>
-              <th>Valor</th>
-              <th>Compra</th>
-              <th>Repasse</th>
-              <th>Pagamento</th>
-              <th>Gasolina</th>
-              <th>Filial</th>
-              <th>Empresa</th>
-              <th>CNPJ</th>
-              <th>Brinde</th>
-              <th>Data</th>
-              <th>A repassar</th>
-              <th>Líquido</th>
+              {colunasOrdenadas.map((key) => {
+                const col = COLUNAS.find(c => c.key === key);
+                return <th key={key}>{col?.label || key}</th>;
+              })}
             </tr>
           </thead>
 
           <tbody>
             {vendasFiltradas.map(v => (
               <tr key={v.id}>
-                <td>{v.modelo}</td>
-                <td>{v.cor}</td>
-                <td>{v.chassi}</td>
-                <td>{v.nome_cliente}</td>
-                <td>{v.numero_cliente}</td>
-                <td>{v.como_chegou}</td>
-                <td>{formatarValor(v.valor)}</td>
-                <td>{formatarValor(v.valor_compra)}</td>
-                <td>{formatarValor(v.repasse)}</td>
-                <td>{v.forma_pagamento}</td>
-                <td>{v.gasolina ? formatarValor(v.gasolina) : "-"}</td>
-                <td>{v.filial_venda || "-"}</td>
-                <td>{getEmpresa(v)}</td>
-                <td>{getCNPJ(v)}</td>
-                <td>{v.brinde ? "SIM" : "NÃO"}</td>
-                <td>{new Date(v.created_at).toLocaleDateString("pt-BR")}</td>
-                <td>{getValorARepassar(v) == null ? "-" : formatarValor(getValorARepassar(v))}</td>
-                <td>{formatarValor(calcLiquido(v))}</td>
+                {colunasOrdenadas.map((key) => (
+                  <td key={key}>{getCellValue(v, key)}</td>
+                ))}
               </tr>
             ))}
+
+            {vendasFiltradas.length === 0 && (
+              <tr>
+                <td colSpan={colunasOrdenadas.length} style={{ textAlign: "center", opacity: 0.7, padding: 14 }}>
+                  Nenhuma venda encontrada com esses filtros.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
