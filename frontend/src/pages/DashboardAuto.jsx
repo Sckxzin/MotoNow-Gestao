@@ -1,4 +1,4 @@
- /* eslint-disable no-unused-vars */
+/* eslint-disable no-unused-vars */
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api";
@@ -14,6 +14,9 @@ import {
   CartesianGrid,
   LineChart,
   Line,
+  PieChart,
+  Pie,
+  Legend,
 } from "recharts";
 
 /* ================= HELPERS ================= */
@@ -61,28 +64,45 @@ function clampDateRange(createdAt, dataInicio, dataFim) {
   }
   return true;
 }
+function normPay(s) {
+  const x = String(s || "").trim().toUpperCase();
+  if (!x) return "N/I";
+  if (x.includes("PIX")) return "PIX";
+  if (x.includes("DÉBITO") || x.includes("DEBIT")) return "DÉBITO";
+  if (x.includes("CRÉDITO") || x.includes("CRED")) return "CRÉDITO";
+  if (x.includes("A VISTA") || x.includes("AVISTA") || x.includes("DINHEIRO")) return "À VISTA";
+  if (x.includes("BOLETO")) return "BOLETO";
+  if (x.includes("FINAN")) return "FINANCIAMENTO";
+  return x;
+}
 
 /* ================= LÓGICA LÍQUIDO (SEU JEITO) ================= */
 function calcLiquidoMoto(v) {
   const valor = toNumber(v.valor);
   const compra = toNumber(v.valor_compra);
   const repasse = toNumber(v.repasse);
-  const gasolina = toNumber(v.gasolina);
-  const brindeDesc = v.brinde ? 100 : 0;
 
+  // sua regra atual no dashboard: se tem repasse, usa repasse como base; se não, compra
   const base = repasse > 0 ? repasse : compra;
-  return valor - base - gasolina - brindeDesc;
+
+  // se quiser voltar a descontar gasolina/brinde aqui, é só reativar:
+  // const gasolina = toNumber(v.gasolina);
+  // const brindeDesc = v.brinde ? 100 : 0;
+  // return valor - base - gasolina - brindeDesc;
+
+  return valor - base;
 }
 
 /* ================= THEME (TV CORPORATIVO) ================= */
 const THEME = {
-  bg: "radial-gradient(1100px 700px at 18% 8%, rgba(97,140,255,0.12), transparent 60%), radial-gradient(900px 600px at 92% 20%, rgba(0,255,200,0.10), transparent 55%), #07090c",
+  bg:
+    "radial-gradient(1100px 700px at 18% 8%, rgba(97,140,255,0.12), transparent 60%), radial-gradient(900px 600px at 92% 20%, rgba(0,255,200,0.10), transparent 55%), #07090c",
   card: "linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02))",
   border: "1px solid rgba(255,255,255,0.10)",
   text: "rgba(255,255,255,0.92)",
   subtext: "rgba(255,255,255,0.68)",
   shadow: "0 18px 50px rgba(0,0,0,0.45)",
-  grid: { stroke: "rgba(255,255,255,0.02)", vertical: false }, // quase invisível
+  grid: { stroke: "rgba(255,255,255,0.02)", vertical: false },
   axis: {
     tick: { fill: "rgba(255,255,255,0.60)", fontSize: 11 },
     axisLine: { stroke: "rgba(255,255,255,0.08)" },
@@ -128,6 +148,12 @@ export default function DashboardAuto() {
       { id: "liq_sem_mes", title: "Líquido semanal e mensal" },
       { id: "top_modelos", title: "Top 10 modelos" },
       { id: "cidade", title: "Vendas por cidade" },
+
+      // ✅ NOVOS
+      { id: "pag_motos", title: "Formas de pagamento (motos)" },
+      { id: "pecas_dia", title: "Peças: vendas por dia" },
+      { id: "top_pecas", title: "Top 10 peças" },
+      { id: "pecas_cidade", title: "Peças por cidade" },
     ],
     []
   );
@@ -228,13 +254,11 @@ export default function DashboardAuto() {
   }, [vendasPecas, dataInicio, dataFim]);
 
   function pickCityFromVendaMoto(v) {
-    return (
-      v.filial_venda ||
-      v.filial_origem ||
-      v.cidade ||
-      v.filial ||
-      "N/I"
-    );
+    return v.filial_venda || v.filial_origem || v.cidade || v.filial || "N/I";
+  }
+
+  function pickCityFromVendaPeca(v) {
+    return v.cidade || "N/I";
   }
 
   /* ================= KPIs ================= */
@@ -268,7 +292,7 @@ export default function DashboardAuto() {
     };
   }, [motosFiltradas, pecasFiltradas, vendasMotos]);
 
-  /* ================= GRÁFICOS ================= */
+  /* ================= GRÁFICOS (MOTOS) ================= */
 
   // Slide 2 — vendas por dia
   const motosPorDia = useMemo(() => {
@@ -284,7 +308,7 @@ export default function DashboardAuto() {
       .slice(-45);
   }, [motosFiltradas]);
 
-  // Slide 3 — rolling 7 dias (respeita filtro atual)
+  // Slide 3 — rolling 7 dias
   const vendas7DiasJanelaMovel = useMemo(() => {
     const base = motosFiltradas;
 
@@ -327,7 +351,7 @@ export default function DashboardAuto() {
     return vendas7DiasJanelaMovel[vendas7DiasJanelaMovel.length - 1].total || 0;
   }, [vendas7DiasJanelaMovel]);
 
-  // Slide 4 — líquido semanal e mensal (mesma tela)
+  // Slide 4 — líquido semanal
   const liquidoSemanal = useMemo(() => {
     const map = new Map();
     motosFiltradas.forEach((v) => {
@@ -353,6 +377,7 @@ export default function DashboardAuto() {
       .slice(-16);
   }, [motosFiltradas]);
 
+  // Slide 4 — líquido mensal
   const liquidoMensal = useMemo(() => {
     const map = new Map();
     motosFiltradas.forEach((v) => {
@@ -394,6 +419,88 @@ export default function DashboardAuto() {
       .slice(0, 14);
   }, [motosFiltradas]);
 
+  // ✅ Slide novo — formas de pagamento (motos): volume + valor
+  const pagamentoMotos = useMemo(() => {
+    const map = new Map();
+    motosFiltradas.forEach((v) => {
+      const k = normPay(v.forma_pagamento);
+      if (!map.has(k)) map.set(k, { forma: k, qtd: 0, valor: 0 });
+      const cur = map.get(k);
+      cur.qtd += 1;
+      cur.valor += toNumber(v.valor);
+      map.set(k, cur);
+    });
+
+    return Array.from(map.values())
+      .map((x) => ({ ...x, valor: Math.round(x.valor * 100) / 100 }))
+      .sort((a, b) => b.qtd - a.qtd)
+      .slice(0, 10);
+  }, [motosFiltradas]);
+
+  /* ================= GRÁFICOS (PEÇAS) ================= */
+
+  // ✅ peças por dia (qtd vendas + faturamento)
+  const pecasPorDia = useMemo(() => {
+    const map = new Map();
+    pecasFiltradas.forEach((v) => {
+      const key = isoDateOnly(v.created_at);
+      if (!key) return;
+      if (!map.has(key)) map.set(key, { diaISO: key, dia: formatDateBRFromISO(key), vendas: 0, faturamento: 0 });
+      const cur = map.get(key);
+      cur.vendas += 1;
+      cur.faturamento += toNumber(v.total);
+      map.set(key, cur);
+    });
+
+    return Array.from(map.values())
+      .map((x) => ({ ...x, faturamento: Math.round(x.faturamento * 100) / 100 }))
+      .sort((a, b) => a.diaISO.localeCompare(b.diaISO))
+      .slice(-45);
+  }, [pecasFiltradas]);
+
+  // ✅ top peças (por quantidade e faturamento)
+  const topPecas = useMemo(() => {
+    const map = new Map();
+    (pecasFiltradas || []).forEach((v) => {
+      const itens = Array.isArray(v.itens) ? v.itens : [];
+      itens.forEach((it) => {
+        const nome = String(it.nome || "SEM NOME").toUpperCase().trim();
+        const qtd = toNumber(it.quantidade);
+        const preco = toNumber(it.preco_unitario);
+        const fat = qtd * preco;
+
+        if (!map.has(nome)) map.set(nome, { peca: nome, qtd: 0, faturamento: 0 });
+        const cur = map.get(nome);
+        cur.qtd += qtd;
+        cur.faturamento += fat;
+        map.set(nome, cur);
+      });
+    });
+
+    return Array.from(map.values())
+      .map((x) => ({ ...x, faturamento: Math.round(x.faturamento * 100) / 100 }))
+      .sort((a, b) => b.qtd - a.qtd)
+      .slice(0, 10);
+  }, [pecasFiltradas]);
+
+  // ✅ peças por cidade (faturamento)
+  const pecasPorCidade = useMemo(() => {
+    const map = new Map();
+    (pecasFiltradas || []).forEach((v) => {
+      const city = String(pickCityFromVendaPeca(v) || "N/I").toUpperCase().trim();
+      if (!map.has(city)) map.set(city, { cidade: city, faturamento: 0, vendas: 0 });
+      const cur = map.get(city);
+      cur.faturamento += toNumber(v.total);
+      cur.vendas += 1;
+      map.set(city, cur);
+    });
+
+    return Array.from(map.values())
+      .map((x) => ({ ...x, faturamento: Math.round(x.faturamento * 100) / 100 }))
+      .sort((a, b) => b.faturamento - a.faturamento)
+      .slice(0, 14);
+  }, [pecasFiltradas]);
+
   /* ================= UI ================= */
   return (
     <div
@@ -419,11 +526,10 @@ export default function DashboardAuto() {
         <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
           <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
             <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: 0.2 }}>MotoNow</div>
-            <div style={{ opacity: 0.70, fontWeight: 600 }}>Dashboard • TV</div>
+            <div style={{ opacity: 0.7, fontWeight: 600 }}>Dashboard • TV</div>
           </div>
-          <div style={{ fontSize: 12, opacity: 0.70 }}>
-            {slides[slide]?.title} •{" "}
-            {empresaFiltro === "TODAS" ? "Todas empresas" : empresaFiltro}{" "}
+          <div style={{ fontSize: 12, opacity: 0.7 }}>
+            {slides[slide]?.title} • {empresaFiltro === "TODAS" ? "Todas empresas" : empresaFiltro}{" "}
             {dataInicio || dataFim ? `• ${dataInicio || "…"} → ${dataFim || "…"}` : "• Sem filtro de data"}
           </div>
         </div>
@@ -504,11 +610,7 @@ export default function DashboardAuto() {
             <KpiCard title="Faturamento Peças" value={formatBRL(kpis.faturamentoPecas)} />
             <KpiCard title="Vendas Peças" value={kpis.qtdVendasPecas} />
             <KpiCard title="Ticket Médio Peças" value={formatBRL(kpis.ticketMedioPecas)} />
-            <KpiCard
-              title="Rolling 7 (agora)"
-              value={rolling7Atual}
-              hint="Total acumulado nos últimos 7 dias"
-            />
+            <KpiCard title="Rolling 7 (agora)" value={rolling7Atual} hint="Total acumulado nos últimos 7 dias" />
           </div>
         )}
 
@@ -608,7 +710,7 @@ export default function DashboardAuto() {
 
         {/* Slide 6: Cidade */}
         {slides[slide]?.id === "cidade" && (
-          <Panel title="Vendas por cidade" rightHint="(filial_venda > origem)">
+          <Panel title="Vendas por cidade (motos)" rightHint="(filial_venda > origem)">
             <ResponsiveContainer width="100%" height={470}>
               <BarChart data={vendasPorCidade} layout="vertical" margin={{ top: 12, right: 18, bottom: 12, left: 22 }}>
                 <CartesianGrid {...THEME.grid} />
@@ -623,6 +725,107 @@ export default function DashboardAuto() {
                 />
                 <Tooltip {...tooltipProps((v) => [v, "Vendas"])} />
                 <Bar dataKey="total" radius={[0, 10, 10, 0]} fill="rgba(110,240,200,0.82)" stroke="rgba(255,255,255,0.06)" />
+              </BarChart>
+            </ResponsiveContainer>
+          </Panel>
+        )}
+
+        {/* ✅ Slide novo: Pagamento motos */}
+        {slides[slide]?.id === "pag_motos" && (
+          <div style={{ height: "100%", display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: 14 }}>
+            <Panel title="Formas de pagamento (motos)" rightHint="(qtd + valor)">
+              <ResponsiveContainer width="100%" height={470}>
+                <BarChart data={pagamentoMotos} margin={{ top: 18, right: 16, bottom: 40, left: 8 }}>
+                  <CartesianGrid {...THEME.grid} />
+                  <XAxis dataKey="forma" angle={-15} textAnchor="end" height={55} {...THEME.axis} />
+                  <YAxis allowDecimals={false} {...THEME.axis} />
+                  <Tooltip {...tooltipProps((v, name) => {
+                    if (name === "valor") return [formatBRL(v), "Valor"];
+                    return [v, "Qtd"];
+                  })} />
+                  <Legend />
+                  <Bar dataKey="qtd" name="Qtd" radius={[10, 10, 0, 0]} fill="rgba(110,240,200,0.82)" />
+                  <Bar dataKey="valor" name="Valor" radius={[10, 10, 0, 0]} fill="rgba(120,160,255,0.88)" />
+                </BarChart>
+              </ResponsiveContainer>
+            </Panel>
+
+            <Panel title="Participação por quantidade" rightHint="(pizza)">
+              <ResponsiveContainer width="100%" height={470}>
+                <PieChart>
+                  <Tooltip {...tooltipProps((v, name) => [v, name])} />
+                  <Legend />
+                  <Pie data={pagamentoMotos} dataKey="qtd" nameKey="forma" outerRadius={160} />
+                </PieChart>
+              </ResponsiveContainer>
+            </Panel>
+          </div>
+        )}
+
+        {/* ✅ Slide novo: Peças por dia */}
+        {slides[slide]?.id === "pecas_dia" && (
+          <Panel title="Peças: vendas por dia" rightHint="(qtd vendas + faturamento)">
+            <ResponsiveContainer width="100%" height={470}>
+              <BarChart data={pecasPorDia} margin={{ top: 18, right: 16, bottom: 44, left: 8 }}>
+                <CartesianGrid {...THEME.grid} />
+                <XAxis dataKey="dia" angle={-30} textAnchor="end" height={60} {...THEME.axis} />
+                <YAxis {...THEME.axis} />
+                <Tooltip {...tooltipProps((v, name) => {
+                  if (name === "faturamento") return [formatBRL(v), "Faturamento"];
+                  return [v, "Vendas"];
+                })} />
+                <Legend />
+                <Bar dataKey="vendas" name="Vendas" radius={[10, 10, 0, 0]} fill="rgba(110,240,200,0.82)" />
+                <Bar dataKey="faturamento" name="Faturamento" radius={[10, 10, 0, 0]} fill="rgba(255,190,90,0.88)" />
+              </BarChart>
+            </ResponsiveContainer>
+          </Panel>
+        )}
+
+        {/* ✅ Slide novo: Top peças */}
+        {slides[slide]?.id === "top_pecas" && (
+          <Panel title="Top 10 peças (quantidade)" rightHint="(qtd + faturamento)">
+            <ResponsiveContainer width="100%" height={470}>
+              <BarChart data={topPecas} layout="vertical" margin={{ top: 12, right: 18, bottom: 12, left: 22 }}>
+                <CartesianGrid {...THEME.grid} />
+                <XAxis type="number" {...THEME.axis} />
+                <YAxis
+                  type="category"
+                  dataKey="peca"
+                  width={320}
+                  tick={{ fill: "rgba(255,255,255,0.72)", fontSize: 12 }}
+                  axisLine={{ stroke: "rgba(255,255,255,0.08)" }}
+                  tickLine={{ stroke: "rgba(255,255,255,0.04)" }}
+                />
+                <Tooltip {...tooltipProps((v, name) => {
+                  if (name === "faturamento") return [formatBRL(v), "Faturamento"];
+                  return [v, "Qtd"];
+                })} />
+                <Legend />
+                <Bar dataKey="qtd" name="Qtd" radius={[0, 10, 10, 0]} fill="rgba(160,120,255,0.88)" />
+                <Bar dataKey="faturamento" name="Faturamento" radius={[0, 10, 10, 0]} fill="rgba(255,190,90,0.88)" />
+              </BarChart>
+            </ResponsiveContainer>
+          </Panel>
+        )}
+
+        {/* ✅ Slide novo: Peças por cidade */}
+        {slides[slide]?.id === "pecas_cidade" && (
+          <Panel title="Peças por cidade (faturamento)" rightHint="(cidade + total)">
+            <ResponsiveContainer width="100%" height={470}>
+              <BarChart data={pecasPorCidade} layout="vertical" margin={{ top: 12, right: 18, bottom: 12, left: 22 }}>
+                <CartesianGrid {...THEME.grid} />
+                <XAxis type="number" {...THEME.axis} />
+                <YAxis
+                  type="category"
+                  dataKey="cidade"
+                  width={220}
+                  tick={{ fill: "rgba(255,255,255,0.72)", fontSize: 12 }}
+                  axisLine={{ stroke: "rgba(255,255,255,0.08)" }}
+                  tickLine={{ stroke: "rgba(255,255,255,0.04)" }}
+                />
+                <Tooltip {...tooltipProps((v) => [formatBRL(v), "Faturamento"])} />
+                <Bar dataKey="faturamento" radius={[0, 10, 10, 0]} fill="rgba(110,240,200,0.82)" />
               </BarChart>
             </ResponsiveContainer>
           </Panel>
