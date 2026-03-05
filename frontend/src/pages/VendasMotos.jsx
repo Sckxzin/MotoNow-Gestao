@@ -104,7 +104,17 @@ export default function VendasMotos() {
   }
 
   /* ================= BOTÕES RÁPIDOS ================= */
-  function aplicarHoje() {
+function aplicarOntem() {
+  const ontem = new Date();
+  ontem.setDate(ontem.getDate() - 1);
+
+  const data = ontem.toISOString().slice(0, 10);
+
+  setDataInicio(data);
+  setDataFim(data);
+}
+
+function aplicarHoje() {
     const hoje = new Date().toISOString().slice(0, 10);
     setDataInicio(hoje);
     setDataFim(hoje);
@@ -525,6 +535,8 @@ export default function VendasMotos() {
           <button className="vm-btn vm-btn-ghost" onClick={limparDatas}>Limpar datas</button>
           <button className="vm-btn vm-btn-ghost" onClick={limparBusca}>Limpar busca</button>
           <button className="vm-btn vm-btn-ghost" onClick={limparCidades}>Limpar cidades</button>
+
+<button className="vm-btn vm-btn-soft" onClick={aplicarOntem}>Ontem</button>
         </div>
 
         {/* PAINEL CIDADES */}
