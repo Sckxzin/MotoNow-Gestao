@@ -7,7 +7,7 @@ import "./Home.css";
 /* ================= CONFIG MODELOS (CADASTRO MOTO) ================= */
 const MODELOS_MOTOS = [
   { modelo: "JET 125 SS", compra_motonow: 8390, compra_santander: 8900, santanderDefault: false },
-  { modelo: "SHI 175 EFI", compra_motonow: 11790, compra_santander: 12900, santanderDefault: true },
+  { modelo: "SHI 175 EFI", compra_motonow: 13790, compra_santander: 14900, santanderDefault: true },
   { modelo: "STORM 200", compra_motonow: 17990, compra_santander: 19100, santanderDefault: true },
   { modelo: "JEF 150", compra_motonow: 11090, compra_santander: 12200, santanderDefault: true },
   { modelo: "JET 50", compra_motonow: 7990, compra_santander: 8500, santanderDefault: true },
