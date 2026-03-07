@@ -154,7 +154,7 @@ export default function DashboardAuto() {
       { id: "pecas_dia", title: "Peças: vendas por dia" },
       { id: "top_pecas", title: "Top 10 peças" },
       { id: "pecas_cidade", title: "Peças por cidade" },
-      { id: "fechamento_loja", title: "Fechamento do dia por loja" },
+      { id: "fechamento_loja", title: "Fechamento por loja" },
     ],
     []
   );
@@ -227,7 +227,7 @@ export default function DashboardAuto() {
     if (!autoPlay) return;
     timerRef.current = setInterval(() => nextSlide(), intervalMs);
     return () => timerRef.current && clearInterval(timerRef.current);
-  }, [autoPlay, intervalMs, slides.length]);
+  }, [autoPlay, intervalMs]);
 
   useEffect(() => {
     function onKey(e) {
@@ -242,7 +242,7 @@ export default function DashboardAuto() {
 
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [slides.length]);
+  }, []);
 
   /* ================= BASE FILTRADA ================= */
   const motosFiltradas = useMemo(() => {
@@ -267,9 +267,15 @@ export default function DashboardAuto() {
   }
 
   function pickLojaMoto(v) {
-    return String(v.filial_venda || v.filial_origem || v.filial || "N/I")
-      .toUpperCase()
-      .trim();
+    return String(
+      v.filial_venda ||
+        v.filial_origem ||
+        v.cidade ||
+        v.filial ||
+        "N/I"
+    )
+      .trim()
+      .toUpperCase();
   }
 
   /* ================= KPIs ================= */
@@ -286,6 +292,7 @@ export default function DashboardAuto() {
     const di = new Date();
     di.setDate(hoje.getDate() - 6);
     di.setHours(0, 0, 0, 0);
+
     const motos7d = (vendasMotos || []).filter((v) => {
       const dt = safeDate(v.created_at);
       return dt && dt >= di && dt <= hoje;
@@ -302,9 +309,10 @@ export default function DashboardAuto() {
     };
   }, [motosFiltradas, pecasFiltradas, vendasMotos]);
 
-  /* ================= GRÁFICOS MOTOS ================= */
+  /* ================= MOTOS ================= */
   const motosPorDia = useMemo(() => {
     const map = new Map();
+
     motosFiltradas.forEach((v) => {
       const key = isoDateOnly(v.created_at);
       if (!key) return;
@@ -322,10 +330,9 @@ export default function DashboardAuto() {
   }, [motosFiltradas]);
 
   const vendas7DiasJanelaMovel = useMemo(() => {
-    const base = motosFiltradas;
     const countByDay = new Map();
 
-    base.forEach((v) => {
+    motosFiltradas.forEach((v) => {
       const k = isoDateOnly(v.created_at);
       if (!k) return;
       countByDay.set(k, (countByDay.get(k) || 0) + 1);
@@ -340,6 +347,7 @@ export default function DashboardAuto() {
 
     const allDays = [];
     const cur = new Date(start);
+
     while (cur <= end) {
       allDays.push(isoDateOnly(cur));
       cur.setDate(cur.getDate() + 1);
@@ -352,7 +360,11 @@ export default function DashboardAuto() {
     const out = allDays.map((k, i) => {
       const left = Math.max(0, i - 6);
       const soma7 = prefix[i + 1] - prefix[left];
-      return { diaISO: k, dia: formatDateBRFromISO(k), total: soma7 };
+      return {
+        diaISO: k,
+        dia: formatDateBRFromISO(k),
+        total: soma7,
+      };
     });
 
     return out.slice(-45);
@@ -442,8 +454,9 @@ export default function DashboardAuto() {
 
     motosFiltradas.forEach((v) => {
       const k = normPay(v.forma_pagamento);
-      if (!map.has(k)) map.set(k, { forma: k, qtd: 0, valor: 0 });
-
+      if (!map.has(k)) {
+        map.set(k, { forma: k, qtd: 0, valor: 0 });
+      }
       const cur = map.get(k);
       cur.qtd += 1;
       cur.valor += toNumber(v.valor);
@@ -456,7 +469,7 @@ export default function DashboardAuto() {
       .slice(0, 10);
   }, [motosFiltradas]);
 
-  /* ================= GRÁFICOS PEÇAS ================= */
+  /* ================= PEÇAS ================= */
   const pecasPorDia = useMemo(() => {
     const map = new Map();
 
@@ -480,7 +493,10 @@ export default function DashboardAuto() {
     });
 
     return Array.from(map.values())
-      .map((x) => ({ ...x, faturamento: Math.round(x.faturamento * 100) / 100 }))
+      .map((x) => ({
+        ...x,
+        faturamento: Math.round(x.faturamento * 100) / 100,
+      }))
       .sort((a, b) => a.diaISO.localeCompare(b.diaISO))
       .slice(-45);
   }, [pecasFiltradas]);
@@ -488,7 +504,7 @@ export default function DashboardAuto() {
   const topPecas = useMemo(() => {
     const map = new Map();
 
-    (pecasFiltradas || []).forEach((v) => {
+    pecasFiltradas.forEach((v) => {
       const itens = Array.isArray(v.itens) ? v.itens : [];
       itens.forEach((it) => {
         const nome = String(it.nome || "SEM NOME").toUpperCase().trim();
@@ -496,7 +512,9 @@ export default function DashboardAuto() {
         const preco = toNumber(it.preco_unitario);
         const fat = qtd * preco;
 
-        if (!map.has(nome)) map.set(nome, { peca: nome, qtd: 0, faturamento: 0 });
+        if (!map.has(nome)) {
+          map.set(nome, { peca: nome, qtd: 0, faturamento: 0 });
+        }
 
         const cur = map.get(nome);
         cur.qtd += qtd;
@@ -506,7 +524,10 @@ export default function DashboardAuto() {
     });
 
     return Array.from(map.values())
-      .map((x) => ({ ...x, faturamento: Math.round(x.faturamento * 100) / 100 }))
+      .map((x) => ({
+        ...x,
+        faturamento: Math.round(x.faturamento * 100) / 100,
+      }))
       .sort((a, b) => b.qtd - a.qtd)
       .slice(0, 10);
   }, [pecasFiltradas]);
@@ -514,9 +535,12 @@ export default function DashboardAuto() {
   const pecasPorCidade = useMemo(() => {
     const map = new Map();
 
-    (pecasFiltradas || []).forEach((v) => {
+    pecasFiltradas.forEach((v) => {
       const city = String(pickCityFromVendaPeca(v) || "N/I").toUpperCase().trim();
-      if (!map.has(city)) map.set(city, { cidade: city, faturamento: 0, vendas: 0 });
+
+      if (!map.has(city)) {
+        map.set(city, { cidade: city, faturamento: 0, vendas: 0 });
+      }
 
       const cur = map.get(city);
       cur.faturamento += toNumber(v.total);
@@ -525,44 +549,51 @@ export default function DashboardAuto() {
     });
 
     return Array.from(map.values())
-      .map((x) => ({ ...x, faturamento: Math.round(x.faturamento * 100) / 100 }))
+      .map((x) => ({
+        ...x,
+        faturamento: Math.round(x.faturamento * 100) / 100,
+      }))
       .sort((a, b) => b.faturamento - a.faturamento)
       .slice(0, 14);
   }, [pecasFiltradas]);
 
-  /* ================= FECHAMENTO DO DIA POR LOJA ================= */
-  const fechamentoDiaReferencia = useMemo(() => {
-    if (dataInicio && dataFim && dataInicio === dataFim) return dataInicio;
-    if (dataFim) return dataFim;
-    return new Date().toISOString().slice(0, 10);
+  /* ================= FECHAMENTO POR LOJA ================= */
+  const fechamentoTitulo = useMemo(() => {
+    if (dataInicio && dataFim) {
+      if (dataInicio === dataFim) return formatDateBRFromISO(dataInicio);
+      return `${formatDateBRFromISO(dataInicio)} até ${formatDateBRFromISO(dataFim)}`;
+    }
+
+    if (dataInicio) return `a partir de ${formatDateBRFromISO(dataInicio)}`;
+    if (dataFim) return `até ${formatDateBRFromISO(dataFim)}`;
+
+    return formatDateBRFromISO(new Date().toISOString().slice(0, 10));
   }, [dataInicio, dataFim]);
 
   const fechamentoPorLoja = useMemo(() => {
     const map = new Map();
 
-    (vendasMotos || []).forEach((v) => {
-      const dia = isoDateOnly(v.created_at);
-      if (dia !== fechamentoDiaReferencia) return;
+    (vendasMotos || [])
+      .filter((v) => clampDateRange(v.created_at, dataInicio, dataFim))
+      .filter((v) => empresaFiltro === "TODAS" || getEmpresa(v) === empresaFiltro)
+      .forEach((v) => {
+        const loja = pickLojaMoto(v);
 
-      if (empresaFiltro !== "TODAS" && getEmpresa(v) !== empresaFiltro) return;
+        if (!map.has(loja)) {
+          map.set(loja, {
+            loja,
+            faturamento: 0,
+            liquido: 0,
+            motos: 0,
+          });
+        }
 
-      const loja = pickLojaMoto(v);
-
-      if (!map.has(loja)) {
-        map.set(loja, {
-          loja,
-          faturamento: 0,
-          liquido: 0,
-          motos: 0,
-        });
-      }
-
-      const cur = map.get(loja);
-      cur.faturamento += toNumber(v.valor);
-      cur.liquido += calcLiquidoMoto(v);
-      cur.motos += 1;
-      map.set(loja, cur);
-    });
+        const cur = map.get(loja);
+        cur.faturamento += toNumber(v.valor);
+        cur.liquido += calcLiquidoMoto(v);
+        cur.motos += 1;
+        map.set(loja, cur);
+      });
 
     return Array.from(map.values())
       .map((x) => ({
@@ -571,7 +602,7 @@ export default function DashboardAuto() {
         liquido: Math.round(x.liquido * 100) / 100,
       }))
       .sort((a, b) => b.faturamento - a.faturamento);
-  }, [vendasMotos, fechamentoDiaReferencia, empresaFiltro]);
+  }, [vendasMotos, dataInicio, dataFim, empresaFiltro]);
 
   /* ================= UI ================= */
   return (
@@ -704,10 +735,7 @@ export default function DashboardAuto() {
         )}
 
         {slides[slide]?.id === "rolling7" && (
-          <Panel
-            title="Vendas acumuladas nos últimos 7 dias"
-            rightHint={dataInicio || dataFim ? "(respeita filtro)" : "(sem filtro)"}
-          >
+          <Panel title="Vendas acumuladas nos últimos 7 dias" rightHint={dataInicio || dataFim ? "(respeita filtro)" : "(sem filtro)"}>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: 14, height: "100%" }}>
               <div style={{ height: "100%" }}>
                 <ResponsiveContainer width="100%" height={470}>
@@ -908,23 +936,16 @@ export default function DashboardAuto() {
 
         {slides[slide]?.id === "fechamento_loja" && (
           <div style={{ height: "100%", display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: 14 }}>
-            <Panel
-              title="Fechamento do dia por loja"
-              rightHint={`Data: ${formatDateBRFromISO(fechamentoDiaReferencia)}`}
-            >
+            <Panel title="Fechamento por loja" rightHint={`Período: ${fechamentoTitulo}`}>
               <ResponsiveContainer width="100%" height={470}>
-                <BarChart
-                  data={fechamentoPorLoja}
-                  margin={{ top: 18, right: 16, bottom: 40, left: 8 }}
-                >
+                <BarChart data={fechamentoPorLoja} margin={{ top: 18, right: 16, bottom: 40, left: 8 }}>
                   <CartesianGrid {...THEME.grid} />
                   <XAxis dataKey="loja" angle={-20} textAnchor="end" height={60} {...THEME.axis} />
                   <YAxis {...THEME.axis} />
                   <Tooltip
                     {...tooltipProps((v, name) => {
-                      if (name === "faturamento") return [formatBRL(v), "Faturamento"];
-                      if (name === "liquido") return [formatBRL(v), "Líquido"];
-                      return [v, "Motos"];
+                      if (name === "faturamento" || name === "liquido") return [formatBRL(v), name];
+                      return [v, name];
                     })}
                   />
                   <Legend />
@@ -934,49 +955,34 @@ export default function DashboardAuto() {
               </ResponsiveContainer>
             </Panel>
 
-            <Panel
-              title="Resumo por loja"
-              rightHint={`Dia ${formatDateBRFromISO(fechamentoDiaReferencia)}`}
-            >
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 12,
-                  maxHeight: 470,
-                  overflow: "auto",
-                  paddingRight: 4,
-                }}
-              >
-                {fechamentoPorLoja.length === 0 && (
-                  <div style={{ opacity: 0.7, fontSize: 14 }}>
-                    Nenhuma venda encontrada nesse dia.
-                  </div>
-                )}
-
+            <Panel title="Resumo por loja" rightHint={`Período: ${fechamentoTitulo}`}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 12, maxHeight: 470, overflow: "auto", paddingRight: 6 }}>
                 {fechamentoPorLoja.map((item) => (
                   <div
                     key={item.loja}
                     style={{
-                      background: THEME.card,
-                      border: THEME.border,
+                      background: "rgba(255,255,255,0.04)",
+                      border: "1px solid rgba(255,255,255,0.08)",
                       borderRadius: 16,
                       padding: 14,
-                      boxShadow: THEME.shadow,
                     }}
                   >
                     <div style={{ fontSize: 15, fontWeight: 800 }}>{item.loja}</div>
-                    <div style={{ fontSize: 12, opacity: 0.7, marginTop: 6 }}>
-                      Motos vendidas: {item.motos}
+                    <div style={{ fontSize: 12, opacity: 0.72, marginTop: 4 }}>Motos: {item.motos}</div>
+                    <div style={{ marginTop: 8, fontSize: 14 }}>
+                      Faturamento: <strong>{formatBRL(item.faturamento)}</strong>
                     </div>
-                    <div style={{ fontSize: 12, opacity: 0.7, marginTop: 4 }}>
-                      Faturamento: {formatBRL(item.faturamento)}
-                    </div>
-                    <div style={{ fontSize: 12, opacity: 0.7, marginTop: 4 }}>
-                      Líquido: {formatBRL(item.liquido)}
+                    <div style={{ marginTop: 4, fontSize: 14 }}>
+                      Líquido: <strong>{formatBRL(item.liquido)}</strong>
                     </div>
                   </div>
                 ))}
+
+                {fechamentoPorLoja.length === 0 && (
+                  <div style={{ opacity: 0.7, fontSize: 14 }}>
+                    Nenhum dado encontrado nesse período.
+                  </div>
+                )}
               </div>
             </Panel>
           </div>
@@ -995,6 +1001,7 @@ export default function DashboardAuto() {
           box-shadow: 0 10px 30px rgba(0,0,0,0.35);
         }
         .tv-corp .tv-btn:hover{ background: rgba(255,255,255,0.10); }
+
         .tv-corp .tv-select, .tv-corp .tv-input{
           height: 36px;
           border-radius: 12px;
@@ -1004,6 +1011,7 @@ export default function DashboardAuto() {
           padding: 0 12px;
           outline: none;
         }
+
         .tv-corp .tv-chip{
           height: 34px;
           padding: 0 12px;
@@ -1019,7 +1027,7 @@ export default function DashboardAuto() {
   );
 }
 
-/* ================= COMPONENTES VISUAIS ================= */
+/* ================= COMPONENTES ================= */
 function KpiCard({ title, value, hint }) {
   return (
     <div
