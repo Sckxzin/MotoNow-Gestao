@@ -46,7 +46,7 @@ export default function Carrinho() {
   }
 
   /* ================= REGRA DESCONTO (PIX / À VISTA) ================= */
-  const FORMAS_PAGAMENTO = ["DÉBITO", "CRÉDITO", "PIX", "À VISTA"];
+  const FORMAS_PAGAMENTO = ["DÉBITO", "CRÉDITO", "PIX", "À VISTA","GARANTIA"];
 
   function normText(s) {
     return String(s || "")
