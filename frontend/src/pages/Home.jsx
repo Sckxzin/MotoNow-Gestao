@@ -14,6 +14,7 @@ const MODELOS_MOTOS = [
   { modelo: "URBAN 150 EFI", compra_motonow: 16990, compra_santander: 18100, santanderDefault: true},
   { modelo: "NEW JET 125", compra_motonow: 8889, compra_santander: 9500, santanderDefault: true },
   { modelo: "SHI 175 CARB", compra_motonow: 11790, compra_santander: 12900, santanderDefault: true},
+  { modelo: "IRON 250", compra_motonow: 18490, compra_santander: 19600, santanderDefault: true},
 ];
 
 /* ================= REGRA: REPASSE OBRIGATÓRIO EM FILIAIS ================= */
@@ -39,6 +40,7 @@ const REPASSE_SANTANDER_POR_MODELO = {
   [normModeloKey("JET 50")]: 8500,
   [normModeloKey("NEW JET 125")]: 9500,
   [normModeloKey("URBAN 150 EFI")]:18100,
+  [normModeloKey("IRON 250")]19600,
 };
 
 function isRepasseObrigatorio(filial) {
