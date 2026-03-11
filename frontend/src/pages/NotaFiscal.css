@@ -8,7 +8,9 @@ body {
   margin: 0 !important;
   padding: 0 !important;
   width: 58mm !important;
+  max-width: 58mm !important;
   background: #fff !important;
+  font-family: Arial, Helvetica, sans-serif;
 }
 
 .nota-termica {
@@ -16,17 +18,126 @@ body {
   max-width: 58mm !important;
   min-width: 58mm !important;
   box-sizing: border-box;
-  padding: 6px;
-  margin: 0;
+  padding: 4px 5px;
+  margin: 0 auto;
   color: #000;
-  font-size: 12px;
-  font-family: Arial, sans-serif;
+  font-size: 11px;
+  line-height: 1.2;
+  overflow: hidden;
+  word-break: break-word;
+}
+
+.nota-termica * {
+  box-sizing: border-box;
+}
+
+.nota-topo {
+  text-align: center;
+  margin-bottom: 6px;
+}
+
+.nota-topo h2 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.nota-topo p {
+  margin: 1px 0 0 0;
+  font-size: 11px;
+}
+
+.linha {
+  border-top: 1px dashed #000;
+  margin: 6px 0;
+}
+
+.info p {
+  margin: 1px 0;
+  font-size: 11px;
+}
+
+.item {
+  margin: 6px 0;
+}
+
+.item-nome {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  word-break: break-word;
+}
+
+.item-detalhe {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+  font-size: 11px;
+}
+
+.item-qtd {
+  flex: 1;
+  min-width: 0;
+  word-break: break-word;
+}
+
+.item-preco {
+  white-space: nowrap;
+  text-align: right;
+}
+
+.total {
+  font-size: 14px;
+  font-weight: 700;
+  margin-top: 6px;
+}
+
+.obs {
+  font-size: 10px;
+  margin-top: 6px;
+  word-break: break-word;
+}
+
+.rodape {
+  text-align: center;
+  font-size: 10px;
+  margin-top: 8px;
+}
+
+.ocultar-print {
+  display: block;
 }
 
 @media print {
   html,
   body {
     width: 58mm !important;
+    max-width: 58mm !important;
+  }
+
+  .nota-termica {
+    width: 58mm !important;
+    max-width: 58mm !important;
+    min-width: 58mm !important;
+    padding: 3px 4px;
+    font-size: 10px;
+  }
+
+  .nota-topo h2 {
+    font-size: 14px;
+  }
+
+  .nota-topo p,
+  .info p,
+  .item-nome,
+  .item-detalhe,
+  .obs,
+  .rodape {
+    font-size: 10px;
+  }
+
+  .total {
+    font-size: 13px;
   }
 
   .ocultar-print {
