@@ -364,194 +364,238 @@ export default function Home() {
 
   /* ================= JSX ================= */
   return (
-    <div className="home-container">
-      {/* HEADER */}
-      <div className="home-header">
-        <h2>
-          MotoNow <span>Gestão</span>
-        </h2>
-        <span className="user-role">
+  <div className="vendas-motos-container">
+    {/* TOPBAR */}
+    <div className="vm-topbar">
+      <div>
+        <h2 className="vm-title">🏠 MotoNow Gestão</h2>
+        <p className="vm-subtitle">
           {user.role} • {user.cidade}
-        </span>
-        <button className="btn-sair" onClick={sair}>
+        </p>
+      </div>
+
+      <div className="vm-topbar-actions">
+        <button className="vm-btn vm-btn-ghost" onClick={sair}>
           Sair
         </button>
       </div>
+    </div>
 
-      {/* TABS */}
-      <div className="tabs">
-        <button className="tab-btn" onClick={() => setTab("pecas")}>
+    {/* MENU / AÇÕES */}
+    <div className="vm-card">
+      <div className="home-actions-grid">
+        <button className="vm-btn vm-btn-soft" onClick={() => setTab("pecas")}>
           📦 Peças
         </button>
-        <button className="tab-btn" onClick={() => setTab("motos")}>
+
+        <button className="vm-btn vm-btn-soft" onClick={() => setTab("motos")}>
           🏍 Motos
         </button>
 
         {user.role === "DIRETORIA" && (
-          <button className="tab-btn" onClick={() => nav("/vendas")}>
+          <button className="vm-btn vm-btn-soft" onClick={() => nav("/vendas")}>
             🧾 Vendas
           </button>
         )}
 
         {user.role === "DIRETORIA" && (
-          <button className="tab-btn" onClick={() => setModalCadastrar(true)}>
-            Cadastrar Peças
+          <button className="vm-btn vm-btn-soft" onClick={() => setModalCadastrar(true)}>
+            ➕ Cadastrar Peças
           </button>
         )}
 
         {user.role === "DIRETORIA" && (
-          <button className="tab-btn" onClick={() => nav("/vendas-motos")}>
+          <button className="vm-btn vm-btn-soft" onClick={() => nav("/vendas-motos")}>
             🏍 Histórico Motos
           </button>
         )}
 
-        <button className="tab-btn" onClick={() => nav("/carrinho")}>
+        <button className="vm-btn vm-btn-soft" onClick={() => nav("/carrinho")}>
           🛒 Carrinho
         </button>
 
         {user.role === "DIRETORIA" && (
-          <button className="tab-btn" onClick={() => nav("/vendas-motos-pendentes")}>
+          <button className="vm-btn vm-btn-soft" onClick={() => nav("/vendas-motos-pendentes")}>
             🕒 Aprovar Vendas
           </button>
         )}
 
         {user.role === "DIRETORIA" && (
-          <button className="tab-btn" onClick={() => nav("/emplacamentos")}>
+          <button className="vm-btn vm-btn-soft" onClick={() => nav("/emplacamentos")}>
             🪪 Emplacamentos
-         </button>
+          </button>
         )}
 
         {user.role === "DIRETORIA" && (
-          <button className="tab-btn" onClick={() => nav("/dashboard-tv")}>
+          <button className="vm-btn vm-btn-soft" onClick={() => nav("/dashboard-tv")}>
             📺 Dashboard TV
           </button>
         )}
       </div>
+    </div>
 
       {/* ================= PEÇAS ================= */}
       {tab === "pecas" && (
-        <>
-          <div style={{ display: "flex", gap: 10, marginBottom: 15 }}>
-            {user.role === "DIRETORIA" && (
-              <select className="select-filial" value={cidadeFiltroPecas} onChange={(e) => setCidadeFiltroPecas(e.target.value)}>
-                <option value="TODAS">Todas as cidades</option>
-                <option value="ESCADA">Escada</option>
-                <option value="IPOJUCA">Ipojuca</option>
-                <option value="RIBEIRAO">Ribeirão</option>
-                <option value="SAO JOSE">São José</option>
-                <option value="CATENDE">Catende</option>
-                <option value="XEXEU">Xexeu</option>
-                <option value="MARAGOGI">Maragogi</option>
-                <option value="CHA GRANDE">Cha grande</option>
-              </select>
-            )}
-
-            <select className="select-filial" value={tipoFiltroPecas} onChange={(e) => setTipoFiltroPecas(e.target.value)}>
-              {tiposPecas.map((t) => (
-                <option key={t} value={t}>
-                  {t}
-                </option>
-              ))}
+  <>
+    <div className="vm-card">
+      <div className="vm-filters-grid">
+        {user.role === "DIRETORIA" && (
+          <div className="vm-field">
+            <label>Filial</label>
+            <select
+              value={cidadeFiltroPecas}
+              onChange={(e) => setCidadeFiltroPecas(e.target.value)}
+            >
+              <option value="TODAS">Todas as cidades</option>
+              <option value="ESCADA">Escada</option>
+              <option value="IPOJUCA">Ipojuca</option>
+              <option value="RIBEIRAO">Ribeirão</option>
+              <option value="SAO JOSE">São José</option>
+              <option value="CATENDE">Catende</option>
+              <option value="XEXEU">Xexeu</option>
+              <option value="MARAGOGI">Maragogi</option>
+              <option value="CHA GRANDE">Cha Grande</option>
             </select>
-
-            <input className="input-busca" placeholder="Buscar peça..." value={busca} onChange={(e) => setBusca(e.target.value)} />
           </div>
+        )}
 
-          <button
-            onClick={() =>
-              exportarCSV(
-                "pecas_filtradas.csv",
-                ["nome", "tipo", "filial", "quantidade", "valor", "created_at"],
-                pecasFiltradas.map((p) => ({
-                  nome: p.nome,
-                  tipo: p.tipo_moto || "UNIVERSAL",
-                  filial: p.cidade,
-                  quantidade: p.estoque,
-                  valor: Number(p.preco).toFixed(2),
-                  created_at: p.created_at ? new Date(p.created_at).toLocaleDateString("pt-BR") : "",
-                }))
-              )
-            }
-          >
-            📥 Exportar Peças (Filtradas)
-          </button>
+        <div className="vm-field">
+          <label>Tipo</label>
+          <select value={tipoFiltroPecas} onChange={(e) => setTipoFiltroPecas(e.target.value)}>
+            {tiposPecas.map((t) => (
+              <option key={t} value={t}>
+                {t}
+              </option>
+            ))}
+          </select>
+        </div>
 
-          <table className="table">
-            <thead>
-              <tr>
-                <th>Nome</th>
-                <th>Tipo</th>
-                <th>Filial</th>
-                <th>Qtd</th>
-                <th>Valor</th>
-                <th>Ação</th>
+        <div className="vm-field vm-field-wide">
+          <label>Busca</label>
+          <input
+            placeholder="Buscar peça..."
+            value={busca}
+            onChange={(e) => setBusca(e.target.value)}
+          />
+        </div>
+      </div>
+
+      <div className="vm-quickbar">
+        <button
+          className="vm-btn vm-btn-primary"
+          onClick={() =>
+            exportarCSV(
+              "pecas_filtradas.csv",
+              ["nome", "tipo", "filial", "quantidade", "valor", "created_at"],
+              pecasFiltradas.map((p) => ({
+                nome: p.nome,
+                tipo: p.tipo_moto || "UNIVERSAL",
+                filial: p.cidade,
+                quantidade: p.estoque,
+                valor: Number(p.preco).toFixed(2),
+                created_at: p.created_at
+                  ? new Date(p.created_at).toLocaleDateString("pt-BR")
+                  : "",
+              }))
+            )
+          }
+        >
+          📥 Exportar Peças
+        </button>
+      </div>
+    </div>
+
+    <div className="table-container vm-table-card">
+      <table className="table">
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th>Tipo</th>
+            <th>Filial</th>
+            <th>Qtd</th>
+            <th>Valor</th>
+            <th>Ação</th>
+          </tr>
+        </thead>
+        <tbody>
+          {pecas
+            .filter((p) => p.nome.toLowerCase().includes(busca.toLowerCase()))
+            .filter((p) => cidadeFiltroPecas === "TODAS" || p.cidade === cidadeFiltroPecas)
+            .filter((p) => tipoFiltroPecas === "TODOS" || p.tipo_moto === tipoFiltroPecas)
+            .map((p) => (
+              <tr key={p.id}>
+                <td>{p.nome}</td>
+                <td><strong>{p.tipo_moto || "UNIVERSAL"}</strong></td>
+                <td>{p.cidade}</td>
+                <td>{p.estoque}</td>
+                <td>R$ {Number(p.preco).toFixed(2)}</td>
+                <td>
+                  <div style={{ display: "flex", gap: 6, justifyContent: "center" }}>
+                    <button className="action-btn" onClick={() => adicionarCarrinho(p)}>
+                      🛒
+                    </button>
+
+                    {user.role === "DIRETORIA" && (
+                      <button className="action-btn" onClick={() => abrirTransferencia(p)}>
+                        🔄
+                      </button>
+                    )}
+                  </div>
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {pecas
-                .filter((p) => p.nome.toLowerCase().includes(busca.toLowerCase()))
-                .filter((p) => cidadeFiltroPecas === "TODAS" || p.cidade === cidadeFiltroPecas)
-                .filter((p) => tipoFiltroPecas === "TODOS" || p.tipo_moto === tipoFiltroPecas)
-                .map((p) => (
-                  <tr key={p.id}>
-                    <td>{p.nome}</td>
-                    <td>
-                      <strong>{p.tipo_moto || "UNIVERSAL"}</strong>
-                    </td>
-                    <td>{p.cidade}</td>
-                    <td>{p.estoque}</td>
-                    <td>R$ {Number(p.preco).toFixed(2)}</td>
-                    <td>
-                      <div style={{ display: "flex", gap: 6 }}>
-                        <button className="action-btn" onClick={() => adicionarCarrinho(p)}>
-                          🛒
-                        </button>
+            ))}
 
-                        {user.role === "DIRETORIA" && (
-                          <button className="action-btn" onClick={() => abrirTransferencia(p)}>
-                            🔄
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-            </tbody>
-          </table>
-        </>
-      )}
+          {pecasFiltradas.length === 0 && (
+            <tr>
+              <td colSpan={6} style={{ textAlign: "center", opacity: 0.7, padding: 14 }}>
+                Nenhuma peça encontrada.
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
+    </div>
+  </>
+)}
 
       {/* ================= MOTOS ================= */}
       {tab === "motos" && (
-        <>
-          <div className="resumo-motos">
-            {Object.entries(resumoMotos).map(([c, d]) => (
-              <div key={c} className="resumo-card">
-                <strong>{c}</strong>
-                <br />
-                🟢 {d.disponiveis} | 🔴 {d.vendidas}
-              </div>
-            ))}
-          </div>
+  <>
+    <div className="vm-stats">
+      {Object.entries(resumoMotos).map(([c, d]) => (
+        <div key={c} className="vm-stat">
+          <div className="vm-stat-label">{c}</div>
+          <div className="vm-stat-value">🟢 {d.disponiveis} | 🔴 {d.vendidas}</div>
+        </div>
+      ))}
+    </div>
 
-          <input className="input-busca" placeholder="Buscar por modelo ou chassi..." value={busca} onChange={(e) => setBusca(e.target.value)} />
+    <div className="vm-card">
+      <div className="vm-filters-grid">
+        <div className="vm-field vm-field-wide">
+          <label>Busca</label>
+          <input
+            placeholder="Buscar por modelo ou chassi..."
+            value={busca}
+            onChange={(e) => setBusca(e.target.value)}
+          />
+        </div>
 
-          {user.role === "DIRETORIA" && (
-            <button className="tab-btn" onClick={() => setModalCadastrarMoto(true)}>
-              ➕ Cadastrar Moto
-            </button>
-          )}
-
-          {user.role === "DIRETORIA" && (
-            <select className="select-filial" value={santanderFiltro} onChange={(e) => setSantanderFiltro(e.target.value)}>
+        {user.role === "DIRETORIA" && (
+          <div className="vm-field">
+            <label>Empresa</label>
+            <select value={santanderFiltro} onChange={(e) => setSantanderFiltro(e.target.value)}>
               <option value="TODOS">Todos</option>
               <option value="SIM">MOTONOW</option>
               <option value="NAO">EMENEZES</option>
             </select>
-          )}
+          </div>
+        )}
 
-          {user.role === "DIRETORIA" && (
-            <select className="select-filial" value={cnpjFiltro} onChange={(e) => setCnpjFiltro(e.target.value)}>
+        {user.role === "DIRETORIA" && (
+          <div className="vm-field">
+            <label>CNPJ</label>
+            <select value={cnpjFiltro} onChange={(e) => setCnpjFiltro(e.target.value)}>
               <option value="TODOS">Todos CNPJs</option>
               <option value="SEM_CNPJ">Sem CNPJ</option>
               {cnpjsDisponiveis.map((cnpj) => (
@@ -560,9 +604,12 @@ export default function Home() {
                 </option>
               ))}
             </select>
-          )}
+          </div>
+        )}
 
-          <select className="select-filial" value={cidadeFiltroMotos} onChange={(e) => setCidadeFiltroMotos(e.target.value)}>
+        <div className="vm-field">
+          <label>Filial</label>
+          <select value={cidadeFiltroMotos} onChange={(e) => setCidadeFiltroMotos(e.target.value)}>
             <option value="TODAS">Todas</option>
             <option value="ESCADA">Escada</option>
             <option value="IPOJUCA">Ipojuca</option>
@@ -572,99 +619,113 @@ export default function Home() {
             <option value="XEXEU">Xexeu</option>
             <option value="IPOJUCA RICARDO">Ipojuca Ricardo</option>
             <option value="MARAGOGI">Maragogi</option>
-            <option value="CHA GRANDE">Cha grande</option>
+            <option value="CHA GRANDE">Cha Grande</option>
           </select>
+        </div>
+      </div>
 
-          <button
-            onClick={() =>
-              exportarCSV(
-                "motos_disponiveis.csv",
-                ["modelo", "cor", "chassi", "ano", "valor", "filial", "status", "cnpj", "created_at"],
-                motos.map((m) => ({
-                  modelo: m.modelo,
-                  cor: m.cor,
-                  chassi: m.chassi,
-                  ano: m.ano_moto,
-                  valor: m.valor_compra ?? m.valor ?? "",
-                  filial: m.filial,
-                  status: m.status,
-                  cnpj: m.cnpj_empresa,
-                  created_at: m.created_at ? new Date(m.created_at).toLocaleDateString("pt-BR") : "",
-                }))
-              )
-            }
-          >
-            📥 Exportar Motos Disponíveis
+      <div className="vm-quickbar">
+        {user.role === "DIRETORIA" && (
+          <button className="vm-btn vm-btn-soft" onClick={() => setModalCadastrarMoto(true)}>
+            ➕ Cadastrar Moto
           </button>
+        )}
 
-          <table className="table">
-            <thead>
-              <tr>
-                <th>Modelo</th>
-                <th>Ano</th>
-                <th>Cor</th>
-                <th>Chassi</th>
-                <th>Filial</th>
-                <th>Santander</th>
-                <th>CNPJ</th>
-                <th>Status</th>
-                <th>Ação</th>
+        <button
+          className="vm-btn vm-btn-primary"
+          onClick={() =>
+            exportarCSV(
+              "motos_disponiveis.csv",
+              ["modelo", "cor", "chassi", "ano", "valor", "filial", "status", "cnpj", "created_at"],
+              motos.map((m) => ({
+                modelo: m.modelo,
+                cor: m.cor,
+                chassi: m.chassi,
+                ano: m.ano_moto,
+                valor: m.valor_compra ?? m.valor ?? "",
+                filial: m.filial,
+                status: m.status,
+                cnpj: m.cnpj_empresa,
+                created_at: m.created_at
+                  ? new Date(m.created_at).toLocaleDateString("pt-BR")
+                  : "",
+              }))
+            )
+          }
+        >
+          📥 Exportar Motos
+        </button>
+      </div>
+    </div>
+
+    <div className="table-container vm-table-card">
+      <table className="table">
+        <thead>
+          <tr>
+            <th>Modelo</th>
+            <th>Ano</th>
+            <th>Cor</th>
+            <th>Chassi</th>
+            <th>Filial</th>
+            <th>Santander</th>
+            <th>CNPJ</th>
+            <th>Status</th>
+            <th>Ação</th>
+          </tr>
+        </thead>
+        <tbody>
+          {motos
+            .filter((m) => cidadeFiltroMotos === "TODAS" || m.filial === cidadeFiltroMotos)
+            .filter((m) => {
+              if (santanderFiltro === "TODOS") return true;
+              if (santanderFiltro === "SIM") return m.santander === true;
+              if (santanderFiltro === "NAO") return m.santander === false || m.santander == null;
+              return true;
+            })
+            .filter((m) => {
+              const cnpj = (m.cnpj_empresa || "").trim();
+              if (cnpjFiltro === "TODOS") return true;
+              if (cnpjFiltro === "SEM_CNPJ") return cnpj === "";
+              return cnpj === cnpjFiltro;
+            })
+            .filter((m) => {
+              const q = busca.toLowerCase();
+              return busca === "" || m.modelo?.toLowerCase().includes(q) || m.chassi?.toLowerCase().includes(q);
+            })
+            .map((m) => (
+              <tr key={m.id}>
+                <td>{m.modelo}</td>
+                <td>{m.ano_moto}</td>
+                <td>{m.cor}</td>
+                <td>{m.chassi}</td>
+                <td>{m.filial}</td>
+                <td>{m.santander === true ? "SIM" : "NÃO"}</td>
+                <td>{m.cnpj_empresa || "-"}</td>
+                <td>
+                  <span className={`status ${String(m.status || "").toLowerCase()}`}>{m.status}</span>
+                </td>
+                <td>
+                  <div style={{ display: "flex", gap: 6, justifyContent: "center" }}>
+                    {m.status === "DISPONIVEL" && (
+                      <button className="action-btn" onClick={() => abrirVendaMoto(m)}>
+                        Vender
+                      </button>
+                    )}
+
+                    {user.role === "DIRETORIA" && m.status === "DISPONIVEL" && (
+                      <button className="action-btn" onClick={() => setMotoTransferir(m)}>
+                        🔄
+                      </button>
+                    )}
+                  </div>
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {motos
-                .filter((m) => cidadeFiltroMotos === "TODAS" || m.filial === cidadeFiltroMotos)
-                .filter((m) => {
-                  if (santanderFiltro === "TODOS") return true;
-                  if (santanderFiltro === "SIM") return m.santander === true;
-                  if (santanderFiltro === "NAO") return m.santander === false || m.santander == null;
-                  return true;
-                })
-                .filter((m) => {
-                  const cnpj = (m.cnpj_empresa || "").trim();
-                  if (cnpjFiltro === "TODOS") return true;
-                  if (cnpjFiltro === "SEM_CNPJ") return cnpj === "";
-                  return cnpj === cnpjFiltro;
-                })
-                .filter((m) => {
-                  const q = busca.toLowerCase();
-                  return busca === "" || m.modelo?.toLowerCase().includes(q) || m.chassi?.toLowerCase().includes(q);
-                })
-                .map((m) => (
-                  <tr key={m.id}>
-                    <td>{m.modelo}</td>
-                    <td>{m.ano_moto}</td>
-                    <td>{m.cor}</td>
-                    <td>{m.chassi}</td>
-                    <td>
-                      <span className={`cidade-tag ${String(m.filial || "").toLowerCase().replace(/\s/g, "-")}`}>{m.filial}</span>
-                    </td>
-                    <td>{m.santander === true ? "SIM" : "NÃO"}</td>
-                    <td>{m.cnpj_empresa || "-"}</td>
-                    <td>
-                      <span className={`status ${String(m.status || "").toLowerCase()}`}>{m.status}</span>
-                    </td>
-                    <td>
-                      <div style={{ display: "flex", gap: 6, justifyContent: "center" }}>
-                        {m.status === "DISPONIVEL" && (
-                          <button className="action-btn" onClick={() => abrirVendaMoto(m)}>
-                            Vender
-                          </button>
-                        )}
-
-                        {user.role === "DIRETORIA" && m.status === "DISPONIVEL" && (
-                          <button className="action-btn" onClick={() => setMotoTransferir(m)}>
-                            🔄
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-            </tbody>
-          </table>
-        </>
-      )}
+            ))}
+        </tbody>
+      </table>
+    </div>
+  </>
+)}
 
       {/* ================= MODAL VENDA ================= */}
       {motoSelecionada && (
