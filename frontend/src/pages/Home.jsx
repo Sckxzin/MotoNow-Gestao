@@ -40,7 +40,7 @@ const REPASSE_SANTANDER_POR_MODELO = {
   [normModeloKey("JET 50")]: 8500,
   [normModeloKey("NEW JET 125")]: 9500,
   [normModeloKey("URBAN 150 EFI")]:18100,
-  [normModeloKey("IRON 250")]19600,
+  [normModeloKey("IRON 250")]:19600,
 };
 
 function isRepasseObrigatorio(filial) {
