@@ -496,3 +496,171 @@
 .home-container .action-btn:hover {
   opacity: 0.92;
 }
+.home-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.home-container {
+  width: 100%;
+}
+
+/* Mantém compatível com seus modais já existentes */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 16px;
+}
+
+.modal {
+  width: 100%;
+  max-width: 520px;
+  background: #fff;
+  border-radius: 18px;
+  padding: 20px;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.modal h3 {
+  margin: 0 0 6px 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.modal p {
+  margin: 0;
+  color: #4b5563;
+}
+
+.modal input,
+.modal select,
+.modal textarea {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid #d1d5db;
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-size: 14px;
+  outline: none;
+  box-sizing: border-box;
+  background: #fff;
+  color: #111827;
+}
+
+.modal input:focus,
+.modal select:focus,
+.modal textarea:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.modal button {
+  min-height: 42px;
+  border: none;
+  border-radius: 12px;
+  padding: 10px 14px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.modal button:first-of-type {
+  background: #2563eb;
+  color: #fff;
+}
+
+.modal button:first-of-type:hover {
+  background: #1d4ed8;
+}
+
+.modal button:last-of-type {
+  background: #e5e7eb;
+  color: #111827;
+}
+
+.modal button:last-of-type:hover {
+  background: #d1d5db;
+}
+
+/* tags/cidade/status usados na tabela */
+.cidade-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  background: #eef2ff;
+  color: #3730a3;
+}
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.status.disponivel {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.status.vendida {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.status.pendente_aprovacao {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+/* botão pequeno de ação */
+.action-btn {
+  min-width: 38px;
+  height: 38px;
+  border: none;
+  border-radius: 10px;
+  background: #2563eb;
+  color: #fff;
+  cursor: pointer;
+  font-weight: 700;
+  padding: 0 10px;
+}
+
+.action-btn:hover {
+  background: #1d4ed8;
+}
+
+/* responsivo */
+@media (max-width: 768px) {
+  .home-actions-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .modal {
+    max-width: 100%;
+    padding: 16px;
+    border-radius: 14px;
+  }
+}
+
+@media (max-width: 540px) {
+  .home-actions-grid {
+    grid-template-columns: 1fr;
+  }
+}
