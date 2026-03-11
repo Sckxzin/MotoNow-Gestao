@@ -25,7 +25,7 @@ export default function NotaTermica() {
   const { venda, itens } = dados;
 
   return (
-    <div className="nota-termica">
+<div className="nota-termica">
   <div className="nota-topo">
     <h2>MotoNow</h2>
     <p>Comprovante de Venda</p>
