@@ -46,3 +46,13 @@
 .btn-imprimir:hover {
   background: #b30000;
 }
+.vendas-detalhes-box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 4px;
+}
+
+.vendas-detalhes-box ul {
+  margin-top: 6px;
+}
