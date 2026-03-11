@@ -9,42 +9,47 @@ body {
   padding: 0 !important;
   width: 58mm !important;
   max-width: 58mm !important;
-  background: #fff !important;
+  background: #ffffff !important;
   font-family: Arial, Helvetica, sans-serif;
 }
 
+.nota-wrapper {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: #fff;
+}
+
 .nota-termica {
-  width: 58mm !important;
-  max-width: 58mm !important;
-  min-width: 58mm !important;
+  width: 56mm !important;
+  max-width: 56mm !important;
+  min-width: 56mm !important;
   box-sizing: border-box;
-  padding: 4px 5px;
+  padding: 4px 4px;
   margin: 0 auto;
   color: #000;
-  font-size: 11px;
+  background: #fff;
+  font-size: 10px;
   line-height: 1.2;
   overflow: hidden;
   word-break: break-word;
 }
 
-.nota-termica * {
-  box-sizing: border-box;
-}
-
 .nota-topo {
   text-align: center;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 
 .nota-topo h2 {
   margin: 0;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 700;
 }
 
 .nota-topo p {
-  margin: 1px 0 0 0;
-  font-size: 11px;
+  margin: 2px 0 0 0;
+  font-size: 10px;
 }
 
 .linha {
@@ -54,25 +59,27 @@ body {
 
 .info p {
   margin: 1px 0;
-  font-size: 11px;
+  font-size: 10px;
 }
 
 .item {
-  margin: 6px 0;
+  margin: 5px 0;
 }
 
 .item-nome {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
   word-break: break-word;
+  margin-bottom: 1px;
 }
 
 .item-detalhe {
   display: flex;
   justify-content: space-between;
-  gap: 6px;
-  font-size: 11px;
+  align-items: flex-start;
+  gap: 4px;
+  font-size: 10px;
 }
 
 .item-qtd {
@@ -84,28 +91,33 @@ body {
 .item-preco {
   white-space: nowrap;
   text-align: right;
+  flex-shrink: 0;
 }
 
 .total {
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 700;
-  margin-top: 6px;
+  margin-top: 4px;
 }
 
 .obs {
   font-size: 10px;
-  margin-top: 6px;
+  margin-top: 4px;
   word-break: break-word;
 }
 
 .rodape {
   text-align: center;
   font-size: 10px;
-  margin-top: 8px;
+  margin-top: 6px;
 }
 
 .ocultar-print {
-  display: block;
+  margin: 10px 0;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
 }
 
 @media print {
@@ -113,18 +125,26 @@ body {
   body {
     width: 58mm !important;
     max-width: 58mm !important;
+    overflow: hidden !important;
+  }
+
+  .nota-wrapper {
+    width: 58mm !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
 
   .nota-termica {
-    width: 58mm !important;
-    max-width: 58mm !important;
-    min-width: 58mm !important;
-    padding: 3px 4px;
-    font-size: 10px;
+    width: 56mm !important;
+    max-width: 56mm !important;
+    min-width: 56mm !important;
+    padding: 3px 4px !important;
+    margin: 0 auto !important;
+    font-size: 10px !important;
   }
 
   .nota-topo h2 {
-    font-size: 14px;
+    font-size: 13px !important;
   }
 
   .nota-topo p,
@@ -133,11 +153,11 @@ body {
   .item-detalhe,
   .obs,
   .rodape {
-    font-size: 10px;
+    font-size: 10px !important;
   }
 
   .total {
-    font-size: 13px;
+    font-size: 12px !important;
   }
 
   .ocultar-print {
