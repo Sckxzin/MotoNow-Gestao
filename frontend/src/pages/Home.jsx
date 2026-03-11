@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api";
+import "./VendasMotos.css";
 import "./Home.css";
 
 /* ================= CONFIG MODELOS (CADASTRO MOTO) ================= */
