@@ -89,19 +89,27 @@ function normPay(s) {
 }
 
 /* ================= LÓGICA LÍQUIDO ================= */
-function calcLiquido(v) {
-    const valorVenda = Number(v.valor || 0);
-    const valorCompra = Number(v.valor_compra || 0);
-    const repasse = Number(v.repasse || 0);
+function getValorARepassar(v) {
+  const repasse = Number(v.repasse || 0);
+  if (!repasse || Number.isNaN(repasse) || repasse <= 0) return null;
 
-    const aRepassar = getValorARepassar(v); // pode ser null
+  const valorVenda = Number(v.valor || 0);
+  return valorVenda - repasse;
+}
 
-    if (repasse > 0 && aRepassar != null) {
-      return valorVenda - valorCompra - Number(aRepassar || 0);
-    }
+function calcLiquidoMoto(v) {
+  const valorVenda = Number(v.valor || 0);
+  const valorCompra = Number(v.valor_compra || 0);
+  const repasse = Number(v.repasse || 0);
 
-    return valorVenda - valorCompra;
+  const aRepassar = getValorARepassar(v);
+
+  if (repasse > 0 && aRepassar != null) {
+    return valorVenda - valorCompra - Number(aRepassar || 0);
   }
+
+  return valorVenda - valorCompra;
+}
 
 /* ================= THEME ================= */
 const THEME = {
