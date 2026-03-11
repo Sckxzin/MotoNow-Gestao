@@ -240,7 +240,7 @@ export default function DashboardAuto() {
     if (!autoPlay) return;
     timerRef.current = setInterval(() => nextSlide(), intervalMs);
     return () => timerRef.current && clearInterval(timerRef.current);
-  }, [autoPlay, intervalMs]);
+  }, [autoPlay, intervalMs, slides.length]);
 
   useEffect(() => {
     function onKey(e) {
@@ -255,7 +255,7 @@ export default function DashboardAuto() {
 
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, []);
+  });
 
   /* ================= BASE FILTRADA ================= */
   const motosFiltradas = useMemo(() => {
@@ -617,6 +617,22 @@ export default function DashboardAuto() {
       .sort((a, b) => b.faturamento - a.faturamento);
   }, [vendasMotos, dataInicio, dataFim, empresaFiltro]);
 
+  const fechamentoGeral = useMemo(() => {
+    const faturamento = fechamentoPorLoja.reduce((acc, item) => acc + Number(item.faturamento || 0), 0);
+    const liquido = fechamentoPorLoja.reduce((acc, item) => acc + Number(item.liquido || 0), 0);
+    const motos = fechamentoPorLoja.reduce((acc, item) => acc + Number(item.motos || 0), 0);
+    const ticketMedio = motos > 0 ? faturamento / motos : 0;
+    const lojasAtivas = fechamentoPorLoja.length;
+
+    return {
+      faturamento,
+      liquido,
+      motos,
+      ticketMedio,
+      lojasAtivas,
+    };
+  }, [fechamentoPorLoja]);
+
   /* ================= UI ================= */
   return (
     <div
@@ -948,7 +964,14 @@ export default function DashboardAuto() {
         )}
 
         {slides[slide]?.id === "fechamento_loja" && (
-          <div style={{ height: "100%", display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: 14 }}>
+          <div
+            style={{
+              height: "100%",
+              display: "grid",
+              gridTemplateColumns: "1.2fr 1fr 0.9fr",
+              gap: 14,
+            }}
+          >
             <Panel title="Fechamento por loja" rightHint={`Período: ${fechamentoTitulo}`}>
               <ResponsiveContainer width="100%" height={470}>
                 <BarChart data={fechamentoPorLoja} margin={{ top: 18, right: 16, bottom: 40, left: 8 }}>
@@ -962,14 +985,33 @@ export default function DashboardAuto() {
                     })}
                   />
                   <Legend />
-                  <Bar dataKey="faturamento" name="Faturamento" radius={[10, 10, 0, 0]} fill="rgba(120,160,255,0.88)" />
-                  <Bar dataKey="liquido" name="Líquido" radius={[10, 10, 0, 0]} fill="rgba(110,240,200,0.82)" />
+                  <Bar
+                    dataKey="faturamento"
+                    name="Faturamento"
+                    radius={[10, 10, 0, 0]}
+                    fill="rgba(120,160,255,0.88)"
+                  />
+                  <Bar
+                    dataKey="liquido"
+                    name="Líquido"
+                    radius={[10, 10, 0, 0]}
+                    fill="rgba(110,240,200,0.82)"
+                  />
                 </BarChart>
               </ResponsiveContainer>
             </Panel>
 
             <Panel title="Resumo por loja" rightHint={`Período: ${fechamentoTitulo}`}>
-              <div style={{ display: "flex", flexDirection: "column", gap: 12, maxHeight: 470, overflow: "auto", paddingRight: 6 }}>
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 12,
+                  maxHeight: 470,
+                  overflow: "auto",
+                  paddingRight: 6,
+                }}
+              >
                 {fechamentoPorLoja.map((item) => (
                   <div
                     key={item.loja}
@@ -981,7 +1023,9 @@ export default function DashboardAuto() {
                     }}
                   >
                     <div style={{ fontSize: 15, fontWeight: 800 }}>{item.loja}</div>
-                    <div style={{ fontSize: 12, opacity: 0.72, marginTop: 4 }}>Motos: {item.motos}</div>
+                    <div style={{ fontSize: 12, opacity: 0.72, marginTop: 4 }}>
+                      Motos: {item.motos}
+                    </div>
                     <div style={{ marginTop: 8, fontSize: 14 }}>
                       Faturamento: <strong>{formatBRL(item.faturamento)}</strong>
                     </div>
@@ -996,6 +1040,23 @@ export default function DashboardAuto() {
                     Nenhum dado encontrado nesse período.
                   </div>
                 )}
+              </div>
+            </Panel>
+
+            <Panel title="Fechamento geral" rightHint={`Período: ${fechamentoTitulo}`}>
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 12,
+                  height: "100%",
+                }}
+              >
+                <BigStat label="Faturamento geral" value={formatBRL(fechamentoGeral.faturamento)} />
+                <BigStat label="Líquido geral" value={formatBRL(fechamentoGeral.liquido)} />
+                <BigStat label="Motos vendidas" value={fechamentoGeral.motos} />
+                <BigStat label="Ticket médio" value={formatBRL(fechamentoGeral.ticketMedio)} />
+                <BigStat label="Lojas ativas" value={fechamentoGeral.lojasAtivas} />
               </div>
             </Panel>
           </div>
