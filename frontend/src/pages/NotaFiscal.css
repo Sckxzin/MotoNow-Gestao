@@ -156,10 +156,10 @@
 }
 @media print {
   body {
-    width: 80mm;
+    width: 58mm;
   }
   .nota {
-    width: 80mm;
+    width: 58mm;
     font-size: 12px;
   }
   button { display: none; }
