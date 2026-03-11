@@ -5,7 +5,7 @@ import Login from "./pages/Login";
 import Home from "./pages/Home";
 import CadastroPeca from "./pages/CadastroPeca";
 import VendaPeca from "./pages/VendaPeca";
-import NotaFiscal from "./pages/NotaTermica";
+import NotaFiscal from "./pages/NotaFiscal";
 import Vendas from "./pages/Vendas";
 import CadastroMoto from "./pages/CadastroMoto";
 import VendasMotos from "./pages/VendasMotos";
@@ -23,7 +23,7 @@ export default function App() {
 
         <Route path="/cadastro-peca" element={<CadastroPeca />} />
         <Route path="/vender/:id" element={<VendaPeca />} />
-        <Route path="/nota-termica" element={<NotaFiscal />} />
+        <Route path="/nota" element={<NotaFiscal />} />
         <Route path="/vendas" element={<Vendas />} />
         <Route path="/cadastro-moto" element={<CadastroMoto />} />
         <Route path="/vendas-motos" element={<VendasMotos />} />
