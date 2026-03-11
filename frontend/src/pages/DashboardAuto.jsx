@@ -89,14 +89,19 @@ function normPay(s) {
 }
 
 /* ================= LÓGICA LÍQUIDO ================= */
-function calcLiquidoMoto(v) {
-  const valor = toNumber(v.valor);
-  const compra = toNumber(v.valor_compra);
-  const repasse = toNumber(v.repasse);
+function calcLiquido(v) {
+    const valorVenda = Number(v.valor || 0);
+    const valorCompra = Number(v.valor_compra || 0);
+    const repasse = Number(v.repasse || 0);
 
-  const base = repasse > 0 ? repasse : compra;
-  return valor - base;
-}
+    const aRepassar = getValorARepassar(v); // pode ser null
+
+    if (repasse > 0 && aRepassar != null) {
+      return valorVenda - valorCompra - Number(aRepassar || 0);
+    }
+
+    return valorVenda - valorCompra;
+  }
 
 /* ================= THEME ================= */
 const THEME = {
