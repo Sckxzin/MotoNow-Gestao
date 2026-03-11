@@ -1,150 +1,78 @@
 import { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import api from "../api";
-import "./NotaFiscal.css";
+import "./NotaTermica.css";
 
-export default function NotaFiscal() {
-  const nav = useNavigate();
-  const { search } = useLocation();
-  const id = new URLSearchParams(search).get("id");
+export default function NotaTermica() {
+  const [params] = useSearchParams();
+  const [dados, setDados] = useState(null);
 
-  const [nota, setNota] = useState(null);
+  const id = params.get("id");
 
   useEffect(() => {
-    api
-      .get(`/nota-fiscal/${id}`)
-      .then(res => setNota(res.data))
-      .catch(() => alert("Erro ao carregar nota fiscal"));
+    if (!id) return;
+
+    api.get(`/nota-fiscal/${id}`)
+      .then((res) => setDados(res.data))
+      .catch((err) => {
+        console.error(err);
+        alert("Erro ao carregar nota");
+      });
   }, [id]);
 
-  if (!nota) return null;
+  if (!dados) return <div>Carregando...</div>;
 
-  const { venda, itens } = nota;
-
-  /* ================= FILIAIS ================= */
-  const filiais = {
-    ESCADA: {
-      nome: "MOTONOW COMÉRCIO DE MOTOCICLETAS LTDA",
-      endereco: "Av. Comendador José Pereira, 695",
-      cidade: "Escada - PE",
-      telefone: "(81) 99302-4733",
-      cnpj: "61.065.883/0001-02",
-    },
-    IPOJUCA: {
-      nome: "MOTONOW COMÉRCIO MOTOS",
-      endereco: "R. Um, 67 - Nossa Sra. do O",
-      cidade: "Ipojuca - PE",
-      telefone: "(81) 99245-9495",
-      cnpj: "58.021.497/0001-04",
-    },
-    SAOJOSE: {
-     nome: "LITORAL MOTO CENTER SHINERAY LTDA",
-     endereco: "PE-060, 60",
-     cidade: "São José da Coroa Grande",
-     telefone: "(81) 97103-8812",
-     cnpj: "62.619.032/0001-27",
-    },
-  
-  };
-
-  // normaliza para evitar erro por espaço ou maiúscula/minúscula
- function normalizarCidade(txt = "") {
-  return txt
-    .trim()
-    .toUpperCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "") // remove acentos
-    .replace(/\s+/g, ""); // remove espaços
-}
-
-const chaveFilial = normalizarCidade(venda.cidade);
-const filialInfo = filiais[chaveFilial] || filiais.ESCADA; // ✅ fallback certo
+  const { venda, itens } = dados;
 
   return (
-    <div className="nf-container">
-      {/* HEADER */}
-      <div className="nf-header">
-        <div className="nf-identificacao">
-          IDENTIFICAÇÃO DO EMITENTE
-        </div>
-
-        <div className="nf-title">
-          {filialInfo.nome}
-        </div>
-
-        <div className="nf-text">
-          {filialInfo.endereco}<br />
-          {filialInfo.cidade} • Tel: {filialInfo.telefone}<br />
-          CNPJ: {filialInfo.cnpj}
-        </div>
+    <div className="nota-termica">
+      <div className="nota-central">
+        <strong>MotoNow</strong>
+        <div>Comprovante de Venda</div>
       </div>
 
-      <div className="nf-line" />
+      <div className="nota-linha"></div>
 
-      {/* DADOS DO CLIENTE */}
-      <div className="nf-section">DADOS DO CLIENTE</div>
-      <div className="nf-box">
-        <p><strong>Nome:</strong> {venda.cliente_nome}</p>
-        <p><strong>Telefone:</strong> {venda.cliente_telefone || "-"}</p>
-        <p><strong>Chassi:</strong> {venda.chassi_moto || "-"}</p>
-      </div>
+      <div><strong>Cliente:</strong> {venda.cliente_nome}</div>
+      <div><strong>Telefone:</strong> {venda.cliente_telefone}</div>
+      <div><strong>Data:</strong> {new Date(venda.created_at).toLocaleString("pt-BR")}</div>
+      <div><strong>Pagamento:</strong> {venda.forma_pagamento}</div>
+      <div><strong>Cidade:</strong> {venda.cidade}</div>
 
-      {/* ITENS */}
-      <div className="nf-section">ITENS DA VENDA</div>
-      <table className="nf-table">
-        <thead>
-          <tr>
-            <th>Código</th>
-            <th>Descrição</th>
-            <th>Qtd</th>
-            <th>Valor</th>
-          </tr>
-        </thead>
-        <tbody>
-          {itens.map((i, idx) => (
-            <tr key={idx}>
-              <td>{i.codigo || "0001"}</td>
-              <td>{i.nome}</td>
-              <td>{i.quantidade}</td>
-              <td>R$ {Number(i.preco_unitario).toFixed(2)}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <div className="nota-linha"></div>
 
-      {/* VALORES */}
-      <div className="nf-section">VALORES</div>
-      <div className="nf-box">
-        <p><strong>Total:</strong> R$ {Number(venda.total).toFixed(2)}</p>
-        <p><strong>Forma de Pagamento:</strong> {venda.forma_pagamento}</p>
-        <p>
-          <strong>Data da Venda:</strong>{" "}
-          {new Date(venda.created_at).toLocaleString("pt-BR")}
-        </p>
-      </div>
+      {itens.map((item, i) => (
+        <div key={i} style={{ marginBottom: 6 }}>
+          <div><strong>{item.nome}</strong></div>
+          <div className="nota-item">
+            <span>{item.quantidade} x {Number(item.preco_unitario).toFixed(2)}</span>
+            <span>
+              R$ {(Number(item.quantidade) * Number(item.preco_unitario)).toFixed(2)}
+            </span>
+          </div>
+        </div>
+      ))}
 
-      {/* OBSERVAÇÕES */}
+      <div className="nota-linha"></div>
+
+      <div><strong>Total:</strong> R$ {Number(venda.total).toFixed(2)}</div>
+
       {venda.observacao && (
         <>
-          <div className="nf-section">OBSERVAÇÕES</div>
-          <div className="nf-box">
-            <p>{venda.observacao}</p>
-          </div>
+          <div className="nota-linha"></div>
+          <div><strong>Obs:</strong> {venda.observacao}</div>
         </>
       )}
 
-      {/* AÇÕES */}
-      <button className="nf-print" onClick={() => window.print()}>
-        🖨 Imprimir Nota
-      </button>
+      <div className="nota-linha"></div>
 
-      <button
-        className="nf-print"
-        style={{ background: "#555", marginTop: 10 }}
-        onClick={() => nav(-1)}
-      >
-        ⬅ Voltar
-      </button>
+      <div className="nota-central">
+        Obrigado pela preferência
+      </div>
+
+      <div className="ocultar-print">
+        <button onClick={() => window.print()}>Imprimir</button>
+      </div>
     </div>
   );
 }
