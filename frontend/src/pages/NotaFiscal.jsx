@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import api from "../api";
-import "./NotaTermica.css";
+import "./NotaFiscal.css";
 
 export default function NotaTermica() {
   const [params] = useSearchParams();
