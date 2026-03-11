@@ -137,7 +137,7 @@ export default function Carrinho() {
       localStorage.removeItem("carrinho");
 
       if (vendaId) {
-        nav(`/nota-termica?id=${vendaId}`);
+        nav(`/nota?id=${vendaId}`);
       } else {
         alert("Venda finalizada, mas não retornou o ID da nota.");
         nav("/home");
