@@ -1,7 +1,7 @@
-
-    import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api";
+import "./VendasMotos.css";
 import "./Vendas.css";
 
 export default function Vendas() {
@@ -17,16 +17,51 @@ export default function Vendas() {
   const [dataFim, setDataFim] = useState("");
 
   useEffect(() => {
-    api.get("/vendas")
-      .then(res => setVendas(res.data || []))
+    api
+      .get("/vendas")
+      .then((res) => setVendas(res.data || []))
       .catch(() => setVendas([]));
   }, []);
+
+  /* ===== HELPERS ===== */
+  function formatarValor(valor) {
+    if (valor == null || valor === "" || Number.isNaN(Number(valor))) return "-";
+    return Number(valor).toLocaleString("pt-BR", {
+      style: "currency",
+      currency: "BRL",
+    });
+  }
+
+  function exportarCSV(nomeArquivo, headers, dados) {
+    const csv = [
+      headers.join(";"),
+      ...dados.map((row) => headers.map((h) => `"${row[h] ?? ""}"`).join(";")),
+    ].join("\n");
+
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = nomeArquivo;
+    link.click();
+  }
+
+  function getEmpresa(v) {
+    return v.empresa || "-";
+  }
 
   /* ===== FUNÇÕES DE DATA ===== */
   function aplicarHoje() {
     const hoje = new Date().toISOString().slice(0, 10);
     setDataInicio(hoje);
     setDataFim(hoje);
+  }
+
+  function aplicarOntem() {
+    const ontem = new Date();
+    ontem.setDate(ontem.getDate() - 1);
+    const data = ontem.toISOString().slice(0, 10);
+    setDataInicio(data);
+    setDataFim(data);
   }
 
   function aplicar7Dias() {
@@ -67,190 +102,228 @@ export default function Vendas() {
   }
 
   /* ===== FILTRAGEM ===== */
-  const vendasFiltradas = vendas.filter(v => {
-    const dataVenda = new Date(v.created_at);
+  const vendasFiltradas = useMemo(() => {
+    return vendas.filter((v) => {
+      const dataVenda = new Date(v.created_at);
 
-    const okEmpresa =
-      empresaFiltro === "TODAS" || v.empresa === empresaFiltro;
+      const okEmpresa =
+        empresaFiltro === "TODAS" || getEmpresa(v) === empresaFiltro;
 
-    const okCidade =
-      cidadeFiltro === "TODAS" || v.cidade === cidadeFiltro;
+      const okCidade =
+        cidadeFiltro === "TODAS" || v.cidade === cidadeFiltro;
 
-    const okData =
-      (!dataInicio || dataVenda >= new Date(dataInicio)) &&
-      (!dataFim || dataVenda <= new Date(`${dataFim}T23:59:59`));
+      const okData =
+        (!dataInicio || dataVenda >= new Date(dataInicio)) &&
+        (!dataFim || dataVenda <= new Date(`${dataFim}T23:59:59`));
 
-    return okEmpresa && okCidade && okData;
-  });
+      return okEmpresa && okCidade && okData;
+    });
+  }, [vendas, empresaFiltro, cidadeFiltro, dataInicio, dataFim]);
 
   /* ===== RESUMO ===== */
-  const faturamentoTotal = vendasFiltradas.reduce(
-    (acc, v) => acc + Number(v.total || 0),
-    0
-  );
+  const faturamentoTotal = useMemo(() => {
+    return vendasFiltradas.reduce((acc, v) => acc + Number(v.total || 0), 0);
+  }, [vendasFiltradas]);
 
   const quantidadeVendas = vendasFiltradas.length;
 
-  const ticketMedio =
-    quantidadeVendas > 0 ? faturamentoTotal / quantidadeVendas : 0;
+  const ticketMedio = useMemo(() => {
+    return quantidadeVendas > 0 ? faturamentoTotal / quantidadeVendas : 0;
+  }, [faturamentoTotal, quantidadeVendas]);
 
-  /* ===== CSV ===== */
-  function exportarCSV() {
-    const headers = ["cliente", "cidade", "total", "forma_pagamento", "data"];
-    const linhas = vendasFiltradas.map(v => ({
-      cliente: v.cliente_nome,
-      cidade: v.cidade,
-      total: v.total,
-      forma_pagamento: v.forma_pagamento,
-      data: new Date(v.created_at).toLocaleDateString("pt-BR")
-    }));
-
-    const csv = [
-      headers.join(";"),
-      ...linhas.map(l => headers.map(h => `"${l[h] ?? ""}"`).join(";"))
-    ].join("\n");
-
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = "historico_vendas.csv";
-    link.click();
-  }
-
+  /* ===== UI ===== */
   return (
-    <div className="vendas-container">
-      <div className="vendas-header">
-        <h2>🧾 Histórico de Vendas</h2>
-        <button onClick={() => nav("/home")}>⬅ Voltar</button>
+    <div className="vendas-motos-container">
+      {/* TOPBAR */}
+      <div className="vm-topbar">
+        <div>
+          <h2 className="vm-title">🧾 Histórico de Vendas</h2>
+          <p className="vm-subtitle">
+            Filtre rápido e exporte exatamente o que está na tela.
+          </p>
+        </div>
+
+        <div className="vm-topbar-actions">
+          <button className="vm-btn vm-btn-ghost" onClick={() => nav("/home")}>
+            ⬅ Voltar
+          </button>
+
+          <button
+            className="vm-btn vm-btn-primary"
+            onClick={() =>
+              exportarCSV(
+                "historico_vendas.csv",
+                ["id", "cliente", "cidade", "empresa", "total", "forma_pagamento", "data"],
+                vendasFiltradas.map((v) => ({
+                  id: v.id,
+                  cliente: v.cliente_nome,
+                  cidade: v.cidade,
+                  empresa: getEmpresa(v),
+                  total: Number(v.total || 0).toFixed(2),
+                  forma_pagamento: v.forma_pagamento || "",
+                  data: new Date(v.created_at).toLocaleDateString("pt-BR"),
+                }))
+              )
+            }
+          >
+            📥 Exportar CSV
+          </button>
+        </div>
       </div>
 
       {/* FILTROS */}
-      <div className="filtros">
-        <select value={empresaFiltro} onChange={e => setEmpresaFiltro(e.target.value)}>
-          <option value="TODAS">Todas Empresas</option>
-          <option value="EMENEZES">Emenezes</option>
-          <option value="MOTONOW">MotoNow</option>
-        </select>
+      <div className="vm-card">
+        <div className="vm-filters-grid">
+          <div className="vm-field">
+            <label>Empresa</label>
+            <select value={empresaFiltro} onChange={(e) => setEmpresaFiltro(e.target.value)}>
+              <option value="TODAS">Todas</option>
+              <option value="EMENEZES">Emenezes</option>
+              <option value="MOTONOW">MotoNow</option>
+            </select>
+          </div>
 
-        <select value={cidadeFiltro} onChange={e => setCidadeFiltro(e.target.value)}>
-          <option value="TODAS">Todas Cidades</option>
-          <option value="ESCADA">Escada</option>
-          <option value="IPOJUCA">Ipojuca</option>
-          <option value="RIBEIRAO">Ribeirão</option>
-          <option value="SAO JOSE">São José</option>
-          <option value="CATENDE">Catende</option>
-          <option value="XEXEU">Xexeu</option>
-          <option value="MARAGOGI">Maragogi</option>
-          <option value="IPOJUCA RICARDO">Ipojuca Ricardo</option>
-        </select>
+          <div className="vm-field">
+            <label>Cidade</label>
+            <select value={cidadeFiltro} onChange={(e) => setCidadeFiltro(e.target.value)}>
+              <option value="TODAS">Todas</option>
+              <option value="ESCADA">Escada</option>
+              <option value="IPOJUCA">Ipojuca</option>
+              <option value="RIBEIRAO">Ribeirão</option>
+              <option value="SAO JOSE">São José</option>
+              <option value="CATENDE">Catende</option>
+              <option value="XEXEU">Xexeu</option>
+              <option value="MARAGOGI">Maragogi</option>
+              <option value="IPOJUCA RICARDO">Ipojuca Ricardo</option>
+              <option value="CHA GRANDE">Cha Grande</option>
+            </select>
+          </div>
 
-        <input type="date" value={dataInicio} onChange={e => setDataInicio(e.target.value)} />
-        <input type="date" value={dataFim} onChange={e => setDataFim(e.target.value)} />
-      </div>
+          <div className="vm-field">
+            <label>Data início</label>
+            <input type="date" value={dataInicio} onChange={(e) => setDataInicio(e.target.value)} />
+          </div>
 
-      {/* BOTÕES */}
-      <div className="botoes-rapidos">
-        <button onClick={aplicarHoje}>Hoje</button>
-        <button onClick={aplicar7Dias}>7 dias</button>
-        <button onClick={aplicar30Dias}>30 dias</button>
-        <button onClick={aplicarMesAtual}>Mês atual</button>
-        <button onClick={aplicarMesPassado}>Mês passado</button>
-        <button onClick={limparDatas}>Limpar</button>
-        <button onClick={exportarCSV}>📥 Exportar</button>
+          <div className="vm-field">
+            <label>Data fim</label>
+            <input type="date" value={dataFim} onChange={(e) => setDataFim(e.target.value)} />
+          </div>
+        </div>
+
+        <div className="vm-quickbar">
+          <button className="vm-btn vm-btn-soft" onClick={aplicarHoje}>Hoje</button>
+          <button className="vm-btn vm-btn-soft" onClick={aplicarOntem}>Ontem</button>
+          <button className="vm-btn vm-btn-soft" onClick={aplicar7Dias}>7 dias</button>
+          <button className="vm-btn vm-btn-soft" onClick={aplicar30Dias}>30 dias</button>
+          <button className="vm-btn vm-btn-soft" onClick={aplicarMesAtual}>Mês atual</button>
+          <button className="vm-btn vm-btn-soft" onClick={aplicarMesPassado}>Mês passado</button>
+          <button className="vm-btn vm-btn-ghost" onClick={limparDatas}>Limpar datas</button>
+        </div>
       </div>
 
       {/* RESUMO */}
-      <div className="faturamento-resumo">
-        <div className="card-faturamento">
-          <span>💰 Faturamento (filtro)</span>
-          <strong>
-            R$ {faturamentoTotal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-          </strong>
+      <div className="vm-stats">
+        <div className="vm-stat">
+          <div className="vm-stat-label">Faturamento</div>
+          <div className="vm-stat-value">{formatarValor(faturamentoTotal)}</div>
         </div>
 
-        <div className="card-faturamento">
-          <span>🧾 Vendas (filtro)</span>
-          <strong>{quantidadeVendas}</strong>
+        <div className="vm-stat">
+          <div className="vm-stat-label">Qtd. vendas</div>
+          <div className="vm-stat-value">{quantidadeVendas}</div>
         </div>
 
-        <div className="card-faturamento">
-          <span>🎯 Ticket médio (filtro)</span>
-          <strong>
-            R$ {ticketMedio.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-          </strong>
+        <div className="vm-stat vm-stat-highlight">
+          <div className="vm-stat-label">Ticket médio</div>
+          <div className="vm-stat-value">{formatarValor(ticketMedio)}</div>
         </div>
       </div>
 
       {/* TABELA */}
-      {vendasFiltradas.length === 0 ? (
-        <p>Nenhuma venda encontrada.</p>
-      ) : (
-        <table className="table">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Data</th>
-              <th>Total</th>
-              <th>Detalhes</th>
-              <th>Cidade</th>
-              <th>Nota</th>
-            </tr>
-          </thead>
+      <div className="table-container vm-table-card">
+        {vendasFiltradas.length === 0 ? (
+          <div style={{ padding: 16, textAlign: "center", opacity: 0.7 }}>
+            Nenhuma venda encontrada.
+          </div>
+        ) : (
+          <table className="table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Data</th>
+                <th>Cliente</th>
+                <th>Total</th>
+                <th>Pagamento</th>
+                <th>Cidade</th>
+                <th>Detalhes</th>
+                <th>Nota</th>
+              </tr>
+            </thead>
 
-          <tbody>
-            {vendasFiltradas.map(v => (
-              <React.Fragment key={v.id}>
-                <tr>
-                  <td>{v.id}</td>
-                  <td>{new Date(v.created_at).toLocaleString("pt-BR")}</td>
-                  <td><strong>R$ {Number(v.total).toFixed(2)}</strong></td>
-
-                  <td>
-                    <button onClick={() => setAberta(aberta === v.id ? null : v.id)}>
-                      {aberta === v.id ? "▲" : "▼"}
-                    </button>
-                  </td>
-
-                  <td>{v.cidade || "-"}</td>
-
-                  <td>
-                    <button onClick={() => nav(`/nota?id=${v.id}`)}>
-                      🧾
-                    </button>
-                  </td>
-                </tr>
-
-                {aberta === v.id && (
+            <tbody>
+              {vendasFiltradas.map((v) => (
+                <React.Fragment key={v.id}>
                   <tr>
-                    <td colSpan={6}>
-                      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                        <div>
-                          <strong>Forma de pagamento:</strong>{" "}
-                          {v.forma_pagamento || "-"}
-                        </div>
+                    <td>{v.id}</td>
+                    <td>{new Date(v.created_at).toLocaleString("pt-BR")}</td>
+                    <td>{v.cliente_nome || "-"}</td>
+                    <td><strong>{formatarValor(v.total)}</strong></td>
+                    <td>{v.forma_pagamento || "-"}</td>
+                    <td>{v.cidade || "-"}</td>
 
-                        {v.observacao && (
-                          <div>
-                            <strong>Obs:</strong> {v.observacao}
-                          </div>
-                        )}
+                    <td>
+                      <button
+                        className="action-btn"
+                        onClick={() => setAberta(aberta === v.id ? null : v.id)}
+                      >
+                        {aberta === v.id ? "▲" : "▼"}
+                      </button>
+                    </td>
 
-                        <ul style={{ margin: 0, paddingLeft: 18 }}>
-                          {v.itens?.map((i, idx) => (
-                            <li key={idx}>
-                              {i.nome} — {i.quantidade} × R$ {Number(i.preco_unitario).toFixed(2)}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
+                    <td>
+                      <button
+                        className="action-btn"
+                        onClick={() => nav(`/nota?id=${v.id}`)}
+                      >
+                        🧾
+                      </button>
                     </td>
                   </tr>
-                )}
-              </React.Fragment>
-            ))}
-          </tbody>
-        </table>
-      )}
+
+                  {aberta === v.id && (
+                    <tr>
+                      <td colSpan={8}>
+                        <div className="vendas-detalhes-box">
+                          <div>
+                            <strong>Forma de pagamento:</strong> {v.forma_pagamento || "-"}
+                          </div>
+
+                          {v.observacao && (
+                            <div>
+                              <strong>Obs:</strong> {v.observacao}
+                            </div>
+                          )}
+
+                          <div>
+                            <strong>Itens:</strong>
+                            <ul style={{ margin: "8px 0 0", paddingLeft: 18 }}>
+                              {v.itens?.map((i, idx) => (
+                                <li key={idx}>
+                                  {i.nome} — {i.quantidade} × R$ {Number(i.preco_unitario).toFixed(2)}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </React.Fragment>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
     </div>
   );
 }
