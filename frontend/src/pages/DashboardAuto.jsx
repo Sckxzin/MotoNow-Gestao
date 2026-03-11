@@ -972,76 +972,103 @@ export default function DashboardAuto() {
               gap: 14,
             }}
           >
-            <Panel title="Fechamento por loja" rightHint={`Período: ${fechamentoTitulo}`}>
-              <ResponsiveContainer width="100%" height={470}>
-                <BarChart data={fechamentoPorLoja} margin={{ top: 18, right: 16, bottom: 40, left: 8 }}>
-                  <CartesianGrid {...THEME.grid} />
-                  <XAxis dataKey="loja" angle={-20} textAnchor="end" height={60} {...THEME.axis} />
-                  <YAxis {...THEME.axis} />
-                  <Tooltip
-                    {...tooltipProps((v, name) => {
-                      if (name === "faturamento" || name === "liquido") return [formatBRL(v), name];
-                      return [v, name];
-                    })}
-                  />
-                  <Legend />
-                  <Bar
-                    dataKey="faturamento"
-                    name="Faturamento"
-                    radius={[10, 10, 0, 0]}
-                    fill="rgba(120,160,255,0.88)"
-                  />
-                  <Bar
-                    dataKey="liquido"
-                    name="Líquido"
-                    radius={[10, 10, 0, 0]}
-                    fill="rgba(110,240,200,0.82)"
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            </Panel>
+          {slides[slide]?.id === "fechamento_loja" && (
+  <div
+    style={{
+      height: "100%",
+      display: "grid",
+      gridTemplateColumns: "1.15fr 0.95fr 0.9fr",
+      gap: 14,
+    }}
+  >
+    {/* GRÁFICO POR LOJA */}
+    <Panel title="Fechamento por loja" rightHint={`Período: ${fechamentoTitulo}`}>
+      <ResponsiveContainer width="100%" height={470}>
+        <BarChart data={fechamentoPorLoja} margin={{ top: 18, right: 16, bottom: 40, left: 8 }}>
+          <CartesianGrid {...THEME.grid} />
+          <XAxis dataKey="loja" angle={-20} textAnchor="end" height={60} {...THEME.axis} />
+          <YAxis {...THEME.axis} />
+          <Tooltip
+            {...tooltipProps((v, name) => {
+              if (name === "faturamento" || name === "liquido") return [formatBRL(v), name];
+              return [v, name];
+            })}
+          />
+          <Legend />
+          <Bar
+            dataKey="faturamento"
+            name="Faturamento"
+            radius={[10, 10, 0, 0]}
+            fill="rgba(120,160,255,0.88)"
+          />
+          <Bar
+            dataKey="liquido"
+            name="Líquido"
+            radius={[10, 10, 0, 0]}
+            fill="rgba(110,240,200,0.82)"
+          />
+        </BarChart>
+      </ResponsiveContainer>
+    </Panel>
 
-            <Panel title="Resumo por loja" rightHint={`Período: ${fechamentoTitulo}`}>
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 12,
-                  maxHeight: 470,
-                  overflow: "auto",
-                  paddingRight: 6,
-                }}
-              >
-                {fechamentoPorLoja.map((item) => (
-                  <div
-                    key={item.loja}
-                    style={{
-                      background: "rgba(255,255,255,0.04)",
-                      border: "1px solid rgba(255,255,255,0.08)",
-                      borderRadius: 16,
-                      padding: 14,
-                    }}
-                  >
-                    <div style={{ fontSize: 15, fontWeight: 800 }}>{item.loja}</div>
-                    <div style={{ fontSize: 12, opacity: 0.72, marginTop: 4 }}>
-                      Motos: {item.motos}
-                    </div>
-                    <div style={{ marginTop: 8, fontSize: 14 }}>
-                      Faturamento: <strong>{formatBRL(item.faturamento)}</strong>
-                    </div>
-                    <div style={{ marginTop: 4, fontSize: 14 }}>
-                      Líquido: <strong>{formatBRL(item.liquido)}</strong>
-                    </div>
-                  </div>
-                ))}
+    {/* GRÁFICO DO FECHAMENTO GERAL */}
+    <Panel title="Fechamento geral" rightHint={`Período: ${fechamentoTitulo}`}>
+      <ResponsiveContainer width="100%" height={470}>
+        <BarChart
+          data={[
+            {
+              nome: "Geral",
+              faturamento: fechamentoGeral.faturamento,
+              liquido: fechamentoGeral.liquido,
+            },
+          ]}
+          margin={{ top: 18, right: 16, bottom: 20, left: 8 }}
+        >
+          <CartesianGrid {...THEME.grid} />
+          <XAxis dataKey="nome" {...THEME.axis} />
+          <YAxis {...THEME.axis} />
+          <Tooltip
+            {...tooltipProps((v, name) => {
+              if (name === "faturamento" || name === "liquido") return [formatBRL(v), name];
+              return [v, name];
+            })}
+          />
+          <Legend />
+          <Bar
+            dataKey="faturamento"
+            name="Faturamento"
+            radius={[10, 10, 0, 0]}
+            fill="rgba(120,160,255,0.88)"
+          />
+          <Bar
+            dataKey="liquido"
+            name="Líquido"
+            radius={[10, 10, 0, 0]}
+            fill="rgba(110,240,200,0.82)"
+          />
+        </BarChart>
+      </ResponsiveContainer>
+    </Panel>
 
-                {fechamentoPorLoja.length === 0 && (
-                  <div style={{ opacity: 0.7, fontSize: 14 }}>
-                    Nenhum dado encontrado nesse período.
-                  </div>
-                )}
-              </div>
-            </Panel>
+    {/* RESUMO GERAL */}
+    <Panel title="Resumo geral" rightHint={`Período: ${fechamentoTitulo}`}>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 12,
+          height: "100%",
+        }}
+      >
+        <BigStat label="Faturamento geral" value={formatBRL(fechamentoGeral.faturamento)} />
+        <BigStat label="Líquido geral" value={formatBRL(fechamentoGeral.liquido)} />
+        <BigStat label="Motos vendidas" value={fechamentoGeral.motos} />
+        <BigStat label="Ticket médio" value={formatBRL(fechamentoGeral.ticketMedio)} />
+        <BigStat label="Lojas ativas" value={fechamentoGeral.lojasAtivas} />
+      </div>
+    </Panel>
+  </div>
+)}
 
             <Panel title="Fechamento geral" rightHint={`Período: ${fechamentoTitulo}`}>
               <div
