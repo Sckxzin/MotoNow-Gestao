@@ -1,430 +1,15 @@
-/* ================================
-   CONTAINER GERAL
-================================ */
-.home-container {
-  padding: 20px;
-  font-family: Arial, Helvetica, sans-serif;
-  background: #f4f6f8;
-  min-height: 100vh;
-}
-
-/* ================================
-   HEADER
-================================ */
-.home-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: #111;
-  padding: 14px 20px;
-  color: #fff;
-  border-radius: 6px;
-  margin-bottom: 20px;
-}
-
-.logo-mini {
-  width: 60px;
-}
-
-/* ================================
-   BOTÃO SAIR
-================================ */
-.btn-sair {
-  background: #c40000;
-  border: none;
-  padding: 10px 18px;
-  border-radius: 6px;
-  color: #fff;
-  font-weight: bold;
-  cursor: pointer;
-  transition: 0.2s;
-}
-
-.btn-sair:hover {
-  background: #9e0000;
-}
-
-/* ================================
-   TABS
-================================ */
-.tabs {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
-}
-
-.tab-btn {
-  padding: 10px 18px;
-  border-radius: 6px;
-  border: 2px solid #ccc;
-  background: #fff;
-  cursor: pointer;
-  font-weight: bold;
-  transition: 0.2s;
-}
-
-.tab-btn.active {
-  background: #c40000;
-  color: #fff;
-  border-color: #9e0000;
-}
-
-.tab-btn:hover {
-  background: #eee;
-}
-
-/* ================================
-   TÍTULOS
-================================ */
-.section-title {
-  font-size: 22px;
-  margin: 10px 0 15px;
-  color: #222;
-}
-
-/* ================================
-   BUSCA
-================================ */
-.input-busca {
-  width: 320px;
-  padding: 10px;
-  margin-bottom: 15px;
-  border: 2px solid #ccc;
-  border-radius: 6px;
-}
-
-/* ================================
-   BOTÃO ADICIONAR
-================================ */
-.add-btn {
-  background: #008c2f;
-  color: white;
-  padding: 10px 16px;
-  border: none;
-  border-radius: 6px;
-  margin-left: 10px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: 0.2s;
-}
-
-.add-btn:hover {
-  background: #006e25;
-}
-
-/* ================================
-   TABELAS
-================================ */
-.table-container {
-  overflow-x: auto;
-  border-radius: 6px;
-  margin-top: 10px;
-}
-
-.table {
-  width: 100%;
-  border-collapse: collapse;
-  background: white;
-  min-width: 900px;
-}
-
-.table th {
-  background: #c40000;
-  color: white;
-  padding: 10px;
-  font-size: 14px;
-  text-align: center;
-}
-
-.table td {
-  padding: 10px;
-  border-bottom: 1px solid #ddd;
-  font-size: 14px;
-  text-align: center;
-}
-
-.table tr:hover {
-  background: #f7f7f7;
-}
-
-/* ================================
-   BOTÕES DE AÇÃO
-================================ */
-.action-btn {
-  background: #c40000;
-  color: white;
-  padding: 6px 12px;
-  border: none;
-  border-radius: 6px;
-  font-size: 13px;
-  cursor: pointer;
-  margin: 2px;
-  transition: 0.2s;
-  white-space: nowrap;
-}
-
-.action-btn:hover {
-  background: #9e0000;
-}
-
-/* ================================
-   CONTADOR DE MOTOS
-================================ */
-.contador-motos {
-  margin: 10px 0;
-  font-size: 16px;
-  font-weight: bold;
-}
-
-/* ================================
-   SELECT FILIAL
-================================ */
-.select-filial {
-  padding: 10px;
-  border-radius: 6px;
-  border: 2px solid #ccc;
-  margin-bottom: 15px;
-  cursor: pointer;
-}
-
-/* ================================
-   DESTAQUE DE VALOR
-================================ */
-.valor-destaque {
-  font-weight: bold;
-  color: #008c2f;
-}
-
-/* ================================
-   RESPONSIVO
-================================ */
-@media (max-width: 900px) {
-  .input-busca {
-    width: 100%;
-  }
-
-  .tabs {
-    gap: 8px;
-  }
-
-  .tab-btn {
-    padding: 8px 14px;
-  }
-}
-/* ==============================
-   MODAL OVERLAY
-============================== */
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.55);
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  padding-top: 40px;
-  z-index: 9999;
-}
-
-/* ==============================
-   MODAL CONTAINER
-============================== */
-.modal {
-  background: #fff;
-  width: 100%;
-  max-width: 520px;
-  border-radius: 8px;
-  padding: 22px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-  animation: modalFade 0.2s ease-in-out;
-}
-
-/* Animação leve */
-@keyframes modalFade {
-  from {
-    transform: translateY(-10px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-/* ==============================
-   TÍTULO
-============================== */
-.modal h3 {
-  margin-bottom: 18px;
-  font-size: 20px;
-  text-align: center;
-  color: #111;
-}
-
-/* ==============================
-   INPUTS & SELECT
-============================== */
-.modal input,
-.modal select {
-  width: 100%;
-  padding: 10px 12px;
-  margin-bottom: 12px;
-  border-radius: 6px;
-  border: 2px solid #ccc;
-  font-size: 14px;
-  outline: none;
-}
-
-.modal input:focus,
-.modal select:focus {
-  border-color: #c40000;
-}
-
-/* ==============================
-   BRINDE (CHECKBOX)
-============================== */
-.modal label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 14px;
-  margin-bottom: 14px;
-  cursor: pointer;
-}
-
-.modal input[type="checkbox"] {
-  width: 16px;
-  height: 16px;
-  cursor: pointer;
-}
-
-/* ==============================
-   BOTÕES
-============================== */
-.modal button {
-  width: 100%;
-  padding: 12px;
-  border-radius: 6px;
-  font-size: 15px;
-  font-weight: bold;
-  border: none;
-  cursor: pointer;
-  transition: 0.2s;
-}
-
-/* Confirmar */
-.modal button:first-of-type {
-  background: #008c2f;
-  color: #fff;
-  margin-bottom: 8px;
-}
-
-.modal button:first-of-type:hover {
-  background: #006e25;
-}
-
-/* Cancelar */
-.modal button:last-of-type {
-  background: #c40000;
-  color: #fff;
-}
-
-.modal button:last-of-type:hover {
-  background: #9e0000;
-}
-
-/* ================= STATUS MOTOS ================= */
-.status {
-  padding: 4px 10px;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: bold;
-  text-transform: uppercase;
-}
-
-.status.disponivel {
-  background: #e6f7ed;
-  color: #0f7b3a;
-  border: 1px solid #0f7b3a;
-}
-
-.status.vendida {
-  background: #fdeaea;
-  color: #b10000;
-  border: 1px solid #b10000;
-}
-
-.status.aguardando {
-  background: #fff6d6;
-  color: #9c7a00;
-  border: 1px solid #9c7a00;
-}
-/* ================= CIDADES ================= */
-.cidade-tag {
-  padding: 4px 10px;
-  border-radius: 999px; /* pill style */
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.3px;
-  color: #fff;
-}
-
-/* Cores por cidade */
-.cidade-tag.escada { background: #4b5563; }
-.cidade-tag.ipojuca { background: #2563eb; }
-.cidade-tag.ribeirao { background: #7c3aed; }
-.cidade-tag.ipojuca-ricardo { background: #6495ed; }
-.cidade-tag.maragogi { background: #FF0000; }
-
-/* ⭐ São José – mais clean e elegante */
-.cidade-tag.sao-jose {
-  background: linear-gradient(135deg, #059669, #10b981);
-}
-
-.cidade-tag.catende { background: #ea580c; }
-.cidade-tag.xexeu { background: #0f766e; }
-.cidade-tag.cha-grande {background: #000000; }
-
-/* Ajuste as cores como quiser */
-.cidade-tag.escada { background: #4b5563; }
-.cidade-tag.ipojuca { background: #2563eb; }
-.cidade-tag.ribeirao { background: #7c3aed; }
-.cidade-tag.sao\ jose { background: #059669; }
-.cidade-tag.catende { background: #ea580c; }
-.cidade-tag.xexeu { background: #0f766e; }
-.cidade-tag.ipojuca\ ricardo { background: #6495ed; }
-.cidade-tag.maragogi { background: #FF0000; }
-.cidade-tag.cha\ grande { background: #000000; } 
-
-.cidade-tag {
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-
-.cidade-tag:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-}
-
-/* ==============================
-   MOBILE
-============================== */
-@media (max-width: 520px) {
-  .modal {
-    margin: 0 10px;
-    padding: 18px;
-  }
-}
 .home-actions-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 10px;
+  gap: 12px;
 }
 
-.home-actions-grid .vm-btn {
+.home-container {
   width: 100%;
 }
 
-.home-container .modal-overlay {
+/* Mantém compatível com seus modais já existentes */
+.modal-overlay {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.45);
@@ -432,67 +17,152 @@
   align-items: center;
   justify-content: center;
   z-index: 9999;
+  padding: 16px;
 }
 
-.home-container .modal {
+.modal {
   width: 100%;
   max-width: 520px;
   background: #fff;
-  border-radius: 16px;
+  border-radius: 18px;
   padding: 20px;
-  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.18);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.2);
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.home-container .modal h3 {
-  margin: 0 0 8px;
+.modal h3 {
+  margin: 0 0 6px 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #111827;
 }
 
-.home-container .modal input,
-.home-container .modal select,
-.home-container .modal textarea {
+.modal p {
+  margin: 0;
+  color: #4b5563;
+}
+
+.modal input,
+.modal select,
+.modal textarea {
   width: 100%;
-  min-height: 42px;
-  border: 1px solid #d9dce3;
-  border-radius: 10px;
+  min-height: 44px;
+  border: 1px solid #d1d5db;
+  border-radius: 12px;
   padding: 10px 12px;
+  font-size: 14px;
   outline: none;
-}
-
-.home-container .modal button {
-  min-height: 40px;
-  border: none;
-  border-radius: 10px;
-  padding: 0 14px;
-  cursor: pointer;
-}
-
-.home-container .resumo-motos {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 12px;
-  margin-bottom: 14px;
-}
-
-.home-container .resumo-card {
+  box-sizing: border-box;
   background: #fff;
-  border: 1px solid #e7eaf0;
-  border-radius: 14px;
-  padding: 14px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+  color: #111827;
 }
 
-.home-container .action-btn {
+.modal input:focus,
+.modal select:focus,
+.modal textarea:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.modal button {
+  min-height: 42px;
   border: none;
-  border-radius: 8px;
-  padding: 8px 10px;
+  border-radius: 12px;
+  padding: 10px 14px;
   cursor: pointer;
-  background: #b9413b;
+  font-weight: 600;
+}
+
+.modal button:first-of-type {
+  background: #2563eb;
   color: #fff;
 }
 
-.home-container .action-btn:hover {
-  opacity: 0.92;
+.modal button:first-of-type:hover {
+  background: #1d4ed8;
+}
+
+.modal button:last-of-type {
+  background: #e5e7eb;
+  color: #111827;
+}
+
+.modal button:last-of-type:hover {
+  background: #d1d5db;
+}
+
+/* tags/cidade/status usados na tabela */
+.cidade-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  background: #eef2ff;
+  color: #3730a3;
+}
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.status.disponivel {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.status.vendida {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.status.pendente_aprovacao {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+/* botão pequeno de ação */
+.action-btn {
+  min-width: 38px;
+  height: 38px;
+  border: none;
+  border-radius: 10px;
+  background: #2563eb;
+  color: #fff;
+  cursor: pointer;
+  font-weight: 700;
+  padding: 0 10px;
+}
+
+.action-btn:hover {
+  background: #1d4ed8;
+}
+
+/* responsivo */
+@media (max-width: 768px) {
+  .home-actions-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .modal {
+    max-width: 100%;
+    padding: 16px;
+    border-radius: 14px;
+  }
+}
+
+@media (max-width: 540px) {
+  .home-actions-grid {
+    grid-template-columns: 1fr;
+  }
 }
