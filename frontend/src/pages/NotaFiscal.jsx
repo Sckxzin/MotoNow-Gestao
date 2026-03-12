@@ -1,19 +1,19 @@
 import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import api from "../api";
 import "./NotaFiscal.css";
 
 export default function NotaTermica() {
   const [params] = useSearchParams();
   const [dados, setDados] = useState(null);
+  const nav = useNavigate();
 
   const id = params.get("id");
 
   useEffect(() => {
     if (!id) return;
 
-    api
-      .get(`/nota-fiscal/${id}`)
+    api.get(`/nota-fiscal/${id}`)
       .then((res) => setDados(res.data))
       .catch((err) => {
         console.error(err);
@@ -26,10 +26,16 @@ export default function NotaTermica() {
   const { venda, itens } = dados;
 
   return (
-    <div className="nota-wrapper">
-      <button className="ocultar-print" onClick={() => window.print()}>
-        Imprimir
-      </button>
+    <div className="nota-page">
+      <div className="nota-acoes no-print">
+        <button className="btn-voltar-nota" onClick={() => nav(-1)}>
+          ← Voltar
+        </button>
+
+        <button className="btn-imprimir-nota" onClick={() => window.print()}>
+          Imprimir
+        </button>
+      </div>
 
       <div className="nota-termica">
         <div className="nota-topo">
