@@ -155,22 +155,23 @@ export default function DashboardAuto() {
   const [dataFim, setDataFim] = useState("");
   const [empresaFiltro, setEmpresaFiltro] = useState("TODAS");
 
-  const slides = useMemo(
-    () => [
-      { id: "kpis", title: "Resumo executivo" },
-      { id: "motos_dia", title: "Vendas de motos por dia" },
-      { id: "rolling7", title: "Vendas acumuladas (últimos 7 dias)" },
-      { id: "liq_sem_mes", title: "Líquido semanal e mensal" },
-      { id: "top_modelos", title: "Top 10 modelos" },
-      { id: "cidade", title: "Vendas por cidade" },
-      { id: "pag_motos", title: "Formas de pagamento (motos)" },
-      { id: "pecas_dia", title: "Peças: vendas por dia" },
-      { id: "top_pecas", title: "Top 10 peças" },
-      { id: "pecas_cidade", title: "Peças por cidade" },
-      { id: "fechamento_loja", title: "Fechamento por loja" },
-    ],
-    []
-  );
+  const slides = useMemo(() => [
+  { id: "kpis", title: "Resumo executivo" },
+  { id: "motos_dia", title: "Vendas de motos por dia" },
+  { id: "rolling7", title: "Vendas acumuladas (últimos 7 dias)" },
+  { id: "liq_sem_mes", title: "Líquido semanal e mensal" },
+  { id: "top_modelos", title: "Top 10 modelos" },
+  { id: "cidade", title: "Vendas por cidade" },
+  { id: "pag_motos", title: "Formas de pagamento (motos)" },
+
+  /* 🔥 FECHAMENTO DE MOTOS */
+  { id: "fechamento_loja", title: "Fechamento por loja" },
+
+  /* 🔧 PEÇAS */
+  { id: "pecas_dia", title: "Peças: vendas por dia" },
+  { id: "top_pecas", title: "Top 10 peças" },
+  { id: "pecas_cidade", title: "Peças por cidade" },
+], []);
 
   const [slide, setSlide] = useState(0);
   const [autoPlay, setAutoPlay] = useState(true);
