@@ -53,6 +53,15 @@ function repassePorModelo(modelo) {
   return REPASSE_SANTANDER_POR_MODELO[normModeloKey(modelo)];
 }
 
+function cidadeClass(cidade) {
+  return String(cidade || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, "-")
+    .trim();
+}
+
 export default function Home() {
   const nav = useNavigate();
 
@@ -700,7 +709,11 @@ export default function Home() {
                 <td>{m.ano_moto}</td>
                 <td>{m.cor}</td>
                 <td>{m.chassi}</td>
-                <td>{m.filial}</td>
+                <td>
+  <span className={`cidade-tag ${cidadeClass(m.filial)}`}>
+    {m.filial}
+  </span>
+</td>
                 <td>{m.santander === true ? "SIM" : "NÃO"}</td>
                 <td>{m.cnpj_empresa || "-"}</td>
                 <td>
