@@ -17,6 +17,7 @@ const MODELOS_MOTOS = [
   { modelo: "NEW JET 125", compra_motonow: 8889, compra_santander: 9500, santanderDefault: true },
   { modelo: "SHI 175 CARB", compra_motonow: 11790, compra_santander: 12900, santanderDefault: true},
   { modelo: "IRON 250", compra_motonow: 18490, compra_santander: 19600, santanderDefault: true},
+  { modelo: "ATV 125 EFI", compra_motonow: 11989, compra_santander: 15000, santanderDefault: true},
 ];
 
 /* ================= REGRA: REPASSE OBRIGATÓRIO EM FILIAIS ================= */
