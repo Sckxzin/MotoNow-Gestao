@@ -660,6 +660,31 @@ app.post("/pecas", async (req, res) => {
 });
 
 /* ================= PEÇAS ================= */
+/* ================= PEÇAS ================= */
+app.get("/pecas", async (req, res) => {
+  const { role, cidade } = req.query;
+
+  try {
+    let query = `
+      SELECT id, nome, preco, estoque, cidade, tipo_moto
+      FROM pecas
+    `;
+    const params = [];
+
+    if (role === "FILIAL") {
+      query += " WHERE cidade = $1";
+      params.push(cidade);
+    }
+
+    query += " ORDER BY nome";
+
+    const result = await db.query(query, params);
+    res.json(result.rows);
+  } catch (err) {
+    console.error("Erro ao buscar peças:", err);
+    res.status(500).json({ message: "Erro ao buscar peças" });
+  }
+});
 app.get("/vendas", async (req, res) => {
   try {
     const vendasRes = await db.query(
