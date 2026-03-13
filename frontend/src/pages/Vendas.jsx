@@ -16,12 +16,32 @@ export default function Vendas() {
   const [dataInicio, setDataInicio] = useState("");
   const [dataFim, setDataFim] = useState("");
 
+  /* ===== EDIÇÃO ===== */
+  const [modalEditar, setModalEditar] = useState(false);
+  const [salvandoEdicao, setSalvandoEdicao] = useState(false);
+  const [vendaEditando, setVendaEditando] = useState(null);
+
+  const [formEdicao, setFormEdicao] = useState({
+    cliente_nome: "",
+    cidade: "",
+    empresa: "",
+    forma_pagamento: "",
+    observacao: "",
+    total: "",
+  });
+
   useEffect(() => {
-    api
-      .get("/vendas")
-      .then((res) => setVendas(res.data || []))
-      .catch(() => setVendas([]));
+    carregarVendas();
   }, []);
+
+  async function carregarVendas() {
+    try {
+      const res = await api.get("/vendas");
+      setVendas(res.data || []);
+    } catch {
+      setVendas([]);
+    }
+  }
 
   /* ===== HELPERS ===== */
   function formatarValor(valor) {
@@ -99,6 +119,73 @@ export default function Vendas() {
   function limparDatas() {
     setDataInicio("");
     setDataFim("");
+  }
+
+  /* ===== EDIÇÃO ===== */
+  function abrirModalEdicao(v) {
+    setVendaEditando(v);
+    setFormEdicao({
+      cliente_nome: v.cliente_nome || "",
+      cidade: v.cidade || "",
+      empresa: v.empresa || "",
+      forma_pagamento: v.forma_pagamento || "",
+      observacao: v.observacao || "",
+      total: v.total || "",
+    });
+    setModalEditar(true);
+  }
+
+  function fecharModalEdicao() {
+    setModalEditar(false);
+    setVendaEditando(null);
+    setFormEdicao({
+      cliente_nome: "",
+      cidade: "",
+      empresa: "",
+      forma_pagamento: "",
+      observacao: "",
+      total: "",
+    });
+  }
+
+  function alterarCampoEdicao(e) {
+    const { name, value } = e.target;
+    setFormEdicao((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  }
+
+  async function salvarEdicao() {
+    if (!vendaEditando) return;
+
+    try {
+      setSalvandoEdicao(true);
+
+      const payload = {
+        cliente_nome: formEdicao.cliente_nome,
+        cidade: formEdicao.cidade,
+        empresa: formEdicao.empresa,
+        forma_pagamento: formEdicao.forma_pagamento,
+        observacao: formEdicao.observacao,
+        total: Number(formEdicao.total || 0),
+      };
+
+      const res = await api.put(`/vendas/${vendaEditando.id}`, payload);
+      const vendaAtualizada = res.data;
+
+      setVendas((prev) =>
+        prev.map((v) => (v.id === vendaEditando.id ? { ...v, ...vendaAtualizada } : v))
+      );
+
+      fecharModalEdicao();
+      alert("Venda atualizada com sucesso!");
+    } catch (error) {
+      console.error(error);
+      alert("Erro ao atualizar a venda.");
+    } finally {
+      setSalvandoEdicao(false);
+    }
   }
 
   /* ===== FILTRAGEM ===== */
@@ -256,6 +343,7 @@ export default function Vendas() {
                 <th>Pagamento</th>
                 <th>Cidade</th>
                 <th>Detalhes</th>
+                <th>Editar</th>
                 <th>Nota</th>
               </tr>
             </thead>
@@ -283,6 +371,16 @@ export default function Vendas() {
                     <td>
                       <button
                         className="action-btn"
+                        onClick={() => abrirModalEdicao(v)}
+                        title="Editar venda"
+                      >
+                        ✏️
+                      </button>
+                    </td>
+
+                    <td>
+                      <button
+                        className="action-btn"
                         onClick={() => nav(`/nota?id=${v.id}`)}
                       >
                         🧾
@@ -292,7 +390,7 @@ export default function Vendas() {
 
                   {aberta === v.id && (
                     <tr>
-                      <td colSpan={8}>
+                      <td colSpan={9}>
                         <div className="vendas-detalhes-box">
                           <div>
                             <strong>Forma de pagamento:</strong> {v.forma_pagamento || "-"}
@@ -324,6 +422,112 @@ export default function Vendas() {
           </table>
         )}
       </div>
+
+      {/* MODAL EDITAR */}
+      {modalEditar && (
+        <div className="vm-modal-overlay">
+          <div className="vm-modal">
+            <h3>Editar venda #{vendaEditando?.id}</h3>
+
+            <div className="vm-filters-grid" style={{ marginTop: 16 }}>
+              <div className="vm-field">
+                <label>Cliente</label>
+                <input
+                  type="text"
+                  name="cliente_nome"
+                  value={formEdicao.cliente_nome}
+                  onChange={alterarCampoEdicao}
+                />
+              </div>
+
+              <div className="vm-field">
+                <label>Cidade</label>
+                <select
+                  name="cidade"
+                  value={formEdicao.cidade}
+                  onChange={alterarCampoEdicao}
+                >
+                  <option value="">Selecione</option>
+                  <option value="ESCADA">Escada</option>
+                  <option value="IPOJUCA">Ipojuca</option>
+                  <option value="RIBEIRAO">Ribeirão</option>
+                  <option value="SAO JOSE">São José</option>
+                  <option value="CATENDE">Catende</option>
+                  <option value="XEXEU">Xexeu</option>
+                  <option value="MARAGOGI">Maragogi</option>
+                  <option value="IPOJUCA RICARDO">Ipojuca Ricardo</option>
+                  <option value="CHA GRANDE">Cha Grande</option>
+                </select>
+              </div>
+
+              <div className="vm-field">
+                <label>Empresa</label>
+                <select
+                  name="empresa"
+                  value={formEdicao.empresa}
+                  onChange={alterarCampoEdicao}
+                >
+                  <option value="">Selecione</option>
+                  <option value="EMENEZES">Emenezes</option>
+                  <option value="MOTONOW">MotoNow</option>
+                </select>
+              </div>
+
+              <div className="vm-field">
+                <label>Forma de pagamento</label>
+                <input
+                  type="text"
+                  name="forma_pagamento"
+                  value={formEdicao.forma_pagamento}
+                  onChange={alterarCampoEdicao}
+                />
+              </div>
+
+              <div className="vm-field">
+                <label>Total</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  name="total"
+                  value={formEdicao.total}
+                  onChange={alterarCampoEdicao}
+                />
+              </div>
+
+              <div className="vm-field" style={{ gridColumn: "1 / -1" }}>
+                <label>Observação</label>
+                <textarea
+                  name="observacao"
+                  value={formEdicao.observacao}
+                  onChange={alterarCampoEdicao}
+                  rows={4}
+                />
+              </div>
+            </div>
+
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "flex-end",
+                gap: 10,
+                marginTop: 20,
+              }}
+            >
+              <button className="vm-btn vm-btn-ghost" onClick={fecharModalEdicao}>
+                Cancelar
+              </button>
+
+              <button
+                className="vm-btn vm-btn-primary"
+                onClick={salvarEdicao}
+                disabled={salvandoEdicao}
+              >
+                {salvandoEdicao ? "Salvando..." : "Salvar alterações"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
