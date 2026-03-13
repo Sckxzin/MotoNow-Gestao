@@ -38,6 +38,7 @@ export default function Vendas() {
     forma_pagamento: "",
     observacao: "",
     total: "",
+    rp: false,
   });
 
   useEffect(() => {
@@ -54,9 +55,11 @@ export default function Vendas() {
     }
   }
 
-  /* ===== HELPERS ===== */
   function formatarValor(valor) {
-    if (valor == null || valor === "" || Number.isNaN(Number(valor))) return "-";
+    if (valor == null || valor === "" || Number.isNaN(Number(valor))) {
+      return "-";
+    }
+
     return Number(valor).toLocaleString("pt-BR", {
       style: "currency",
       currency: "BRL",
@@ -66,18 +69,21 @@ export default function Vendas() {
   function exportarCSV(nomeArquivo, headers, dados) {
     const csv = [
       headers.join(";"),
-      ...dados.map((row) => headers.map((h) => `"${row[h] ?? ""}"`).join(";")),
+      ...dados.map((row) =>
+        headers.map((h) => `"${row[h] ?? ""}"`).join(";")
+      ),
     ].join("\n");
 
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const link = document.createElement("a");
+
     link.href = URL.createObjectURL(blob);
     link.download = nomeArquivo;
     link.click();
+
     URL.revokeObjectURL(link.href);
   }
 
-  /* ===== FUNÇÕES DE DATA ===== */
   function aplicarHoje() {
     const hoje = new Date().toISOString().slice(0, 10);
     setDataInicio(hoje);
@@ -112,6 +118,7 @@ export default function Vendas() {
     const hoje = new Date();
     const inicio = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
     const fim = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0);
+
     setDataInicio(inicio.toISOString().slice(0, 10));
     setDataFim(fim.toISOString().slice(0, 10));
   }
@@ -120,6 +127,7 @@ export default function Vendas() {
     const hoje = new Date();
     const inicio = new Date(hoje.getFullYear(), hoje.getMonth() - 1, 1);
     const fim = new Date(hoje.getFullYear(), hoje.getMonth(), 0);
+
     setDataInicio(inicio.toISOString().slice(0, 10));
     setDataFim(fim.toISOString().slice(0, 10));
   }
@@ -129,7 +137,6 @@ export default function Vendas() {
     setDataFim("");
   }
 
-  /* ===== EDIÇÃO ===== */
   function abrirModalEdicao(v) {
     setVendaEditando(v);
     setFormEdicao({
@@ -138,6 +145,7 @@ export default function Vendas() {
       forma_pagamento: v.forma_pagamento || "",
       observacao: v.observacao || "",
       total: v.total != null ? String(v.total) : "",
+      rp: !!v.rp,
     });
     setModalEditar(true);
   }
@@ -151,14 +159,16 @@ export default function Vendas() {
       forma_pagamento: "",
       observacao: "",
       total: "",
+      rp: false,
     });
   }
 
   function alterarCampoEdicao(e) {
-    const { name, value } = e.target;
+    const { name, value, type, checked } = e.target;
+
     setFormEdicao((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: type === "checkbox" ? checked : value,
     }));
   }
 
@@ -174,6 +184,7 @@ export default function Vendas() {
         forma_pagamento: formEdicao.forma_pagamento?.trim() || null,
         observacao: formEdicao.observacao?.trim() || null,
         total: formEdicao.total !== "" ? Number(formEdicao.total) : 0,
+        rp: !!formEdicao.rp,
       };
 
       const res = await api.put(`/vendas/${vendaEditando.id}`, payload);
@@ -195,7 +206,31 @@ export default function Vendas() {
     }
   }
 
-  /* ===== FILTRAGEM ===== */
+  async function toggleRP(venda, novoValor) {
+    try {
+      const payload = {
+        cliente_nome: venda.cliente_nome || null,
+        cidade: venda.cidade || null,
+        forma_pagamento: venda.forma_pagamento || null,
+        observacao: venda.observacao || null,
+        total: Number(venda.total || 0),
+        rp: !!novoValor,
+      };
+
+      const res = await api.put(`/vendas/${venda.id}`, payload);
+      const vendaAtualizada = res.data;
+
+      setVendas((prev) =>
+        prev.map((v) =>
+          v.id === venda.id ? { ...v, ...vendaAtualizada } : v
+        )
+      );
+    } catch (error) {
+      console.error("Erro ao atualizar RP:", error);
+      alert("Erro ao atualizar RP.");
+    }
+  }
+
   const vendasFiltradas = useMemo(() => {
     return vendas.filter((v) => {
       const dataVenda = new Date(v.created_at);
@@ -211,7 +246,6 @@ export default function Vendas() {
     });
   }, [vendas, cidadeFiltro, dataInicio, dataFim]);
 
-  /* ===== RESUMO ===== */
   const faturamentoTotal = useMemo(() => {
     return vendasFiltradas.reduce((acc, v) => acc + Number(v.total || 0), 0);
   }, [vendasFiltradas]);
@@ -242,15 +276,25 @@ export default function Vendas() {
             onClick={() =>
               exportarCSV(
                 "historico_vendas.csv",
-                ["id", "cliente", "cidade", "total", "forma_pagamento", "data", "observacao"],
+                [
+                  "id",
+                  "cliente",
+                  "cidade",
+                  "total",
+                  "forma_pagamento",
+                  "data",
+                  "observacao",
+                  "rp",
+                ],
                 vendasFiltradas.map((v) => ({
                   id: v.id,
-                  cliente: v.cliente_nome,
-                  cidade: v.cidade,
+                  cliente: v.cliente_nome || "",
+                  cidade: v.cidade || "",
                   total: Number(v.total || 0).toFixed(2),
                   forma_pagamento: v.forma_pagamento || "",
                   data: new Date(v.created_at).toLocaleDateString("pt-BR"),
                   observacao: v.observacao || "",
+                  rp: v.rp ? "SIM" : "NAO",
                 }))
               )
             }
@@ -297,13 +341,27 @@ export default function Vendas() {
         </div>
 
         <div className="vm-quickbar">
-          <button className="vm-btn vm-btn-soft" onClick={aplicarHoje}>Hoje</button>
-          <button className="vm-btn vm-btn-soft" onClick={aplicarOntem}>Ontem</button>
-          <button className="vm-btn vm-btn-soft" onClick={aplicar7Dias}>7 dias</button>
-          <button className="vm-btn vm-btn-soft" onClick={aplicar30Dias}>30 dias</button>
-          <button className="vm-btn vm-btn-soft" onClick={aplicarMesAtual}>Mês atual</button>
-          <button className="vm-btn vm-btn-soft" onClick={aplicarMesPassado}>Mês passado</button>
-          <button className="vm-btn vm-btn-ghost" onClick={limparDatas}>Limpar datas</button>
+          <button className="vm-btn vm-btn-soft" onClick={aplicarHoje}>
+            Hoje
+          </button>
+          <button className="vm-btn vm-btn-soft" onClick={aplicarOntem}>
+            Ontem
+          </button>
+          <button className="vm-btn vm-btn-soft" onClick={aplicar7Dias}>
+            7 dias
+          </button>
+          <button className="vm-btn vm-btn-soft" onClick={aplicar30Dias}>
+            30 dias
+          </button>
+          <button className="vm-btn vm-btn-soft" onClick={aplicarMesAtual}>
+            Mês atual
+          </button>
+          <button className="vm-btn vm-btn-soft" onClick={aplicarMesPassado}>
+            Mês passado
+          </button>
+          <button className="vm-btn vm-btn-ghost" onClick={limparDatas}>
+            Limpar datas
+          </button>
         </div>
       </div>
 
@@ -339,6 +397,7 @@ export default function Vendas() {
                 <th>Total</th>
                 <th>Pagamento</th>
                 <th>Cidade</th>
+                <th>RP</th>
                 <th>Detalhes</th>
                 <th>Editar</th>
                 <th>Nota</th>
@@ -357,6 +416,14 @@ export default function Vendas() {
                     </td>
                     <td>{v.forma_pagamento || "-"}</td>
                     <td>{v.cidade || "-"}</td>
+
+                    <td>
+                      <input
+                        type="checkbox"
+                        checked={!!v.rp}
+                        onChange={(e) => toggleRP(v, e.target.checked)}
+                      />
+                    </td>
 
                     <td>
                       <button
@@ -389,10 +456,11 @@ export default function Vendas() {
 
                   {aberta === v.id && (
                     <tr>
-                      <td colSpan={9}>
+                      <td colSpan={10}>
                         <div className="vendas-detalhes-box">
                           <div>
-                            <strong>Forma de pagamento:</strong> {v.forma_pagamento || "-"}
+                            <strong>Forma de pagamento:</strong>{" "}
+                            {v.forma_pagamento || "-"}
                           </div>
 
                           {v.observacao && (
@@ -495,6 +563,25 @@ export default function Vendas() {
                   onChange={alterarCampoEdicao}
                   placeholder="0.00"
                 />
+              </div>
+
+              <div className="vm-field">
+                <label
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    marginTop: 34,
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    name="rp"
+                    checked={!!formEdicao.rp}
+                    onChange={alterarCampoEdicao}
+                  />
+                  RP
+                </label>
               </div>
 
               <div className="vm-field vm-col-4">
