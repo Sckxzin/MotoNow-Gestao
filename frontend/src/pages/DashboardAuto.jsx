@@ -1167,3 +1167,26 @@ function Panel({ title, rightHint, children }) {
     </div>
   );
 }
+
+<div className="tv-card resumo-final">
+  <div className="tv-card-header">
+    <span>Resumo Geral</span>
+  </div>
+
+  <div className="resumo-itens">
+    <div className="resumo-item">
+      <small>Motos</small>
+      <strong>{resumo.motosVendidas}</strong>
+    </div>
+
+    <div className="resumo-item">
+      <small>Peças</small>
+      <strong>{resumo.pecasVendidas}</strong>
+    </div>
+
+    <div className="resumo-item total">
+      <small>Total geral</small>
+      <strong>{(resumo.motosVendidas || 0) + (resumo.pecasVendidas || 0)}</strong>
+    </div>
+  </div>
+</div>
