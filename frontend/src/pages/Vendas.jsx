@@ -4,6 +4,18 @@ import api from "../api";
 import "./VendasMotos.css";
 import "./Vendas.css";
 
+const CIDADES = [
+  "ESCADA",
+  "IPOJUCA",
+  "RIBEIRAO",
+  "SAO JOSE",
+  "CATENDE",
+  "XEXEU",
+  "MARAGOGI",
+  "IPOJUCA RICARDO",
+  "CHA GRANDE",
+];
+
 export default function Vendas() {
   const nav = useNavigate();
 
@@ -36,11 +48,13 @@ export default function Vendas() {
     try {
       const res = await api.get("/vendas");
       setVendas(res.data || []);
-    } catch {
+    } catch (error) {
+      console.error("Erro ao carregar vendas:", error);
       setVendas([]);
     }
   }
 
+  /* ===== HELPERS ===== */
   function formatarValor(valor) {
     if (valor == null || valor === "" || Number.isNaN(Number(valor))) return "-";
     return Number(valor).toLocaleString("pt-BR", {
@@ -60,8 +74,10 @@ export default function Vendas() {
     link.href = URL.createObjectURL(blob);
     link.download = nomeArquivo;
     link.click();
+    URL.revokeObjectURL(link.href);
   }
 
+  /* ===== FUNÇÕES DE DATA ===== */
   function aplicarHoje() {
     const hoje = new Date().toISOString().slice(0, 10);
     setDataInicio(hoje);
@@ -113,6 +129,7 @@ export default function Vendas() {
     setDataFim("");
   }
 
+  /* ===== EDIÇÃO ===== */
   function abrirModalEdicao(v) {
     setVendaEditando(v);
     setFormEdicao({
@@ -120,7 +137,7 @@ export default function Vendas() {
       cidade: v.cidade || "",
       forma_pagamento: v.forma_pagamento || "",
       observacao: v.observacao || "",
-      total: v.total || "",
+      total: v.total != null ? String(v.total) : "",
     });
     setModalEditar(true);
   }
@@ -152,30 +169,33 @@ export default function Vendas() {
       setSalvandoEdicao(true);
 
       const payload = {
-        cliente_nome: formEdicao.cliente_nome,
-        cidade: formEdicao.cidade,
-        forma_pagamento: formEdicao.forma_pagamento,
-        observacao: formEdicao.observacao,
-        total: Number(formEdicao.total || 0),
+        cliente_nome: formEdicao.cliente_nome?.trim() || null,
+        cidade: formEdicao.cidade || null,
+        forma_pagamento: formEdicao.forma_pagamento?.trim() || null,
+        observacao: formEdicao.observacao?.trim() || null,
+        total: formEdicao.total !== "" ? Number(formEdicao.total) : 0,
       };
 
       const res = await api.put(`/vendas/${vendaEditando.id}`, payload);
       const vendaAtualizada = res.data;
 
       setVendas((prev) =>
-        prev.map((v) => (v.id === vendaEditando.id ? { ...v, ...vendaAtualizada } : v))
+        prev.map((v) =>
+          v.id === vendaEditando.id ? { ...v, ...vendaAtualizada } : v
+        )
       );
 
       fecharModalEdicao();
       alert("Venda atualizada com sucesso!");
     } catch (error) {
-      console.error(error);
+      console.error("Erro ao atualizar venda:", error);
       alert("Erro ao atualizar a venda.");
     } finally {
       setSalvandoEdicao(false);
     }
   }
 
+  /* ===== FILTRAGEM ===== */
   const vendasFiltradas = useMemo(() => {
     return vendas.filter((v) => {
       const dataVenda = new Date(v.created_at);
@@ -184,13 +204,14 @@ export default function Vendas() {
         cidadeFiltro === "TODAS" || v.cidade === cidadeFiltro;
 
       const okData =
-        (!dataInicio || dataVenda >= new Date(dataInicio)) &&
+        (!dataInicio || dataVenda >= new Date(`${dataInicio}T00:00:00`)) &&
         (!dataFim || dataVenda <= new Date(`${dataFim}T23:59:59`));
 
       return okCidade && okData;
     });
   }, [vendas, cidadeFiltro, dataInicio, dataFim]);
 
+  /* ===== RESUMO ===== */
   const faturamentoTotal = useMemo(() => {
     return vendasFiltradas.reduce((acc, v) => acc + Number(v.total || 0), 0);
   }, [vendasFiltradas]);
@@ -243,28 +264,35 @@ export default function Vendas() {
         <div className="vm-filters-grid">
           <div className="vm-field">
             <label>Cidade</label>
-            <select value={cidadeFiltro} onChange={(e) => setCidadeFiltro(e.target.value)}>
+            <select
+              value={cidadeFiltro}
+              onChange={(e) => setCidadeFiltro(e.target.value)}
+            >
               <option value="TODAS">Todas</option>
-              <option value="ESCADA">Escada</option>
-              <option value="IPOJUCA">Ipojuca</option>
-              <option value="RIBEIRAO">Ribeirão</option>
-              <option value="SAO JOSE">São José</option>
-              <option value="CATENDE">Catende</option>
-              <option value="XEXEU">Xexeu</option>
-              <option value="MARAGOGI">Maragogi</option>
-              <option value="IPOJUCA RICARDO">Ipojuca Ricardo</option>
-              <option value="CHA GRANDE">Cha Grande</option>
+              {CIDADES.map((cidade) => (
+                <option key={cidade} value={cidade}>
+                  {cidade}
+                </option>
+              ))}
             </select>
           </div>
 
           <div className="vm-field">
             <label>Data início</label>
-            <input type="date" value={dataInicio} onChange={(e) => setDataInicio(e.target.value)} />
+            <input
+              type="date"
+              value={dataInicio}
+              onChange={(e) => setDataInicio(e.target.value)}
+            />
           </div>
 
           <div className="vm-field">
             <label>Data fim</label>
-            <input type="date" value={dataFim} onChange={(e) => setDataFim(e.target.value)} />
+            <input
+              type="date"
+              value={dataFim}
+              onChange={(e) => setDataFim(e.target.value)}
+            />
           </div>
         </div>
 
@@ -324,7 +352,9 @@ export default function Vendas() {
                     <td>{v.id}</td>
                     <td>{new Date(v.created_at).toLocaleString("pt-BR")}</td>
                     <td>{v.cliente_nome || "-"}</td>
-                    <td><strong>{formatarValor(v.total)}</strong></td>
+                    <td>
+                      <strong>{formatarValor(v.total)}</strong>
+                    </td>
                     <td>{v.forma_pagamento || "-"}</td>
                     <td>{v.cidade || "-"}</td>
 
@@ -366,19 +396,24 @@ export default function Vendas() {
                           </div>
 
                           {v.observacao && (
-                            <div>
+                            <div style={{ marginTop: 8 }}>
                               <strong>Obs:</strong> {v.observacao}
                             </div>
                           )}
 
-                          <div>
+                          <div style={{ marginTop: 8 }}>
                             <strong>Itens:</strong>
                             <ul style={{ margin: "8px 0 0", paddingLeft: 18 }}>
-                              {v.itens?.map((i, idx) => (
-                                <li key={idx}>
-                                  {i.nome} — {i.quantidade} × R$ {Number(i.preco_unitario).toFixed(2)}
-                                </li>
-                              ))}
+                              {v.itens?.length > 0 ? (
+                                v.itens.map((i, idx) => (
+                                  <li key={idx}>
+                                    {i.nome} — {i.quantidade} × R${" "}
+                                    {Number(i.preco_unitario).toFixed(2)}
+                                  </li>
+                                ))
+                              ) : (
+                                <li>Nenhum item encontrado</li>
+                              )}
                             </ul>
                           </div>
                         </div>
@@ -393,18 +428,32 @@ export default function Vendas() {
       </div>
 
       {modalEditar && (
-        <div className="vm-modal-overlay">
-          <div className="vm-modal">
-            <h3>Editar venda #{vendaEditando?.id}</h3>
+        <div className="vm-modal-overlay" onClick={fecharModalEdicao}>
+          <div className="vm-modal vm-modal-venda" onClick={(e) => e.stopPropagation()}>
+            <div className="vm-modal-header">
+              <div>
+                <h3>Editar venda #{vendaEditando?.id}</h3>
+                <p>Atualize os dados principais da venda.</p>
+              </div>
 
-            <div className="vm-filters-grid" style={{ marginTop: 16 }}>
-              <div className="vm-field">
+              <button
+                className="vm-modal-close"
+                onClick={fecharModalEdicao}
+                type="button"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="vm-modal-grid">
+              <div className="vm-field vm-col-2">
                 <label>Cliente</label>
                 <input
                   type="text"
                   name="cliente_nome"
                   value={formEdicao.cliente_nome}
                   onChange={alterarCampoEdicao}
+                  placeholder="Nome do cliente"
                 />
               </div>
 
@@ -416,15 +465,11 @@ export default function Vendas() {
                   onChange={alterarCampoEdicao}
                 >
                   <option value="">Selecione</option>
-                  <option value="ESCADA">Escada</option>
-                  <option value="IPOJUCA">Ipojuca</option>
-                  <option value="RIBEIRAO">Ribeirão</option>
-                  <option value="SAO JOSE">São José</option>
-                  <option value="CATENDE">Catende</option>
-                  <option value="XEXEU">Xexeu</option>
-                  <option value="MARAGOGI">Maragogi</option>
-                  <option value="IPOJUCA RICARDO">Ipojuca Ricardo</option>
-                  <option value="CHA GRANDE">Cha Grande</option>
+                  {CIDADES.map((cidade) => (
+                    <option key={cidade} value={cidade}>
+                      {cidade}
+                    </option>
+                  ))}
                 </select>
               </div>
 
@@ -435,6 +480,7 @@ export default function Vendas() {
                   name="forma_pagamento"
                   value={formEdicao.forma_pagamento}
                   onChange={alterarCampoEdicao}
+                  placeholder="Ex: PIX, DINHEIRO, DÉBITO"
                 />
               </div>
 
@@ -443,32 +489,32 @@ export default function Vendas() {
                 <input
                   type="number"
                   step="0.01"
+                  min="0"
                   name="total"
                   value={formEdicao.total}
                   onChange={alterarCampoEdicao}
+                  placeholder="0.00"
                 />
               </div>
 
-              <div className="vm-field" style={{ gridColumn: "1 / -1" }}>
+              <div className="vm-field vm-col-4">
                 <label>Observação</label>
                 <textarea
                   name="observacao"
                   value={formEdicao.observacao}
                   onChange={alterarCampoEdicao}
-                  rows={4}
+                  rows={5}
+                  placeholder="Digite alguma observação da venda..."
                 />
               </div>
             </div>
 
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "flex-end",
-                gap: 10,
-                marginTop: 20,
-              }}
-            >
-              <button className="vm-btn vm-btn-ghost" onClick={fecharModalEdicao}>
+            <div className="vm-modal-actions">
+              <button
+                className="vm-btn vm-btn-ghost"
+                onClick={fecharModalEdicao}
+                type="button"
+              >
                 Cancelar
               </button>
 
@@ -476,6 +522,7 @@ export default function Vendas() {
                 className="vm-btn vm-btn-primary"
                 onClick={salvarEdicao}
                 disabled={salvandoEdicao}
+                type="button"
               >
                 {salvandoEdicao ? "Salvando..." : "Salvar alterações"}
               </button>
@@ -486,4 +533,3 @@ export default function Vendas() {
     </div>
   );
 }
- 
