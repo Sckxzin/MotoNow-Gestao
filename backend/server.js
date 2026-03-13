@@ -660,28 +660,44 @@ app.post("/pecas", async (req, res) => {
 });
 
 /* ================= PEÇAS ================= */
-app.get("/pecas", async (req, res) => {
-  const { role, cidade } = req.query;
-
+app.get("/vendas", async (req, res) => {
   try {
-    let query = `
-      SELECT id, nome, preco, estoque, cidade, tipo_moto
-      FROM pecas
-    `;
-    const params = [];
+    const vendasRes = await db.query(
+      `SELECT 
+         id,
+         cliente_nome,
+         cliente_telefone,
+         total,
+         created_at,
+         cidade,
+         forma_pagamento,
+         observacao,
+         modelo_moto,
+         chassi_moto,
+         km,
+         rp
+       FROM vendas
+       ORDER BY created_at DESC`
+    );
 
-    if (role === "FILIAL") {
-      query += " WHERE cidade = $1";
-      params.push(cidade);
+    const vendas = [];
+
+    for (const v of vendasRes.rows) {
+      const itensRes = await db.query(
+        `SELECT vi.quantidade, vi.preco_unitario, p.nome
+         FROM venda_itens vi
+         JOIN pecas p ON p.id = vi.peca_id
+         WHERE vi.venda_id = $1`,
+        [v.id]
+      );
+
+      vendas.push({ ...v, itens: itensRes.rows });
     }
 
-    query += " ORDER BY nome";
-
-    const result = await db.query(query, params);
-    res.json(result.rows);
+    res.json(vendas);
   } catch (err) {
-    console.error("Erro ao buscar peças:", err);
-    res.status(500).json({ message: "Erro ao buscar peças" });
+    console.error("Erro listar vendas:", err);
+    res.status(500).json({ message: "Erro ao buscar vendas" });
   }
 });
 
@@ -699,6 +715,7 @@ app.put("/vendas/:id", async (req, res) => {
     chassi_moto,
     km,
     total,
+    rp,
   } = req.body;
 
   try {
@@ -721,8 +738,9 @@ app.put("/vendas/:id", async (req, res) => {
            modelo_moto = $6,
            chassi_moto = $7,
            km = $8,
-           total = $9
-       WHERE id = $10
+           total = $9,
+           rp = $10
+       WHERE id = $11
        RETURNING *`,
       [
         cliente_nome || null,
@@ -734,6 +752,7 @@ app.put("/vendas/:id", async (req, res) => {
         chassi_moto || null,
         km != null && km !== "" ? Number(km) : null,
         total != null && total !== "" ? Number(total) : 0,
+        Boolean(rp),
         Number(id),
       ]
     );
@@ -744,7 +763,6 @@ app.put("/vendas/:id", async (req, res) => {
     res.status(500).json({ message: "Erro ao editar venda" });
   }
 });
-
 /* ================= TRANSFERIR PEÇA ================= */
 app.post("/transferir-peca", async (req, res) => {
   const { peca_id, filial_origem, filial_destino, quantidade } = req.body;
