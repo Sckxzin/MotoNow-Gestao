@@ -685,6 +685,66 @@ app.get("/pecas", async (req, res) => {
   }
 });
 
+/* ================= EDITAR VENDA (PEÇAS) ================= */
+app.put("/vendas/:id", async (req, res) => {
+  const { id } = req.params;
+
+  const {
+    cliente_nome,
+    cliente_telefone,
+    forma_pagamento,
+    cidade,
+    observacao,
+    modelo_moto,
+    chassi_moto,
+    km,
+    total,
+  } = req.body;
+
+  try {
+    const vendaExiste = await db.query(
+      `SELECT id FROM vendas WHERE id = $1`,
+      [id]
+    );
+
+    if (vendaExiste.rows.length === 0) {
+      return res.status(404).json({ message: "Venda não encontrada" });
+    }
+
+    const result = await db.query(
+      `UPDATE vendas
+       SET cliente_nome = $1,
+           cliente_telefone = $2,
+           forma_pagamento = $3,
+           cidade = $4,
+           observacao = $5,
+           modelo_moto = $6,
+           chassi_moto = $7,
+           km = $8,
+           total = $9
+       WHERE id = $10
+       RETURNING *`,
+      [
+        cliente_nome || null,
+        cliente_telefone || null,
+        forma_pagamento || null,
+        cidade || null,
+        observacao || null,
+        modelo_moto || null,
+        chassi_moto || null,
+        km != null && km !== "" ? Number(km) : null,
+        total != null && total !== "" ? Number(total) : 0,
+        Number(id),
+      ]
+    );
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error("Erro editar venda:", err);
+    res.status(500).json({ message: "Erro ao editar venda" });
+  }
+});
+
 /* ================= TRANSFERIR PEÇA ================= */
 app.post("/transferir-peca", async (req, res) => {
   const { peca_id, filial_origem, filial_destino, quantidade } = req.body;
