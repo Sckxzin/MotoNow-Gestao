@@ -171,6 +171,7 @@ export default function DashboardAuto() {
   { id: "pecas_dia", title: "Peças: vendas por dia" },
   { id: "top_pecas", title: "Top 10 peças" },
   { id: "pecas_cidade", title: "Peças por cidade" },
+{ id: "resumo_final", title: "Resumo geral final" },
 ], []);
 
   const [slide, setSlide] = useState(0);
@@ -483,6 +484,31 @@ export default function DashboardAuto() {
       .slice(0, 10);
   }, [motosFiltradas]);
 
+const resumoFinal = useMemo(() => {
+  const faturamentoMotos = motosFiltradas.reduce((acc, v) => acc + toNumber(v.valor), 0);
+  const faturamentoPecas = pecasFiltradas.reduce((acc, v) => acc + toNumber(v.total), 0);
+
+  const totalMotos = motosFiltradas.length;
+  const totalPecas = pecasFiltradas.length;
+
+  const liquidoMotos = motosFiltradas.reduce((acc, v) => acc + calcLiquidoMoto(v), 0);
+
+  const faturamentoGeral = faturamentoMotos + faturamentoPecas;
+  const operacoesGerais = totalMotos + totalPecas;
+  const ticketMedioGeral = operacoesGerais > 0 ? faturamentoGeral / operacoesGerais : 0;
+
+  return {
+    faturamentoMotos,
+    faturamentoPecas,
+    totalMotos,
+    totalPecas,
+    liquidoMotos,
+    faturamentoGeral,
+    operacoesGerais,
+    ticketMedioGeral,
+  };
+}, [motosFiltradas, pecasFiltradas]);
+
   /* ================= PEÇAS ================= */
   const pecasPorDia = useMemo(() => {
     const map = new Map();
@@ -749,6 +775,26 @@ export default function DashboardAuto() {
             <KpiCard title="Rolling 7 (agora)" value={rolling7Atual} hint="Total acumulado nos últimos 7 dias" />
           </div>
         )}
+{slides[slide]?.id === "resumo_final" && (
+  <div
+    style={{
+      height: "100%",
+      display: "grid",
+      gridTemplateColumns: "repeat(4, 1fr)",
+      gap: 14,
+    }}
+  >
+    <KpiCard title="Faturamento Motos" value={formatBRL(resumoFinal.faturamentoMotos)} />
+    <KpiCard title="Faturamento Peças" value={formatBRL(resumoFinal.faturamentoPecas)} />
+    <KpiCard title="Motos vendidas" value={resumoFinal.totalMotos} />
+    <KpiCard title="Vendas de peças" value={resumoFinal.totalPecas} />
+
+    <KpiCard title="Faturamento Geral" value={formatBRL(resumoFinal.faturamentoGeral)} />
+    <KpiCard title="Operações Gerais" value={resumoFinal.operacoesGerais} />
+    <KpiCard title="Ticket Médio Geral" value={formatBRL(resumoFinal.ticketMedioGeral)} />
+    <KpiCard title="Líquido Motos" value={formatBRL(resumoFinal.liquidoMotos)} />
+  </div>
+)}
 
         {slides[slide]?.id === "motos_dia" && (
           <Panel title="Vendas de motos por dia" rightHint="(período filtrado)">
