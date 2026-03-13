@@ -171,3 +171,39 @@
   width: 0px;
   height: 0px;
 }
+.resumo-final {
+  grid-column: span 2;
+}
+
+.resumo-itens {
+  display: flex;
+  gap: 16px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+
+.resumo-item {
+  flex: 1;
+  min-width: 180px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 16px;
+  padding: 18px;
+}
+
+.resumo-item small {
+  display: block;
+  color: #9ca3af;
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+
+.resumo-item strong {
+  font-size: 30px;
+  color: #fff;
+  font-weight: 700;
+}
+
+.resumo-item.total {
+  background: rgba(255,255,255,0.05);
+}
