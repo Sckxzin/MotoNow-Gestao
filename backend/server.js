@@ -69,6 +69,7 @@ const REPASSE_SANTANDER_POR_MODELO = {
   [normModeloKey("ATV 125 EFI")]:16000,
   [normModeloKey("PT2XS")]:6200,
   [normModeloKey("PT1")]:5590,
+  [normModeloKey("PT1S")]:5790,
 };
 
 function repasseSantanderPorModelo(modelo) {
