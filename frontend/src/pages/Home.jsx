@@ -18,6 +18,8 @@ const MODELOS_MOTOS = [
   { modelo: "SHI 175 CARB", compra_motonow: 11790, compra_santander: 12900, santanderDefault: true},
   { modelo: "IRON 250", compra_motonow: 18490, compra_santander: 19600, santanderDefault: true},
   { modelo: "ATV 125 EFI", compra_motonow: 11989, compra_santander: 15000, santanderDefault: true},
+  { modelo: "PT2XS", compra_motonow: 5290, compra_santander: 6200, santanderDefault: true},
+  { modelo: "PT1", compra_motonow:  4790, compra_santander: 5590, santanderDefault: true},
 ];
 
 /* ================= REGRA: REPASSE OBRIGATÓRIO EM FILIAIS ================= */
@@ -45,6 +47,8 @@ const REPASSE_SANTANDER_POR_MODELO = {
   [normModeloKey("URBAN 150 EFI")]:18100,
   [normModeloKey("IRON 250")]:19600,
   [normModeloKey("ATV 125 EFI")]:15000,
+  [normModeloKey("PT2XS")]:6200,
+  [normModeloKey("PT1")]:5290,
 };
 
 function isRepasseObrigatorio(filial) {
