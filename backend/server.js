@@ -70,6 +70,7 @@ const REPASSE_SANTANDER_POR_MODELO = {
   [normModeloKey("PT2XS")]:6200,
   [normModeloKey("PT1")]:5590,
   [normModeloKey("PT1S")]:5790,
+  [normModeloKey("NEW JEF")]:12600,
 };
 
 function repasseSantanderPorModelo(modelo) {
