@@ -323,6 +323,37 @@ if (isFilialRepasseSantanderObrigatorio(filial)) {
   }
 });
 
+/* ================= ALTERAR STATUS MOTO ================= */
+app.put("/motos/:id/status", async (req, res) => {
+  const { id } = req.params;
+  const { status } = req.body;
+
+  const statusPermitidos = ["DISPONIVEL", "NEGOCIACAO", "PENDENTE_APROVACAO", "VENDIDA"];
+
+  if (!status || !statusPermitidos.includes(String(status).toUpperCase())) {
+    return res.status(400).json({ message: "Status inválido" });
+  }
+
+  try {
+    const r = await db.query(
+      `UPDATE motos
+       SET status = $1
+       WHERE id = $2
+       RETURNING *`,
+      [String(status).toUpperCase(), id]
+    );
+
+    if (r.rows.length === 0) {
+      return res.status(404).json({ message: "Moto não encontrada" });
+    }
+
+    res.json({ message: "Status atualizado com sucesso", moto: r.rows[0] });
+  } catch (err) {
+    console.error("Erro atualizar status moto:", err);
+    res.status(500).json({ message: "Erro ao atualizar status da moto" });
+  }
+});
+
 /* ================= MOTOS (LISTAR) ================= */
 app.get("/motos", async (req, res) => {
   try {
