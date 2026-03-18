@@ -664,3 +664,8 @@
     grid-template-columns: 1fr;
   }
 }
+.status.negociacao {
+  background: #dbeafe;
+  color: #1d4ed8;
+  border: 1px solid #1d4ed8;
+}
