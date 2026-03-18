@@ -749,20 +749,38 @@ async function alterarStatusMoto(id, novoStatus) {
                   <span className={`status ${String(m.status || "").toLowerCase()}`}>{m.status}</span>
                 </td>
                 <td>
-                  <div style={{ display: "flex", gap: 6, justifyContent: "center" }}>
-                    {m.status === "DISPONIVEL" && (
-                      <button className="action-btn" onClick={() => abrirVendaMoto(m)}>
-                        Vender
-                      </button>
-                    )}
+  <div style={{ display: "flex", gap: 6, justifyContent: "center", flexWrap: "wrap" }}>
+    {m.status === "DISPONIVEL" && (
+      <>
+        <button className="action-btn" onClick={() => abrirVendaMoto(m)}>
+          Vender
+        </button>
 
-                    {user.role === "DIRETORIA" && m.status === "DISPONIVEL" && (
-                      <button className="action-btn" onClick={() => setMotoTransferir(m)}>
-                        🔄
-                      </button>
-                    )}
-                  </div>
-                </td>
+        <button
+          className="action-btn"
+          onClick={() => alterarStatusMoto(m.id, "NEGOCIACAO")}
+        >
+          🤝 Negociação
+        </button>
+      </>
+    )}
+
+    {m.status === "NEGOCIACAO" && (
+      <button
+        className="action-btn"
+        onClick={() => alterarStatusMoto(m.id, "DISPONIVEL")}
+      >
+        ↩ Liberar
+      </button>
+    )}
+
+    {user.role === "DIRETORIA" && m.status === "DISPONIVEL" && (
+      <button className="action-btn" onClick={() => setMotoTransferir(m)}>
+        🔄
+      </button>
+    )}
+  </div>
+</td>
               </tr>
             ))}
         </tbody>
