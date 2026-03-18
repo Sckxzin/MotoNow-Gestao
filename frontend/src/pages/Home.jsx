@@ -22,6 +22,7 @@ const MODELOS_MOTOS = [
   { modelo: "PT1", compra_motonow:  4790, compra_santander: 5590, santanderDefault: true},
   { modelo: "PT1S", compra_motonow:  4790, compra_santander: 5790, santanderDefault: true},
   { modelo: "NEW JEF", compra_motonow: 11390, compra_santander: 12600, santanderDefault: true},
+  { modelo: "PHOENIX 50S", compra_motonow: 6490, compra_santander: 7100, santaderDefault: true},
 ];
 
 /* ================= REGRA: REPASSE OBRIGATÓRIO EM FILIAIS ================= */
@@ -53,6 +54,7 @@ const REPASSE_SANTANDER_POR_MODELO = {
   [normModeloKey("PT1")]:5290,
   [normModeloKey("PT1S")]:5790,
   [normModeloKey("NEW JEF")]:12600,
+  [normModeloKey("PHOENIX 50S")]:7100,
 };
 
 function isRepasseObrigatorio(filial) {
