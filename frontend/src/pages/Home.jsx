@@ -385,6 +385,23 @@ export default function Home() {
     api.get("/motos").then((res) => setMotos(res.data || []));
   }
 
+async function alterarStatusMoto(id, novoStatus) {
+  try {
+    await api.put(`/motos/${id}/status`, { status: novoStatus });
+
+    setMotos((prev) =>
+      prev.map((m) =>
+        m.id === id ? { ...m, status: novoStatus } : m
+      )
+    );
+
+    alert(`Moto marcada como ${novoStatus}`);
+  } catch (err) {
+    const msg = err?.response?.data?.message || "Erro ao alterar status da moto";
+    alert(msg);
+    console.error("Erro alterarStatusMoto:", err);
+  }
+}
   /* ================= JSX ================= */
   return (
   <div className="vendas-motos-container">
