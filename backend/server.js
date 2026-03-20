@@ -39,6 +39,63 @@ app.get("/health", (req, res) => {
   res.json({ status: "ok" });
 });
 
+/* ================= ADICIONAR ESTOQUE EM PEÇA EXISTENTE ================= */
+app.put("/pecas/:id/adicionar-estoque", async (req, res) => {
+  const { id } = req.params;
+  const { quantidade, preco } = req.body;
+
+  if (!quantidade || Number(quantidade) <= 0) {
+    return res.status(400).json({ message: "Quantidade inválida" });
+  }
+
+  try {
+    const pecaRes = await db.query(
+      `SELECT id, nome, estoque, cidade, preco
+       FROM pecas
+       WHERE id = $1`,
+      [id]
+    );
+
+    if (pecaRes.rows.length === 0) {
+      return res.status(404).json({ message: "Peça não encontrada" });
+    }
+
+    const peca = pecaRes.rows[0];
+    const novoPreco =
+      preco != null && preco !== "" ? Number(preco) : Number(peca.preco);
+
+    const r = await db.query(
+      `UPDATE pecas
+       SET estoque = estoque + $1,
+           preco = $2
+       WHERE id = $3
+       RETURNING *`,
+      [Number(quantidade), novoPreco, id]
+    );
+
+    // opcional: registrar movimento
+    await db.query(
+      `INSERT INTO estoque_movimentos (peca_id, cidade, tipo, quantidade, ref_id, observacao)
+       VALUES ($1, $2, 'ENTRADA', $3, $4, $5)`,
+      [
+        Number(id),
+        peca.cidade,
+        Number(quantidade),
+        null,
+        `Entrada manual de estoque - ${peca.nome}`,
+      ]
+    );
+
+    res.json({
+      message: "Estoque adicionado com sucesso",
+      peca: r.rows[0],
+    });
+  } catch (err) {
+    console.error("Erro adicionar estoque:", err);
+    res.status(500).json({ message: "Erro ao adicionar estoque" });
+  }
+});
+
 /* ================= REGRA REPASSE SANTANDER POR FILIAL + MODELO ================= */
 
 // normaliza texto genérico
