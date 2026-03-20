@@ -137,6 +137,10 @@ export default function Home() {
     .filter((p) => cidadeFiltroPecas === "TODAS" || p.cidade === cidadeFiltroPecas)
     .filter((p) => tipoFiltroPecas === "TODOS" || p.tipo_moto === tipoFiltroPecas);
 
+const [pecaEntrada, setPecaEntrada] = useState(null);
+const [quantidadeEntrada, setQuantidadeEntrada] = useState("");
+const [precoEntrada, setPrecoEntrada] = useState("");
+
   /* ================= LOAD ================= */
   useEffect(() => {
     const raw = localStorage.getItem("user");
@@ -191,6 +195,12 @@ export default function Home() {
     link.download = nomeArquivo;
     link.click();
   }
+
+function abrirEntradaEstoque(peca) {
+  setPecaEntrada(peca);
+  setQuantidadeEntrada("");
+  setPrecoEntrada(peca.preco != null ? String(peca.preco) : "");
+}
 
   /* ================= CARRINHO ================= */
   function adicionarCarrinho(peca) {
@@ -302,6 +312,37 @@ export default function Home() {
     setFilialDestinoMoto("");
     alert("Moto transferida com sucesso!");
   }
+
+async function confirmarEntradaEstoque() {
+  if (!quantidadeEntrada || Number(quantidadeEntrada) <= 0) {
+    alert("Informe uma quantidade válida");
+    return;
+  }
+
+  try {
+    const res = await api.put(`/pecas/${pecaEntrada.id}/adicionar-estoque`, {
+      quantidade: Number(quantidadeEntrada),
+      preco: precoEntrada !== "" ? Number(precoEntrada) : undefined,
+    });
+
+    const atualizada = res.data.peca;
+
+    setPecas((prev) =>
+      prev.map((p) =>
+        p.id === atualizada.id ? { ...p, ...atualizada } : p
+      )
+    );
+
+    setPecaEntrada(null);
+    setQuantidadeEntrada("");
+    setPrecoEntrada("");
+    alert("Estoque adicionado com sucesso!");
+  } catch (err) {
+    const msg = err?.response?.data?.message || "Erro ao adicionar estoque";
+    alert(msg);
+    console.error("Erro confirmarEntradaEstoque:", err);
+  }
+}
 
   /* ================= TRANSFERIR PEÇA ================= */
   function abrirTransferencia(peca) {
@@ -569,19 +610,26 @@ async function alterarStatusMoto(id, novoStatus) {
                 <td>{p.cidade}</td>
                 <td>{p.estoque}</td>
                 <td>R$ {Number(p.preco).toFixed(2)}</td>
-                <td>
-                  <div style={{ display: "flex", gap: 6, justifyContent: "center" }}>
-                    <button className="action-btn" onClick={() => adicionarCarrinho(p)}>
-                      🛒
-                    </button>
+               
+                  <td>
+  <div style={{ display: "flex", gap: 6, justifyContent: "center" }}>
+    <button className="action-btn" onClick={() => adicionarCarrinho(p)}>
+      🛒
+    </button>
 
-                    {user.role === "DIRETORIA" && (
-                      <button className="action-btn" onClick={() => abrirTransferencia(p)}>
-                        🔄
-                      </button>
-                    )}
-                  </div>
-                </td>
+    {user.role === "DIRETORIA" && (
+      <button className="action-btn" onClick={() => abrirTransferencia(p)}>
+        🔄
+      </button>
+    )}
+
+    {user.role === "DIRETORIA" && (
+      <button className="action-btn" onClick={() => abrirEntradaEstoque(p)}>
+        ➕
+      </button>
+    )}
+  </div>
+</td>
               </tr>
             ))}
 
@@ -930,6 +978,39 @@ async function alterarStatusMoto(id, novoStatus) {
           </div>
         </div>
       )}
+
+{pecaEntrada && (
+  <div className="modal-overlay">
+    <div className="modal">
+      <h3>➕ Adicionar estoque</h3>
+
+      <p>
+        <strong>{pecaEntrada.nome}</strong>
+      </p>
+      <p>Filial: {pecaEntrada.cidade}</p>
+      <p>Estoque atual: {pecaEntrada.estoque}</p>
+
+      <input
+        type="number"
+        placeholder="Quantidade a adicionar"
+        value={quantidadeEntrada}
+        onChange={(e) => setQuantidadeEntrada(e.target.value)}
+      />
+
+      <input
+        type="number"
+        placeholder="Preço unitário"
+        value={precoEntrada}
+        onChange={(e) => setPrecoEntrada(e.target.value)}
+      />
+
+      <div style={{ display: "flex", gap: 10, marginTop: 15 }}>
+        <button onClick={confirmarEntradaEstoque}>Salvar</button>
+        <button onClick={() => setPecaEntrada(null)}>Cancelar</button>
+      </div>
+    </div>
+  </div>
+)}
 
       {/* ================= MODAL CADASTRAR MOTO ================= */}
       {modalCadastrarMoto && user.role === "DIRETORIA" && (
