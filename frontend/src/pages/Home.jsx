@@ -473,7 +473,7 @@ async function alterarStatusMoto(id, novoStatus) {
           🏍 Motos
         </button>
 
-        {user.role === "DIRETORIA" && (
+        {user && (user.role === "DIRETORIA" || user.role === "PECAS") && (
           <button className="vm-btn vm-btn-soft" onClick={() => nav("/vendas")}>
             🧾 Vendas
           </button>
