@@ -520,7 +520,7 @@ async function alterarStatusMoto(id, novoStatus) {
   <>
     <div className="vm-card">
       <div className="vm-filters-grid">
-        {user.role === "DIRETORIA" && (
+                {user && (user.role === "DIRETORIA" || user.role === "PECA") && (
           <div className="vm-field">
             <label>Filial</label>
             <select
