@@ -56,7 +56,7 @@ const REPASSE_SANTANDER_POR_MODELO = {
   [normModeloKey("PT1S")]:5790,
   [normModeloKey("NEW JEF")]:12600,
   [normModeloKey("PHOENIX 50S")]:7100,
-  [normModeloKey("JEF 150 EFI")]13800:
+  [normModeloKey("JEF 150 EFI")]:13800,
 };
 
 function isRepasseObrigatorio(filial) {
