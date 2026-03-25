@@ -1,5 +1,4 @@
-
-.nota-wrapper {
+.nota-page {
   width: 100%;
   min-height: 100vh;
   display: flex;
@@ -104,88 +103,6 @@
   margin-top: 6px;
 }
 
-.ocultar-print {
-  margin-bottom: 12px;
-  padding: 8px 14px;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-}
-
-/* ================= IMPRESSÃO ================= */
-@page {
-  size: 58mm auto;
-  margin: 0;
-}
-
-@media print {
-  html,
-  body {
-    margin: 0 !important;
-    padding: 0 !important;
-    width: 58mm !important;
-    max-width: 58mm !important;
-    background: #fff !important;
-    overflow: hidden !important;
-  }
-
-  body * {
-    visibility: hidden;
-  }
-
-  .nota-wrapper,
-  .nota-wrapper * {
-    visibility: visible;
-  }
-
-  .nota-wrapper {
-    width: 58mm !important;
-    min-height: auto !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    background: #fff !important;
-    display: block !important;
-  }
-
-  .nota-termica {
-    width: 56mm !important;
-    max-width: 56mm !important;
-    min-width: 56mm !important;
-    padding: 3px 4px !important;
-    margin: 0 auto !important;
-    box-shadow: none !important;
-    background: #fff !important;
-    font-size: 10px !important;
-  }
-
-  .nota-topo h2 {
-    font-size: 13px !important;
-  }
-
-  .nota-topo p,
-  .info p,
-  .item-nome,
-  .item-detalhe,
-  .obs,
-  .rodape {
-    font-size: 10px !important;
-  }
-
-  .total {
-    font-size: 12px !important;
-  }
-
-  .ocultar-print {
-    display: none !important;
-  }
-}
-.nota-page {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 16px;
-}
-
 .nota-acoes {
   width: 100%;
   max-width: 380px;
@@ -214,8 +131,79 @@
   color: #fff;
 }
 
+/* ================= IMPRESSÃO ================= */
+@page {
+  size: 58mm auto;
+  margin: 0;
+}
+
 @media print {
-  .no-print {
+  html,
+  body {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 58mm !important;
+    background: #fff !important;
+    overflow: hidden !important;
+  }
+
+  body * {
+    visibility: hidden;
+  }
+
+  .nota-page,
+  .nota-page * {
+    visibility: visible;
+  }
+
+  .nota-page {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 58mm !important;
+    min-height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #fff !important;
+    display: block !important;
+  }
+
+  .nota-termica {
+    width: 56mm !important;
+    max-width: 56mm !important;
+    min-width: 56mm !important;
+    padding: 3px 4px !important;
+    margin: 0 auto !important;
+    box-shadow: none !important;
+    background: #fff !important;
+    color: #000 !important;
+    font-size: 10px !important;
+  }
+
+  .nota-topo h2 {
+    font-size: 13px !important;
+  }
+
+  .nota-topo p,
+  .info p,
+  .item-nome,
+  .item-detalhe,
+  .obs,
+  .rodape {
+    font-size: 10px !important;
+    color: #000 !important;
+  }
+
+  .total {
+    font-size: 12px !important;
+    color: #000 !important;
+  }
+
+  .no-print,
+  .nota-acoes,
+  .btn-voltar-nota,
+  .btn-imprimir-nota {
     display: none !important;
+    visibility: hidden !important;
   }
 }
