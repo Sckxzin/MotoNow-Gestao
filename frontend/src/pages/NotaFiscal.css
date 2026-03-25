@@ -1,27 +1,30 @@
-.nota-page {
+html, body {
+  margin: 0;
+  padding: 0;
+  background: #f3f4f6;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.nota-root {
+  padding: 16px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 16px;
-  background: #f5f5f5;
-  min-height: 100vh;
-  box-sizing: border-box;
 }
 
 .nota-acoes {
-  width: 100%;
-  max-width: 320px;
+  width: 220px;
   display: flex;
-  justify-content: space-between;
   gap: 10px;
+  justify-content: space-between;
   margin-bottom: 12px;
 }
 
 .btn-voltar-nota,
 .btn-imprimir-nota {
   border: none;
-  border-radius: 10px;
-  padding: 10px 14px;
+  border-radius: 8px;
+  padding: 10px 12px;
   cursor: pointer;
   font-weight: 600;
 }
@@ -33,40 +36,31 @@
 
 .btn-imprimir-nota {
   background: #2563eb;
-  color: #fff;
+  color: white;
 }
 
 .nota-termica {
-  width: 56mm;
-  max-width: 56mm;
-  min-width: 56mm;
+  width: 58mm;
+  background: white;
+  color: black;
+  padding: 4mm 3mm;
   box-sizing: border-box;
-  padding: 4px;
-  margin: 0 auto;
-  color: #000;
-  background: #fff;
-  font-family: Arial, Helvetica, sans-serif;
-  font-size: 10px;
-  line-height: 1.2;
-  word-break: break-word;
-  overflow-wrap: break-word;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  font-size: 11px;
+  line-height: 1.3;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
 }
 
 .nota-topo {
   text-align: center;
-  margin-bottom: 4px;
 }
 
-.nota-topo h2 {
-  margin: 0;
-  font-size: 14px;
+.empresa {
+  font-size: 15px;
   font-weight: 700;
 }
 
-.nota-topo p {
-  margin: 2px 0 0;
-  font-size: 10px;
+.subtitulo {
+  font-size: 11px;
 }
 
 .linha {
@@ -74,58 +68,38 @@
   margin: 6px 0;
 }
 
-.info p {
+.bloco div {
   margin: 2px 0;
-  font-size: 10px;
 }
 
 .item {
-  margin: 5px 0;
+  margin: 6px 0;
 }
 
 .item-nome {
-  font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
   margin-bottom: 2px;
   word-break: break-word;
 }
 
-.item-detalhe {
+.item-linha {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  gap: 4px;
-  font-size: 10px;
-}
-
-.item-qtd {
-  flex: 1;
-  min-width: 0;
-  word-break: break-word;
-}
-
-.item-preco {
-  white-space: nowrap;
-  flex-shrink: 0;
-  text-align: right;
+  gap: 8px;
 }
 
 .total {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
-  margin-top: 4px;
 }
 
 .obs {
-  font-size: 10px;
-  margin-top: 4px;
   word-break: break-word;
 }
 
 .rodape {
   text-align: center;
-  font-size: 10px;
   margin-top: 6px;
 }
 
@@ -135,55 +109,25 @@
 }
 
 @media print {
-  html,
-  body {
-    width: 58mm;
-    margin: 0 !important;
-    padding: 0 !important;
-    background: #fff !important;
+  html, body {
+    background: #fff;
+    margin: 0;
+    padding: 0;
   }
 
-  .nota-page {
-    display: block !important;
-    width: 58mm !important;
-    min-height: auto !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    background: #fff !important;
+  .no-print {
+    display: none !important;
+  }
+
+  .nota-root {
+    padding: 0;
+    display: block;
   }
 
   .nota-termica {
-    width: 56mm !important;
-    max-width: 56mm !important;
-    min-width: 56mm !important;
-    margin: 0 auto !important;
-    padding: 3px 4px !important;
-    box-shadow: none !important;
-    background: #fff !important;
-    color: #000 !important;
-  }
-
-  .nota-topo h2 {
-    font-size: 13px !important;
-  }
-
-  .nota-topo p,
-  .info p,
-  .item-nome,
-  .item-detalhe,
-  .obs,
-  .rodape {
-    font-size: 10px !important;
-    color: #000 !important;
-  }
-
-  .total {
-    font-size: 12px !important;
-    color: #000 !important;
-  }
-
-  .no-print,
-  .nota-acoes {
-    display: none !important;
+    width: 58mm;
+    box-shadow: none;
+    margin: 0;
+    padding: 3mm;
   }
 }
