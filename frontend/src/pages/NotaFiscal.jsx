@@ -32,9 +32,12 @@ export default function NotaTermica() {
           ← Voltar
         </button>
 
-        <button className="btn-imprimir-nota" onClick={() => window.print()}>
-          Imprimir
-        </button>
+        <button
+  className="btn-imprimir-nota"
+  onClick={() => setTimeout(() => window.print(), 150)}
+>
+  Imprimir
+</button>
       </div>
 
       <div className="nota-termica">
