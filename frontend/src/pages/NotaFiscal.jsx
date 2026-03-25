@@ -13,7 +13,8 @@ export default function NotaTermica() {
   useEffect(() => {
     if (!id) return;
 
-    api.get(`/nota-fiscal/${id}`)
+    api
+      .get(`/nota-fiscal/${id}`)
       .then((res) => setDados(res.data))
       .catch((err) => {
         console.error(err);
@@ -21,56 +22,55 @@ export default function NotaTermica() {
       });
   }, [id]);
 
-  if (!dados) return <div>Carregando...</div>;
+  if (!dados) return <div style={{ padding: 20 }}>Carregando...</div>;
 
   const { venda, itens } = dados;
 
   return (
-    <div className="nota-page">
+    <div className="nota-root">
       <div className="nota-acoes no-print">
-        <button className="btn-voltar-nota" onClick={() => nav(-1)}>
+        <button onClick={() => nav(-1)} className="btn-voltar-nota">
           ← Voltar
         </button>
 
-        <button
-  className="btn-imprimir-nota"
-  onClick={() => setTimeout(() => window.print(), 150)}
->
-  Imprimir
-</button>
+        <button onClick={() => window.print()} className="btn-imprimir-nota">
+          Imprimir
+        </button>
       </div>
 
       <div className="nota-termica">
         <div className="nota-topo">
-          <h2>MotoNow</h2>
-          <p>Comprovante de Venda</p>
+          <div className="empresa">MotoNow</div>
+          <div className="subtitulo">Comprovante de Venda</div>
         </div>
 
         <div className="linha" />
 
-        <div className="info">
-          <p><strong>Cliente:</strong> {venda.cliente_nome}</p>
-          <p><strong>Telefone:</strong> {venda.cliente_telefone || "-"}</p>
-          <p><strong>Data:</strong> {new Date(venda.created_at).toLocaleString("pt-BR")}</p>
-          <p><strong>Pagamento:</strong> {venda.forma_pagamento}</p>
-          <p><strong>Cidade:</strong> {venda.cidade}</p>
+        <div className="bloco">
+          <div><strong>Cliente:</strong> {venda.cliente_nome || "-"}</div>
+          <div><strong>Telefone:</strong> {venda.cliente_telefone || "-"}</div>
+          <div><strong>Data:</strong> {new Date(venda.created_at).toLocaleString("pt-BR")}</div>
+          <div><strong>Pagamento:</strong> {venda.forma_pagamento || "-"}</div>
+          <div><strong>Cidade:</strong> {venda.cidade || "-"}</div>
         </div>
 
         <div className="linha" />
 
-        {itens.map((item, i) => (
-          <div className="item" key={i}>
-            <div className="item-nome">{item.nome}</div>
-            <div className="item-detalhe">
-              <span className="item-qtd">
-                {item.quantidade} x {Number(item.preco_unitario).toFixed(2)}
-              </span>
-              <span className="item-preco">
-                R$ {(Number(item.quantidade) * Number(item.preco_unitario)).toFixed(2)}
-              </span>
+        <div className="itens">
+          {itens.map((item, i) => (
+            <div className="item" key={i}>
+              <div className="item-nome">{item.nome}</div>
+              <div className="item-linha">
+                <span>
+                  {item.quantidade} x R$ {Number(item.preco_unitario).toFixed(2)}
+                </span>
+                <span>
+                  R$ {(Number(item.quantidade) * Number(item.preco_unitario)).toFixed(2)}
+                </span>
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
 
         <div className="linha" />
 
@@ -89,9 +89,7 @@ export default function NotaTermica() {
 
         <div className="linha" />
 
-        <div className="rodape">
-          Obrigado pela preferência
-        </div>
+        <div className="rodape">Obrigado pela preferência</div>
       </div>
     </div>
   );
