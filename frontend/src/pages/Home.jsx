@@ -824,14 +824,15 @@ async function alterarStatusMoto(id, novoStatus) {
       </>
     )}
 
-    {m.status === "NEGOCIACAO" && (
-      <button
-        className="action-btn"
-        onClick={() => alterarStatusMoto(m.id, "DISPONIVEL")}
-      >
-        ↩ Liberar
-      </button>
-    )}
+    {m.status === "NEGOCIACAO" &&
+  (user.role === "DIRETORIA" || Number(m.negociacao_por) === Number(user.id)) && (
+    <button
+      className="action-btn"
+      onClick={() => alterarStatusMoto(m.id, "DISPONIVEL")}
+    >
+      ↩ Liberar
+    </button>
+)}
 
     {user.role === "DIRETORIA" && m.status === "DISPONIVEL" && (
       <button className="action-btn" onClick={() => setMotoTransferir(m)}>
