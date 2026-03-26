@@ -386,32 +386,97 @@ app.put("/motos/:id/status", async (req, res) => {
   const { id } = req.params;
   const { status } = req.body;
 
+  const statusFinal = String(status || "").toUpperCase();
   const statusPermitidos = ["DISPONIVEL", "NEGOCIACAO", "PENDENTE_APROVACAO", "VENDIDA"];
 
-  if (!status || !statusPermitidos.includes(String(status).toUpperCase())) {
+  const userId = Number(req.headers["x-user-id"]);
+  const role = String(req.headers["x-role"] || "").toUpperCase();
+
+  if (!statusPermitidos.includes(statusFinal)) {
     return res.status(400).json({ message: "Status inválido" });
   }
 
+  if (!userId) {
+    return res.status(400).json({ message: "Usuário não identificado" });
+  }
+
   try {
+    const motoRes = await db.query(
+      `SELECT id, status, negociacao_por
+       FROM motos
+       WHERE id = $1`,
+      [id]
+    );
+
+    if (motoRes.rows.length === 0) {
+      return res.status(404).json({ message: "Moto não encontrada" });
+    }
+
+    const moto = motoRes.rows[0];
+
+    // Entrar em negociação
+    if (statusFinal === "NEGOCIACAO") {
+      const r = await db.query(
+        `UPDATE motos
+         SET status = $1,
+             negociacao_por = $2,
+             negociacao_em = NOW()
+         WHERE id = $3
+         RETURNING *`,
+        ["NEGOCIACAO", userId, id]
+      );
+
+      return res.json({
+        message: "Moto colocada em negociação com sucesso",
+        moto: r.rows[0],
+      });
+    }
+
+    // Sair de negociação
+    if (statusFinal === "DISPONIVEL" && moto.status === "NEGOCIACAO") {
+      const podeLiberar =
+        role === "DIRETORIA" || Number(moto.negociacao_por) === userId;
+
+      if (!podeLiberar) {
+        return res.status(403).json({
+          message: "Apenas quem colocou em negociação ou a diretoria pode liberar",
+        });
+      }
+
+      const r = await db.query(
+        `UPDATE motos
+         SET status = $1,
+             negociacao_por = NULL,
+             negociacao_em = NULL
+         WHERE id = $2
+         RETURNING *`,
+        ["DISPONIVEL", id]
+      );
+
+      return res.json({
+        message: "Moto liberada com sucesso",
+        moto: r.rows[0],
+      });
+    }
+
+    // Outros status
     const r = await db.query(
       `UPDATE motos
        SET status = $1
        WHERE id = $2
        RETURNING *`,
-      [String(status).toUpperCase(), id]
+      [statusFinal, id]
     );
 
-    if (r.rows.length === 0) {
-      return res.status(404).json({ message: "Moto não encontrada" });
-    }
-
-    res.json({ message: "Status atualizado com sucesso", moto: r.rows[0] });
+    res.json({
+      message: "Status atualizado com sucesso",
+      moto: r.rows[0],
+    });
   } catch (err) {
     console.error("Erro atualizar status moto:", err);
     res.status(500).json({ message: "Erro ao atualizar status da moto" });
   }
 });
-
 /* ================= MOTOS (LISTAR) ================= */
 app.get("/motos", async (req, res) => {
   try {
@@ -427,6 +492,8 @@ app.get("/motos", async (req, res) => {
         ano_moto,
         valor_compra,
         repasse,
+        negociacao_por,
+        negociação_em,
         CASE
          WHEN santander = true THEN true
          ELSE false
