@@ -13,7 +13,7 @@ app.use(
       "https://motonow-gestao-production.up.railway.app",
     ],
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    allowedHeaders: ["Content-Type", "Authorization", "x-user-id", "x-role"],
   })
 );
 app.options("*", cors());
