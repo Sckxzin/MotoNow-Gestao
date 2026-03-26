@@ -493,7 +493,7 @@ app.get("/motos", async (req, res) => {
         valor_compra,
         repasse,
         negociacao_por,
-        negociação_em,
+        negociacao_em,
         CASE
          WHEN santander = true THEN true
          ELSE false
