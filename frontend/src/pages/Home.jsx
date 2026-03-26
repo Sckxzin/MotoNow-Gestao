@@ -430,7 +430,16 @@ async function confirmarEntradaEstoque() {
 
 async function alterarStatusMoto(id, novoStatus) {
   try {
-    await api.put(`/motos/${id}/status`, { status: novoStatus });
+    await api.put(
+      `/motos/${id}/status`,
+      { status: novoStatus },
+      {
+        headers: {
+          "x-user-id": user.id,
+          "x-role": user.role,
+        },
+      }
+    );
 
     setMotos((prev) =>
       prev.map((m) =>
