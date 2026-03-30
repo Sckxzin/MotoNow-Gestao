@@ -23,7 +23,7 @@ const MODELOS_MOTOS = [
   { modelo: "PT1S", compra_motonow:  4790, compra_santander: 5790, santanderDefault: true},
   { modelo: "NEW JEF", compra_motonow: 11390, compra_santander: 12600, santanderDefault: true},
   { modelo: "PHOENIX 50S", compra_motonow: 6490, compra_santander: 7100, santaderDefault: true},
-  { modelo: "JEF 150 EFI", compra_motonow: 12690, compra_santander: 13800, santanderDefault: true},
+  { modelo: "JEF 150 EFI", compra_motonow: 11390, compra_santander: 13800, santanderDefault: true},
   { modelo: "ATV 200 EFI", compra_motonow: 21000, compra_santander: 23000, santanderDefaul: true},
 ];
 
