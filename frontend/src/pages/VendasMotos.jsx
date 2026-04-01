@@ -366,6 +366,7 @@ function aplicarHoje() {
       case "pagamento": return v.forma_pagamento || "-";
       case "gasolina": return v.gasolina ? formatarValor(v.gasolina) : "-";
       case "filial": return v.filial_venda || "-";
+      case "filial_origem": return v.filial_origem || "-";
       case "empresa": return getEmpresa(v);
       case "cnpj": return getCNPJ(v);
       case "brinde": return v.brinde ? "SIM" : "NÃO";
