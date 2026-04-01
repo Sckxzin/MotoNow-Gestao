@@ -881,13 +881,13 @@ async function alterarStatusMoto(id, novoStatus) {
               <option value="CHA GRANDE">Cha grande</option>
             </select>
 
-            <select value={localRetirada} onChage={(e) => setLocalRetirada(e.target.value)}>
+            <select value={localRetirada} onChange={(e) => setLocalRetirada(e.target.value)}>
               <option value="">Local de retirada</option>
               <option value="FILIAL">Retirada em filial</option>
               <option value="ENTREGA">Entrega</option>
             </select>
 
-            {localRetirada === "FILIAL" && ( <select value={filialRetirada} onChage={(e) => setFilialRetirada(e.target.value)}>
+            {localRetirada === "FILIAL" && ( <select value={filialRetirada} onChange={(e) => setFilialRetirada(e.target.value)}>
               <option value="">Filial de retirada</option>
               <option value="ESCADA">ESCADA</option>
               <option value="IPOJUCA">IPOJUCA</option>
