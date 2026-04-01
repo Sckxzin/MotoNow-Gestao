@@ -113,6 +113,8 @@ export default function Home() {
   const [comoChegou, setComoChegou] = useState("");
   const [filialVenda, setFilialVenda] = useState("");
   const [numeroCliente, setNumeroCliente] = useState("");
+  const [localRetirada, setLocalRetirada] = useState("");
+  const [filialRetirada, setFilialRetirada] = useState("");
 
   /* ===== TRANSFERIR MOTO ===== */
   const [motoTransferir, setMotoTransferir] = useState(null);
@@ -236,11 +238,13 @@ function abrirEntradaEstoque(peca) {
     setComoChegou("");
     setFilialVenda("");
     setNumeroCliente("");
+    setLocalRetirada("");
+    setFilialRetirada("");
   }
 
   // ✅ Solicitação (PENDENTE_APROVACAO)
   async function confirmarVendaMoto() {
-    if (!clienteNome || !valorMoto || !filialVenda || !numeroCliente) {
+    if (!clienteNome || !valorMoto || !filialVenda || !numeroCliente ) {
       alert("Preencha cliente, valor, filial e número do cliente");
       return;
     }
@@ -256,6 +260,8 @@ function abrirEntradaEstoque(peca) {
         como_chegou: comoChegou || null,
         filial_venda: filialVenda,
         numero_cliente: String(numeroCliente),
+        local_retirada: localRetirada,
+        filial_retirada: localRetirada === "FILIAL" ? filialRetirada : null,
       });
 
       setMotos((prev) =>
@@ -872,6 +878,25 @@ async function alterarStatusMoto(id, novoStatus) {
               <option value="MARAGOGI">MARAGOGI</option>
               <option value="IPOJUCA RICARDO">Ipojuca Ricardo</option>
               <option value="OUTRAS CIDADES">DISTRI VALTER</option>
+              <option value="CHA GRANDE">Cha grande</option>
+            </select>
+
+            <select value={localRetirada} onChage={(e) => setLocalRetirada(e.target.value)}>
+              <option value="">Local de retirada</option>
+              <option value="FILIAL">Retirada em filial</option>
+              <option value="ENTREGA">Entrega</option>
+            </select>
+
+            {localRetirada === "FILIAL" && ( <select value={filialRetirada} onChage={(e) => setFilialRetirada(e.target.value)}>
+              <option value="">Filial de retirada</option>
+              <option value="ESCADA">ESCADA</option>
+              <option value="IPOJUCA">IPOJUCA</option>
+              <option value="RIBEIRAO">RIBEIRÃO</option>
+              <option value="SAO JOSE">SÃO JOSÉ</option>
+              <option value="CATENDE">CATENDE</option>
+              <option value="XEXEU">XEXEU</option>
+              <option value="MARAGOGI">MARAGOGI</option>
+              <option value="IPOJUCA RICARDO">Ipojuca Ricardo</option>
               <option value="CHA GRANDE">Cha grande</option>
             </select>
 
