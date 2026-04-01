@@ -899,7 +899,7 @@ async function alterarStatusMoto(id, novoStatus) {
               <option value="IPOJUCA RICARDO">Ipojuca Ricardo</option>
               <option value="CHA GRANDE">Cha grande</option>
             </select>                               
-              ]}                           
+              )}                           
 
             <label>
               <input type="checkbox" checked={brinde} onChange={(e) => setBrinde(e.target.checked)} /> Brinde
