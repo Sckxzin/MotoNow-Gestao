@@ -1226,6 +1226,8 @@ app.post("/vender-moto", async (req, res) => {
     como_chegou,
     filial_venda,
     numero_cliente,
+    local_retirada,
+    filial_retirada,
   } = req.body;
 
   // mantém tua validação mínima + evita crash
