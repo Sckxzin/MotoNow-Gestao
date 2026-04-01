@@ -190,7 +190,7 @@ function aplicarHoje() {
   const vendasFiltradas = useMemo(() => {
     return vendas.filter(v => {
       const empresa = getEmpresa(v);
-      const dataVenda = new Date(v.created_at);
+      const dataVenda = new Date(v.data_venda || v.created_at)
 
       const okEmpresa = empresaFiltro === "TODAS" || empresa === empresaFiltro;
 
@@ -367,7 +367,7 @@ function aplicarHoje() {
       case "empresa": return getEmpresa(v);
       case "cnpj": return getCNPJ(v);
       case "brinde": return v.brinde ? "SIM" : "NÃO";
-      case "data": return new Date(v.created_at).toLocaleDateString("pt-BR");
+      case "data": return new Date(v.data_venda || v.created_at).toLocaleDateString("pt-BR");
       case "a_repassar": return getValorARepassar(v) == null ? "-" : formatarValor(getValorARepassar(v));
       case "liquido": return formatarValor(calcLiquido(v));
       default: return "";
@@ -391,7 +391,7 @@ function aplicarHoje() {
       case "empresa": return getEmpresa(v);
       case "cnpj": return getCNPJ(v);
       case "brinde": return v.brinde ? "SIM" : "NÃO";
-      case "data": return new Date(v.created_at).toLocaleDateString("pt-BR");
+      case "data": return new Date(v.data_venda || v.created_at).toLocaleDateString("pt-BR");
       case "a_repassar": {
         const ar = getValorARepassar(v);
         return ar == null ? "" : Number(ar).toFixed(2);
