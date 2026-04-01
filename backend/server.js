@@ -1178,6 +1178,11 @@ app.get("/vendas-motos", async (req, res) => {
         created_at,
         valor_compra,
         repasse,
+        cnpj_empresa,
+        local_retirada,
+        filial_retirada,
+        data_venda,
+        created_at,
         CASE
           WHEN santander = true THEN 'EMENEZES'
           ELSE 'MOTONOW'
@@ -1228,6 +1233,7 @@ app.post("/vender-moto", async (req, res) => {
     numero_cliente,
     local_retirada,
     filial_retirada,
+    data_venda,
   } = req.body;
 
   // mantém tua validação mínima + evita crash
@@ -1288,13 +1294,16 @@ if (isFilialRepasseSantanderObrigatorio(filial_venda)) {
         cnpj_empresa,
         valor_compra,
         repasse,
+        local_retirada,
+        filial_retirada,
+        data_venda,
         status
       ) VALUES (
         $1,$2,$3,$4,
         $5,$6,
         $7,$8,$9,$10,
         $11,$12,$13,$14,$15,
-        $16,$17,$18,$19,
+        $16,$17,$18,$19,$20,$21,now()
         'PENDENTE'
       )
       RETURNING id`,
@@ -1318,6 +1327,8 @@ if (isFilialRepasseSantanderObrigatorio(filial_venda)) {
         moto.cnpj_empresa || null,
         moto.valor_compra ?? null,
         repasseFinal,
+        local_retirada || null,
+        filial_retirada || null,
       ]
     );
 
@@ -1403,9 +1414,12 @@ if (isFilialRepasseSantanderObrigatorio(p.filial_venda)) {
         numero_cliente,
         valor_compra,
         cnpj_empresa,
-        repasse
+        repasse,
+        local_retirada,
+        filial_retirada,
+        data_venda
       ) VALUES (
-        $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19
+        $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22
       )`,
       [
         p.moto_id,
@@ -1427,6 +1441,9 @@ if (isFilialRepasseSantanderObrigatorio(p.filial_venda)) {
         p.valor_compra,
         p.cnpj_empresa,
         repasseFinal,
+        p.local_retirada || null,
+        p.filial_retirada || null,
+        p.data_venda || p.created_at
       ]
     );
 
