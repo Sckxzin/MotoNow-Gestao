@@ -297,6 +297,8 @@ function aplicarHoje() {
     { key: "data", label: "Data" },
     { key: "a_repassar", label: "A repassar" },
     { key: "liquido", label: "Líquido" },
+    { key: "local_retirada", label: "Local retirada" },
+    { key: "filial_retirada", label: "Filial retirada" },
   ]), []);
 
   const defaultCols = useMemo(() => (
