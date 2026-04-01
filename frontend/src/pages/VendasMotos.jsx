@@ -284,13 +284,14 @@ function aplicarHoje() {
     { key: "chassi", label: "Chassi" },
     { key: "cliente", label: "Cliente" },
     { key: "telefone", label: "Telefone" },
-    { key: "origem", label: "Origem" },
+    { key: "origem", label: "Como chegou" },
     { key: "valor", label: "Valor" },
     { key: "compra", label: "Compra" },
     { key: "repasse", label: "Repasse" },
     { key: "pagamento", label: "Pagamento" },
     { key: "gasolina", label: "Gasolina" },
-    { key: "filial", label: "Filial" },
+    { key: "filial", label: "Filial venda" },
+    { key: "filial_origem", label: "Filial origem"},
     { key: "empresa", label: "Empresa" },
     { key: "cnpj", label: "CNPJ" },
     { key: "brinde", label: "Brinde" },
@@ -299,6 +300,7 @@ function aplicarHoje() {
     { key: "liquido", label: "Líquido" },
     { key: "local_retirada", label: "Local retirada" },
     { key: "filial_retirada", label: "Filial retirada" },
+    
   ]), []);
 
   const defaultCols = useMemo(() => (
