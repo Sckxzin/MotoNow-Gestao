@@ -29,31 +29,43 @@ export default function VendasMotos() {
     link.click();
   }
 
-  // ✅ valor a repassar: só calcula se tiver repasse
-  function getValorARepassar(v) {
-    const repasse = Number(v.repasse || 0);
-    if (!repasse || Number.isNaN(repasse) || repasse <= 0) return null;
+  function getBrindeValor(v) {
+  return v.brinde ? 100 : 0;
+}
 
-    const valorVenda = Number(v.valor || 0);
-    return valorVenda - repasse;
-  }
+function getGasolina(v) {
+  return Number(v.gasolina || 0);
+}
 
-  // ✅ LÍQUIDO (REGRA NOVA)
-  // - Se tiver repasse: valor_venda - valor_compra - a_repassar
-  // - Se não tiver repasse: valor_venda - valor_compra
-  function calcLiquido(v) {
-    const valorVenda = Number(v.valor || 0);
-    const valorCompra = Number(v.valor_compra || 0);
-    const repasse = Number(v.repasse || 0);
+function getComissao(v) {
+  // vamos ajustar depois com sua regra real
+  return Number(v.comissao || 0);
+}
 
-    const aRepassar = getValorARepassar(v); // pode ser null
+function getValorARepassar(v) {
+  const repasse = Number(v.repasse || 0);
+  if (!repasse || Number.isNaN(repasse) || repasse <= 0) return 0;
 
-    if (repasse > 0 && aRepassar != null) {
-      return valorVenda - valorCompra - Number(aRepassar || 0);
-    }
+  const valorVenda = Number(v.valor || 0);
+  return valorVenda - repasse;
+}
 
-    return valorVenda - valorCompra;
-  }
+function calcLiquido(v) {
+  const valorVenda = Number(v.valor || 0);
+  const valorCompra = Number(v.valor_compra || 0);
+
+  const brinde = getBrindeValor(v);
+  const gasolina = getGasolina(v);
+  const comissao = getComissao(v);
+  const aRepassar = getValorARepassar(v);
+
+  return valorVenda
+    - valorCompra
+    - brinde
+    - gasolina
+    - comissao
+    - aRepassar;
+}
 
   /* ================= FILTROS ================= */
   const [empresaFiltro, setEmpresaFiltro] = useState("TODAS");
