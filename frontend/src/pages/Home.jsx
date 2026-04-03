@@ -879,6 +879,7 @@ async function alterarStatusMoto(id, novoStatus) {
               <option value="IPOJUCA RICARDO">Ipojuca Ricardo</option>
               <option value="OUTRAS CIDADES">DISTRI VALTER</option>
               <option value="CHA GRANDE">Cha grande</option>
+              <option value="TENDA">Tenda</option>
             </select>
 
             <select value={localRetirada} onChange={(e) => setLocalRetirada(e.target.value)}>
@@ -898,6 +899,7 @@ async function alterarStatusMoto(id, novoStatus) {
               <option value="MARAGOGI">MARAGOGI</option>
               <option value="IPOJUCA RICARDO">Ipojuca Ricardo</option>
               <option value="CHA GRANDE">Cha grande</option>
+              <option value="TENDA">Tenda</option>
             </select>                               
               )}                           
 
@@ -1131,6 +1133,7 @@ async function alterarStatusMoto(id, novoStatus) {
               <option value="MARAGOGI">Maragogi</option>
               <option value="IPOJUCA RICARDO">Ipojuca Ricardo</option>
               <option value="CHA GRANDE">Cha grande</option>
+              <option value="TENDA">Tenda</option>
             </select>
 
             <input placeholder="CNPJ da empresa" value={cnpjEmpresa} onChange={(e) => setCnpjEmpresa(e.target.value)} />
