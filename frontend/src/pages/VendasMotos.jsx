@@ -386,7 +386,7 @@ function aplicarHoje() {
       case "data": return new Date(v.data_venda || v.created_at).toLocaleDateString("pt-BR");
       case "a_repassar": return getValorARepassar(v) == null ? "-" : formatarValor(getValorARepassar(v));
       case "liquido": return formatarValor(calcLiquido(v));
-      case "comissao": return formatarValor(v.comissao_valor):
+      case "comissao": return formatarValor(v.comissao_valor);
       default: return "";
     }
   }
