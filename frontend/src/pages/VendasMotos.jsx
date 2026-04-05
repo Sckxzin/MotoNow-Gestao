@@ -414,7 +414,7 @@ function aplicarHoje() {
         return ar == null ? "" : Number(ar).toFixed(2);
       }
       case "liquido": return Number(calcLiquido(v)).toFixed(2);
-      case "comissao" return v.comissao_valor != null ? Number(v.comissao_valor).toFixed(2) : "";
+      case "comissao": return v.comissao_valor != null ? Number(v.comissao_valor).toFixed(2) : "";
       default: return "";
     }
   }
