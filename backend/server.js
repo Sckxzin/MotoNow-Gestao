@@ -464,6 +464,8 @@ app.put("/motos/:id/status", async (req, res) => {
 
     const moto = motoRes.rows[0];
 
+    constcomissaoValor = calcularComissao(moto.modelo, valor);
+
     // Entrar em negociação
     if (statusFinal === "NEGOCIACAO") {
       const r = await db.query(
@@ -1231,7 +1233,6 @@ app.get("/vendas-motos", async (req, res) => {
         local_retirada,
         filial_retirada,
         data_venda,
-        created_at,
         CASE
           WHEN santander = true THEN 'EMENEZES'
           ELSE 'MOTONOW'
@@ -1294,7 +1295,7 @@ app.post("/vender-moto", async (req, res) => {
 
   try {
     await client.query("BEGIN");
-    const comissaoValor = calcularComissaoMoto(moto.modelo, valor);
+  
     const motoRes = await client.query(
       `SELECT id, modelo, cor, chassi, filial, status, santander, cnpj_empresa, valor_compra, repasse
        FROM motos
@@ -1307,6 +1308,10 @@ app.post("/vender-moto", async (req, res) => {
 
     const moto = motoRes.rows[0];
 
+    if (moto.status !== "DISPONIVEL") {
+      throw new Error("Moto indisponível");
+    }
+
 let repasseFinal = moto.repasse ?? null;
 
 if (isFilialRepasseSantanderObrigatorio(filial_venda)) {
@@ -1316,11 +1321,8 @@ if (isFilialRepasseSantanderObrigatorio(filial_venda)) {
   }
   repasseFinal = Number(r);
 }
-
-    if (moto.status !== "DISPONIVEL") {
-      throw new Error("Moto indisponível");
-    }
-
+  const comissaoValor = calcularComissaoMoto(moto.modelo, valor)
+    
     // cria pendência
     const pendRes = await client.query(
       `INSERT INTO vendas_motos_pendentes (
@@ -1346,14 +1348,14 @@ if (isFilialRepasseSantanderObrigatorio(filial_venda)) {
         local_retirada,
         filial_retirada,
         data_venda,
-        comissao_valor
+        comissao_valor,
         status
       ) VALUES (
         $1,$2,$3,$4,
         $5,$6,
         $7,$8,$9,$10,
         $11,$12,$13,$14,$15,
-        $16,$17,$18,$19,$20,$21,$22,now(),
+        $16,$17,$18,$19,$20,$21,$22,$23,now(),
         'PENDENTE'
       )
       RETURNING id`,
