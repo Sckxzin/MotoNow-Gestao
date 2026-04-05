@@ -312,6 +312,7 @@ function aplicarHoje() {
     { key: "liquido", label: "Líquido" },
     { key: "local_retirada", label: "Local retirada" },
     { key: "filial_retirada", label: "Filial retirada" },
+    { key: "comissao", label: "Comissão"},
     
   ]), []);
 
@@ -385,6 +386,7 @@ function aplicarHoje() {
       case "data": return new Date(v.data_venda || v.created_at).toLocaleDateString("pt-BR");
       case "a_repassar": return getValorARepassar(v) == null ? "-" : formatarValor(getValorARepassar(v));
       case "liquido": return formatarValor(calcLiquido(v));
+      case "comissao": return formatarValor(v.comissao_valor):
       default: return "";
     }
   }
@@ -412,6 +414,7 @@ function aplicarHoje() {
         return ar == null ? "" : Number(ar).toFixed(2);
       }
       case "liquido": return Number(calcLiquido(v)).toFixed(2);
+      case "comissao" return v.comissao_valor != null ? Number(v.comissao_valor).toFixed(2) : "";
       default: return "";
     }
   }
