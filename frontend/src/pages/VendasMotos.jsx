@@ -308,6 +308,7 @@ function aplicarHoje() {
     { key: "filial_retirada", label: "Filial retirada" },
     { key: "comissao", label: "Comissão"},
     
+    
   ]), []);
 
   const defaultCols = useMemo(() => (
@@ -381,6 +382,8 @@ function aplicarHoje() {
       case "a_repassar": return getValorARepassar(v) == null ? "-" : formatarValor(getValorARepassar(v));
       case "liquido": return formatarValor(calcLiquido(v));
       case "comissao": return formatarValor(v.comissao_valor);
+      case "local_retirada": return v.local_retirada || "-";
+      case "filial_retirada": return v.filial_retirada || "-";
       default: return "";
     }
   }
