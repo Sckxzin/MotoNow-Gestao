@@ -1233,6 +1233,7 @@ app.get("/vendas-motos", async (req, res) => {
         local_retirada,
         filial_retirada,
         data_venda,
+        comissao_valor,
         CASE
           WHEN santander = true THEN 'EMENEZES'
           ELSE 'MOTONOW'
