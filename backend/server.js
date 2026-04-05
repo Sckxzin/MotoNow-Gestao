@@ -1355,7 +1355,7 @@ if (isFilialRepasseSantanderObrigatorio(filial_venda)) {
         $5,$6,
         $7,$8,$9,$10,
         $11,$12,$13,$14,$15,
-        $16,$17,$18,$19,$20,$21,$22,$23,now(),
+        $16,$17,$18,$19,$20,$21,$22,$23,
         'PENDENTE'
       )
       RETURNING id`,
@@ -1381,6 +1381,8 @@ if (isFilialRepasseSantanderObrigatorio(filial_venda)) {
         repasseFinal,
         local_retirada || null,
         filial_retirada || null,
+        data_venda || new Date,
+        comissaoValor || 0,
       ]
     );
 
