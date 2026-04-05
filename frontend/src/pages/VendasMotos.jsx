@@ -53,20 +53,14 @@ function getValorARepassar(v) {
 function calcLiquido(v) {
   const valorVenda = Number(v.valor || 0);
   const valorCompra = Number(v.valor_compra || 0);
+  const gasolina = Number(v.gasolina || 0);
+  const comissao = Number(v.comissao_valor || 0);
+  const valorBrinde = v.brinde ? 100 : 0;
 
-  const brinde = getBrindeValor(v);
-  const gasolina = getGasolina(v);
-  const comissao = getComissao(v);
-  const aRepassar = getValorARepassar(v);
+  const aRepassar = getValorARepassar(v) || 0;
 
-  return valorVenda
-    - valorCompra
-    - brinde
-    - gasolina
-    - comissao
-    - aRepassar;
+  return valorVenda - valorCompra - valorBrinde - gasolina - comissao - aRepassar;
 }
-
   /* ================= FILTROS ================= */
   const [empresaFiltro, setEmpresaFiltro] = useState("TODAS");
   const [cidadesFiltro, setCidadesFiltro] = useState([]); // array
