@@ -1294,7 +1294,7 @@ app.post("/vender-moto", async (req, res) => {
 
   try {
     await client.query("BEGIN");
-
+    const comissaoValor = calcularComissaoMoto(moto.modelo, valor);
     const motoRes = await client.query(
       `SELECT id, modelo, cor, chassi, filial, status, santander, cnpj_empresa, valor_compra, repasse
        FROM motos
@@ -1346,13 +1346,14 @@ if (isFilialRepasseSantanderObrigatorio(filial_venda)) {
         local_retirada,
         filial_retirada,
         data_venda,
+        comissao_valor
         status
       ) VALUES (
         $1,$2,$3,$4,
         $5,$6,
         $7,$8,$9,$10,
         $11,$12,$13,$14,$15,
-        $16,$17,$18,$19,$20,$21,now(),
+        $16,$17,$18,$19,$20,$21,$22,now(),
         'PENDENTE'
       )
       RETURNING id`,
@@ -1466,9 +1467,10 @@ if (isFilialRepasseSantanderObrigatorio(p.filial_venda)) {
         repasse,
         local_retirada,
         filial_retirada,
-        data_venda
+        data_venda,
+        comissao_valor
       ) VALUES (
-        $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22
+        $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23
       )`,
       [
         p.moto_id,
@@ -1492,7 +1494,8 @@ if (isFilialRepasseSantanderObrigatorio(p.filial_venda)) {
         repasseFinal,
         p.local_retirada || null,
         p.filial_retirada || null,
-        p.data_venda || p.created_at
+        p.data_venda || p.created_at,
+        p.comissao_valor || 0,
       ]
     );
 
