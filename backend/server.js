@@ -464,8 +464,6 @@ app.put("/motos/:id/status", async (req, res) => {
 
     const moto = motoRes.rows[0];
 
-    constcomissaoValor = calcularComissao(moto.modelo, valor);
-
     // Entrar em negociação
     if (statusFinal === "NEGOCIACAO") {
       const r = await db.query(
@@ -520,13 +518,13 @@ app.put("/motos/:id/status", async (req, res) => {
       [statusFinal, id]
     );
 
-    res.json({
+    return res.json({
       message: "Status atualizado com sucesso",
       moto: r.rows[0],
     });
   } catch (err) {
     console.error("Erro atualizar status moto:", err);
-    res.status(500).json({ message: "Erro ao atualizar status da moto" });
+    return res.status(500).json({ message: "Erro ao atualizar status da moto" });
   }
 });
 /* ================= MOTOS (LISTAR) ================= */
