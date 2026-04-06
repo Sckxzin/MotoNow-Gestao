@@ -25,6 +25,8 @@ const MODELOS_MOTOS = [
   { modelo: "PHOENIX 50S", compra_motonow: 6490, compra_santander: 7100, santaderDefault: true},
   { modelo: "JEF 150 EFI", compra_motonow: 11390, compra_santander: 13800, santanderDefault: true},
   { modelo: "ATV 200 EFI", compra_motonow: 21000, compra_santander: 23000, santanderDefaul: true},
+  { modelo: "NEW JET 125 EFI", compra_motonow: 10490, compra_santander: 0, santanderDefault: false},
+  { modelo: "PT4 PRO", compra_motonow: 7990, compra_santander: 8300, santanderDefault: true},
 ];
 
 /* ================= REGRA: REPASSE OBRIGATÓRIO EM FILIAIS ================= */
