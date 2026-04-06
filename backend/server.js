@@ -181,6 +181,7 @@ const REPASSE_SANTANDER_POR_MODELO = {
   [normModeloKey("JEF 150 EFI")]:13800,
   [normModeloKey("ATV 200 EFI")]:23000,
   [normModeloKey("NEW JET 125")]:0,
+  [normModeloKey("PT4 PRO")]:8300,
 };
 
 function repasseSantanderPorModelo(modelo) {
