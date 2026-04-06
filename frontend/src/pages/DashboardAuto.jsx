@@ -50,7 +50,7 @@ function formatDateBRFromISO(iso) {
   return x.toLocaleDateString("pt-BR");
 }
 
-/* ================= CÁLCULO ================= */
+/* ================= CÁLCULOS ================= */
 function getValorARepassar(v) {
   const repasse = Number(v.repasse || 0);
   if (!repasse) return 0;
@@ -77,12 +77,12 @@ export default function DashboardAuto() {
   const timerRef = useRef(null);
 
   const slides = [
-    { id: "kpis" },
-    { id: "fat_dia" },
-    { id: "estoque" },
-    { id: "lojas" },
-    { id: "modelos" },
-    { id: "resumo" },
+    { id: "kpis", title: "Resumo executivo" },
+    { id: "fat_dia", title: "Faturamento por dia" },
+    { id: "estoque_motos", title: "Fluxo de estoque de motos" },
+    { id: "fechamento_loja", title: "Fechamento por loja" },
+    { id: "top_modelos", title: "Modelos e cidades" },
+    { id: "resumo_final", title: "Resumo final" },
   ];
 
   useEffect(() => {
@@ -93,22 +93,27 @@ export default function DashboardAuto() {
 
   /* ================= KPIS ================= */
   const kpis = useMemo(() => {
-    const faturamento = vendasMotos.reduce((a, v) => a + toNumber(v.valor), 0);
-    const liquido = vendasMotos.reduce((a, v) => a + calcLiquidoMoto(v), 0);
-    const qtd = vendasMotos.length;
-    const comissoes = vendasMotos.reduce((a, v) => a + toNumber(v.comissao_valor), 0);
+    const faturamentoMotos = vendasMotos.reduce((acc, v) => acc + toNumber(v.valor), 0);
+    const liquidoMotos = vendasMotos.reduce((acc, v) => acc + calcLiquidoMoto(v), 0);
+    const qtdMotos = vendasMotos.length;
+    const totalComissoes = vendasMotos.reduce((acc, v) => acc + toNumber(v.comissao_valor), 0);
 
-    return { faturamento, liquido, qtd, comissoes };
+    return {
+      faturamentoMotos,
+      liquidoMotos,
+      qtdMotos,
+      totalComissoes,
+    };
   }, [vendasMotos]);
 
-  /* ================= POR DIA ================= */
-  const porDia = useMemo(() => {
+  /* ================= FATURAMENTO POR DIA ================= */
+  const motosPorDia = useMemo(() => {
     const map = new Map();
 
     vendasMotos.forEach((v) => {
-      const dia = isoDateOnly(v.data_venda || v.created_at);
-      if (!dia) return;
-      map.set(dia, (map.get(dia) || 0) + toNumber(v.valor));
+      const key = isoDateOnly(v.data_venda || v.created_at);
+      if (!key) return;
+      map.set(key, (map.get(key) || 0) + toNumber(v.valor));
     });
 
     return Array.from(map.entries()).map(([dia, total]) => ({
@@ -118,7 +123,7 @@ export default function DashboardAuto() {
   }, [vendasMotos]);
 
   /* ================= ESTOQUE ================= */
-  const estoque = useMemo(() => {
+  const fluxoEstoqueMotos = useMemo(() => {
     const map = new Map();
 
     vendasMotos.forEach((v) => {
@@ -138,7 +143,7 @@ export default function DashboardAuto() {
   }, [vendasMotos]);
 
   /* ================= LOJAS ================= */
-  const lojas = useMemo(() => {
+  const fechamentoPorLoja = useMemo(() => {
     const map = new Map();
 
     vendasMotos.forEach((v) => {
@@ -158,12 +163,12 @@ export default function DashboardAuto() {
   }, [vendasMotos]);
 
   /* ================= MODELOS ================= */
-  const modelos = useMemo(() => {
+  const topModelos = useMemo(() => {
     const map = new Map();
 
     vendasMotos.forEach((v) => {
-      const m = v.modelo || "N/I";
-      map.set(m, (map.get(m) || 0) + 1);
+      const key = v.modelo || "SEM MODELO";
+      map.set(key, (map.get(key) || 0) + 1);
     });
 
     return Array.from(map.entries()).map(([modelo, total]) => ({ modelo, total }));
@@ -179,12 +184,15 @@ export default function DashboardAuto() {
   }, [autoPlay]);
 
   return (
-    <div style={{ width: "100vw", height: "100vh", background: "#0a0f18", color: "#fff" }}>
+    <div className="dash-auto tv-corp">
 
       {/* HEADER */}
       <div style={{ padding: 20, display: "flex", justifyContent: "space-between" }}>
-        <h2>Dashboard MotoNow</h2>
-        <button onClick={() => nav("/home")}>Voltar</button>
+        <div>
+          <h2>Dashboard MotoNow</h2>
+          <span>{slides[slide].title}</span>
+        </div>
+        <button onClick={() => nav("/home")}>⬅</button>
       </div>
 
       {/* SLIDES */}
@@ -193,17 +201,17 @@ export default function DashboardAuto() {
         {/* KPIS */}
         {slides[slide].id === "kpis" && (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 20 }}>
-            <Kpi title="Faturamento" value={formatBRL(kpis.faturamento)} />
-            <Kpi title="Líquido" value={formatBRL(kpis.liquido)} />
-            <Kpi title="Motos" value={kpis.qtd} />
-            <Kpi title="Comissões" value={formatBRL(kpis.comissoes)} />
+            <KpiCard title="Faturamento motos" value={formatBRL(kpis.faturamentoMotos)} />
+            <KpiCard title="Líquido motos" value={formatBRL(kpis.liquidoMotos)} />
+            <KpiCard title="Motos vendidas" value={kpis.qtdMotos} />
+            <KpiCard title="Comissões" value={formatBRL(kpis.totalComissoes)} />
           </div>
         )}
 
         {/* FATURAMENTO */}
         {slides[slide].id === "fat_dia" && (
           <ResponsiveContainer width="100%" height={500}>
-            <BarChart data={porDia}>
+            <BarChart data={motosPorDia}>
               <XAxis dataKey="dia" />
               <YAxis />
               <Tooltip />
@@ -213,9 +221,9 @@ export default function DashboardAuto() {
         )}
 
         {/* ESTOQUE */}
-        {slides[slide].id === "estoque" && (
+        {slides[slide].id === "estoque_motos" && (
           <ResponsiveContainer width="100%" height={500}>
-            <LineChart data={estoque}>
+            <LineChart data={fluxoEstoqueMotos}>
               <XAxis dataKey="dia" />
               <YAxis />
               <Tooltip />
@@ -225,9 +233,9 @@ export default function DashboardAuto() {
         )}
 
         {/* LOJAS */}
-        {slides[slide].id === "lojas" && (
+        {slides[slide].id === "fechamento_loja" && (
           <ResponsiveContainer width="100%" height={500}>
-            <BarChart data={lojas}>
+            <BarChart data={fechamentoPorLoja}>
               <XAxis dataKey="loja" />
               <YAxis />
               <Tooltip />
@@ -238,9 +246,9 @@ export default function DashboardAuto() {
         )}
 
         {/* MODELOS */}
-        {slides[slide].id === "modelos" && (
+        {slides[slide].id === "top_modelos" && (
           <ResponsiveContainer width="100%" height={500}>
-            <BarChart data={modelos}>
+            <BarChart data={topModelos}>
               <XAxis dataKey="modelo" />
               <YAxis />
               <Tooltip />
@@ -250,11 +258,11 @@ export default function DashboardAuto() {
         )}
 
         {/* RESUMO */}
-        {slides[slide].id === "resumo" && (
+        {slides[slide].id === "resumo_final" && (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 20 }}>
-            <Kpi title="Faturamento" value={formatBRL(kpis.faturamento)} />
-            <Kpi title="Líquido" value={formatBRL(kpis.liquido)} />
-            <Kpi title="Motos" value={kpis.qtd} />
+            <KpiCard title="Faturamento motos" value={formatBRL(kpis.faturamentoMotos)} />
+            <KpiCard title="Líquido motos" value={formatBRL(kpis.liquidoMotos)} />
+            <KpiCard title="Motos vendidas" value={kpis.qtdMotos} />
           </div>
         )}
 
@@ -263,7 +271,7 @@ export default function DashboardAuto() {
   );
 }
 
-function Kpi({ title, value }) {
+function KpiCard({ title, value }) {
   return (
     <div style={{ background: "#111", padding: 20, borderRadius: 12 }}>
       <div>{title}</div>
