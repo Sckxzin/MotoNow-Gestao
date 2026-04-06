@@ -1,3 +1,4 @@
+
 /* eslint-disable no-unused-vars */
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -14,8 +15,6 @@ import {
   CartesianGrid,
   LineChart,
   Line,
-  PieChart,
-  Pie,
   Legend,
 } from "recharts";
 
@@ -59,8 +58,8 @@ function parseISODateOnly(s) {
   return new Date(y, m - 1, d, 0, 0, 0, 0);
 }
 
-function clampDateRange(createdAt, dataInicio, dataFim) {
-  const dt = safeDate(createdAt);
+function clampDateRange(dateValue, dataInicio, dataFim) {
+  const dt = safeDate(dateValue);
   if (!dt) return false;
 
   if (dataInicio) {
@@ -76,19 +75,23 @@ function clampDateRange(createdAt, dataInicio, dataFim) {
   return true;
 }
 
-function normPay(s) {
-  const x = String(s || "").trim().toUpperCase();
-  if (!x) return "N/I";
-  if (x.includes("PIX")) return "PIX";
-  if (x.includes("DÉBITO") || x.includes("DEBIT")) return "DÉBITO";
-  if (x.includes("CRÉDITO") || x.includes("CRED")) return "CRÉDITO";
-  if (x.includes("A VISTA") || x.includes("AVISTA") || x.includes("DINHEIRO")) return "À VISTA";
-  if (x.includes("BOLETO")) return "BOLETO";
-  if (x.includes("FINAN")) return "FINANCIAMENTO";
-  return x;
+function getEmpresa(v) {
+  return v.santander === true || v.santander === "SIM" ? "EMENEZES" : "MOTONOW";
 }
 
-/* ================= CÁLCULOS MOTOS ================= */
+function pickLoja(v) {
+  return String(v.filial_venda || v.filial_origem || v.filial || "N/I")
+    .trim()
+    .toUpperCase();
+}
+
+function pickCidade(v) {
+  return String(v.filial_venda || v.filial_origem || v.filial || "N/I")
+    .trim()
+    .toUpperCase();
+}
+
+/* ================= CÁLCULOS ================= */
 function getValorARepassar(v) {
   const repasse = Number(v.repasse || 0);
   if (!repasse || Number.isNaN(repasse) || repasse <= 0) return 0;
@@ -110,13 +113,14 @@ function calcLiquidoMoto(v) {
 
 /* ================= THEME ================= */
 const THEME = {
-  bg: "linear-gradient(180deg, #06080d 0%, #0a0f18 100%)",
-  card: "linear-gradient(180deg, rgba(255,255,255,0.07), rgba(255,255,255,0.03))",
+  bg:
+    "radial-gradient(1100px 700px at 18% 8%, rgba(97,140,255,0.12), transparent 60%), radial-gradient(900px 600px at 92% 20%, rgba(0,255,200,0.10), transparent 55%), #07090c",
+  card: "linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02))",
   border: "1px solid rgba(255,255,255,0.10)",
-  text: "rgba(255,255,255,0.95)",
+  text: "rgba(255,255,255,0.92)",
   subtext: "rgba(255,255,255,0.68)",
   shadow: "0 18px 50px rgba(0,0,0,0.45)",
-  grid: { stroke: "rgba(255,255,255,0.04)", vertical: false },
+  grid: { stroke: "rgba(255,255,255,0.02)", vertical: false },
   axis: {
     tick: { fill: "rgba(255,255,255,0.60)", fontSize: 11 },
     axisLine: { stroke: "rgba(255,255,255,0.08)" },
@@ -127,7 +131,7 @@ const THEME = {
 function tooltipProps(formatter) {
   return {
     contentStyle: {
-      background: "rgba(10,12,14,0.97)",
+      background: "rgba(10,12,14,0.96)",
       border: "1px solid rgba(255,255,255,0.10)",
       borderRadius: 14,
       color: "rgba(255,255,255,0.92)",
@@ -140,11 +144,12 @@ function tooltipProps(formatter) {
   };
 }
 
+/* ================= COMPONENTE ================= */
 export default function DashboardAuto() {
   const nav = useNavigate();
 
   const [vendasMotos, setVendasMotos] = useState([]);
-  const [vendasPecas, setVendasPecas] = useState([]);
+  const [motos, setMotos] = useState([]);
 
   const [dataInicio, setDataInicio] = useState("");
   const [dataFim, setDataFim] = useState("");
@@ -154,10 +159,10 @@ export default function DashboardAuto() {
     () => [
       { id: "kpis", title: "Resumo executivo" },
       { id: "fat_dia", title: "Faturamento por dia" },
-      { id: "estoque_motos", title: "Fluxo de estoque de motos" },
+      { id: "ultimos_7", title: "Vendas nos últimos 7 dias" },
+      { id: "estoque_motos", title: "Estoque atual de motos" },
       { id: "fechamento_loja", title: "Fechamento por loja" },
-      { id: "top_modelos", title: "Modelos, cidades e pagamento" },
-      { id: "pecas", title: "Peças" },
+      { id: "top_modelos", title: "Top modelos e cidades" },
       { id: "resumo_final", title: "Resumo final" },
     ],
     []
@@ -165,17 +170,20 @@ export default function DashboardAuto() {
 
   const [slide, setSlide] = useState(0);
   const [autoPlay, setAutoPlay] = useState(true);
-  const intervalMs = 8000;
   const timerRef = useRef(null);
+  const intervalMs = 8000;
 
   useEffect(() => {
-    api.get("/vendas-motos").then((res) => setVendasMotos(res.data || [])).catch(() => setVendasMotos([]));
-    api.get("/vendas").then((res) => setVendasPecas(res.data || [])).catch(() => setVendasPecas([]));
-  }, []);
+    api
+      .get("/vendas-motos")
+      .then((res) => setVendasMotos(res.data || []))
+      .catch(() => setVendasMotos([]));
 
-  function getEmpresa(v) {
-    return v.santander === true || v.santander === "SIM" ? "EMENEZES" : "MOTONOW";
-  }
+    api
+      .get("/motos")
+      .then((res) => setMotos(res.data || []))
+      .catch(() => setMotos([]));
+  }, []);
 
   function aplicarHoje() {
     const hoje = new Date().toISOString().slice(0, 10);
@@ -236,196 +244,227 @@ export default function DashboardAuto() {
         else document.exitFullscreen?.();
       }
     }
+
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   });
 
+  /* ================= BASE FILTRADA ================= */
   const motosFiltradas = useMemo(() => {
     return (vendasMotos || [])
       .filter((v) => clampDateRange(v.data_venda || v.created_at, dataInicio, dataFim))
       .filter((v) => empresaFiltro === "TODAS" || getEmpresa(v) === empresaFiltro);
   }, [vendasMotos, dataInicio, dataFim, empresaFiltro]);
 
-  const pecasFiltradas = useMemo(() => {
-    return (vendasPecas || []).filter((v) => clampDateRange(v.created_at, dataInicio, dataFim));
-  }, [vendasPecas, dataInicio, dataFim]);
-
+  /* ================= KPIS ================= */
   const kpis = useMemo(() => {
     const faturamentoMotos = motosFiltradas.reduce((acc, v) => acc + toNumber(v.valor), 0);
     const liquidoMotos = motosFiltradas.reduce((acc, v) => acc + calcLiquidoMoto(v), 0);
     const qtdMotos = motosFiltradas.length;
+    const comissoes = motosFiltradas.reduce((acc, v) => acc + toNumber(v.comissao_valor), 0);
 
-    const faturamentoPecas = pecasFiltradas.reduce((acc, v) => acc + toNumber(v.total), 0);
-    const qtdVendasPecas = pecasFiltradas.length;
-    const ticketMedioPecas = qtdVendasPecas ? faturamentoPecas / qtdVendasPecas : 0;
+    const hoje = new Date();
+    const di = new Date();
+    di.setDate(hoje.getDate() - 6);
+    di.setHours(0, 0, 0, 0);
+
+    const motos7d = (vendasMotos || []).filter((v) => {
+      const dt = safeDate(v.data_venda || v.created_at);
+      return dt && dt >= di && dt <= hoje;
+    }).length;
 
     return {
       faturamentoMotos,
       liquidoMotos,
       qtdMotos,
-      faturamentoPecas,
-      qtdVendasPecas,
-      ticketMedioPecas,
+      comissoes,
+      motos7d,
     };
-  }, [motosFiltradas, pecasFiltradas]);
+  }, [motosFiltradas, vendasMotos]);
 
-  const motosPorDia = useMemo(() => {
+  /* ================= FATURAMENTO POR DIA ================= */
+  const faturamentoPorDia = useMemo(() => {
     const map = new Map();
+
     motosFiltradas.forEach((v) => {
       const key = isoDateOnly(v.data_venda || v.created_at);
       if (!key) return;
-      map.set(key, (map.get(key) || 0) + toNumber(v.valor));
+
+      if (!map.has(key)) {
+        map.set(key, {
+          diaISO: key,
+          dia: formatDateBRFromISO(key),
+          faturamento: 0,
+          motos: 0,
+          comissoes: 0,
+        });
+      }
+
+      const cur = map.get(key);
+      cur.faturamento += toNumber(v.valor);
+      cur.motos += 1;
+      cur.comissoes += toNumber(v.comissao_valor);
+      map.set(key, cur);
     });
 
-    return Array.from(map.entries())
-      .map(([diaISO, total]) => ({
-        diaISO,
-        dia: formatDateBRFromISO(diaISO),
-        total,
-      }))
+    return Array.from(map.values())
       .sort((a, b) => a.diaISO.localeCompare(b.diaISO))
       .slice(-45);
   }, [motosFiltradas]);
 
-  const pecasPorDia = useMemo(() => {
+  /* ================= ÚLTIMOS 7 DIAS ================= */
+  const vendasUltimos7Dias = useMemo(() => {
+    const hoje = new Date();
+    const arr = [];
+
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(hoje.getDate() - i);
+
+      const iso = d.toISOString().slice(0, 10);
+
+      const vendasDoDia = motosFiltradas.filter(
+        (v) => isoDateOnly(v.data_venda || v.created_at) === iso
+      );
+
+      arr.push({
+        dia: d.toLocaleDateString("pt-BR"),
+        motos: vendasDoDia.length,
+        faturamento: vendasDoDia.reduce((acc, v) => acc + toNumber(v.valor), 0),
+      });
+    }
+
+    return arr;
+  }, [motosFiltradas]);
+
+  /* ================= ESTOQUE ATUAL REAL ================= */
+  const estoqueAtualPorLoja = useMemo(() => {
     const map = new Map();
-    pecasFiltradas.forEach((v) => {
-      const key = isoDateOnly(v.created_at);
-      if (!key) return;
-      map.set(key, (map.get(key) || 0) + toNumber(v.total));
-    });
 
-    return Array.from(map.entries())
-      .map(([diaISO, total]) => ({
-        diaISO,
-        dia: formatDateBRFromISO(diaISO),
-        total,
-      }))
-      .sort((a, b) => a.diaISO.localeCompare(b.diaISO))
-      .slice(-45);
-  }, [pecasFiltradas]);
+    (motos || [])
+      .filter((m) => m.status !== "VENDIDA")
+      .filter((m) => empresaFiltro === "TODAS" || getEmpresa(m) === empresaFiltro)
+      .forEach((m) => {
+        const loja = String(m.filial || "N/I").trim().toUpperCase();
 
-  const fluxoEstoqueMotos = useMemo(() => {
-    const map = new Map();
+        if (!map.has(loja)) {
+          map.set(loja, {
+            loja,
+            disponiveis: 0,
+            negociacao: 0,
+            pendente: 0,
+            total: 0,
+          });
+        }
 
-    (vendasMotos || []).forEach((v) => {
-      const entrada = isoDateOnly(v.created_at);
-      const saida = isoDateOnly(v.data_venda);
+        const cur = map.get(loja);
+        cur.total += 1;
 
-      if (entrada) {
-        if (!map.has(entrada)) map.set(entrada, { diaISO: entrada, entradas: 0, saidas: 0 });
-        map.get(entrada).entradas += 1;
-      }
+        if (m.status === "DISPONIVEL") cur.disponiveis += 1;
+        else if (m.status === "NEGOCIACAO") cur.negociacao += 1;
+        else if (m.status === "PENDENTE_APROVACAO") cur.pendente += 1;
 
-      if (saida) {
-        if (!map.has(saida)) map.set(saida, { diaISO: saida, entradas: 0, saidas: 0 });
-        map.get(saida).saidas += 1;
-      }
-    });
+        map.set(loja, cur);
+      });
 
-    let saldo = 0;
+    return Array.from(map.values()).sort((a, b) => b.total - a.total);
+  }, [motos, empresaFiltro]);
 
-    return Array.from(map.values())
-      .sort((a, b) => a.diaISO.localeCompare(b.diaISO))
-      .map((d) => {
-        saldo += d.entradas - d.saidas;
-        return {
-          dia: formatDateBRFromISO(d.diaISO),
-          entradas: d.entradas,
-          saidas: d.saidas,
-          saldo,
-        };
-      })
-      .slice(-45);
-  }, [vendasMotos]);
-
+  /* ================= FECHAMENTO POR LOJA ================= */
   const fechamentoPorLoja = useMemo(() => {
     const map = new Map();
 
     motosFiltradas.forEach((v) => {
-      const loja = String(v.filial_venda || v.filial_origem || "N/I").toUpperCase();
+      const loja = pickLoja(v);
 
       if (!map.has(loja)) {
-        map.set(loja, { loja, faturamento: 0, liquido: 0, motos: 0 });
+        map.set(loja, {
+          loja,
+          faturamento: 0,
+          liquido: 0,
+          motos: 0,
+          comissoes: 0,
+        });
       }
 
       const cur = map.get(loja);
       cur.faturamento += toNumber(v.valor);
       cur.liquido += calcLiquidoMoto(v);
       cur.motos += 1;
+      cur.comissoes += toNumber(v.comissao_valor);
       map.set(loja, cur);
     });
 
-    return Array.from(map.values()).sort((a, b) => b.faturamento - a.faturamento);
+    return Array.from(map.values())
+      .map((x) => ({
+        ...x,
+        faturamento: Math.round(x.faturamento * 100) / 100,
+        liquido: Math.round(x.liquido * 100) / 100,
+        comissoes: Math.round(x.comissoes * 100) / 100,
+      }))
+      .sort((a, b) => b.faturamento - a.faturamento);
   }, [motosFiltradas]);
 
+  const fechamentoGeral = useMemo(() => {
+    const faturamento = fechamentoPorLoja.reduce((acc, item) => acc + Number(item.faturamento || 0), 0);
+    const liquido = fechamentoPorLoja.reduce((acc, item) => acc + Number(item.liquido || 0), 0);
+    const motosVendidas = fechamentoPorLoja.reduce((acc, item) => acc + Number(item.motos || 0), 0);
+    const comissoes = fechamentoPorLoja.reduce((acc, item) => acc + Number(item.comissoes || 0), 0);
+    const ticketMedio = motosVendidas > 0 ? faturamento / motosVendidas : 0;
+    const lojasAtivas = fechamentoPorLoja.length;
+
+    return {
+      faturamento,
+      liquido,
+      motosVendidas,
+      comissoes,
+      ticketMedio,
+      lojasAtivas,
+    };
+  }, [fechamentoPorLoja]);
+
+  /* ================= TOP MODELOS ================= */
   const topModelos = useMemo(() => {
     const map = new Map();
+
     motosFiltradas.forEach((v) => {
-      const key = String(v.modelo || "SEM MODELO").toUpperCase();
+      const key = String(v.modelo || "SEM MODELO").toUpperCase().trim();
       map.set(key, (map.get(key) || 0) + 1);
     });
+
     return Array.from(map.entries())
       .map(([modelo, total]) => ({ modelo, total }))
       .sort((a, b) => b.total - a.total)
       .slice(0, 10);
   }, [motosFiltradas]);
 
+  /* ================= VENDAS POR CIDADE ================= */
   const vendasPorCidade = useMemo(() => {
     const map = new Map();
+
     motosFiltradas.forEach((v) => {
-      const cidade = String(v.filial_venda || v.filial_origem || "N/I").toUpperCase();
+      const cidade = pickCidade(v);
       map.set(cidade, (map.get(cidade) || 0) + 1);
     });
+
     return Array.from(map.entries())
       .map(([cidade, total]) => ({ cidade, total }))
       .sort((a, b) => b.total - a.total)
       .slice(0, 10);
   }, [motosFiltradas]);
 
-  const pagamentoMotos = useMemo(() => {
-    const map = new Map();
-    motosFiltradas.forEach((v) => {
-      const forma = normPay(v.forma_pagamento);
-      map.set(forma, (map.get(forma) || 0) + 1);
-    });
-    return Array.from(map.entries()).map(([forma, qtd]) => ({ forma, qtd }));
-  }, [motosFiltradas]);
-
-  const topPecas = useMemo(() => {
-    const map = new Map();
-
-    pecasFiltradas.forEach((v) => {
-      const itens = Array.isArray(v.itens) ? v.itens : [];
-      itens.forEach((it) => {
-        const nome = String(it.nome || "SEM NOME").toUpperCase();
-        map.set(nome, (map.get(nome) || 0) + toNumber(it.quantidade));
-      });
-    });
-
-    return Array.from(map.entries())
-      .map(([peca, qtd]) => ({ peca, qtd }))
-      .sort((a, b) => b.qtd - a.qtd)
-      .slice(0, 10);
-  }, [pecasFiltradas]);
-
+  /* ================= RESUMO FINAL ================= */
   const resumoFinal = useMemo(() => {
-    const faturamentoMotos = motosFiltradas.reduce((acc, v) => acc + toNumber(v.valor), 0);
-    const faturamentoPecas = pecasFiltradas.reduce((acc, v) => acc + toNumber(v.total), 0);
-    const totalMotos = motosFiltradas.length;
-    const totalPecas = pecasFiltradas.length;
-    const liquidoMotos = motosFiltradas.reduce((acc, v) => acc + calcLiquidoMoto(v), 0);
-
     return {
-      faturamentoMotos,
-      faturamentoPecas,
-      totalMotos,
-      totalPecas,
-      faturamentoGeral: faturamentoMotos + faturamentoPecas,
-      liquidoMotos,
+      faturamentoMotos: motosFiltradas.reduce((acc, v) => acc + toNumber(v.valor), 0),
+      liquidoMotos: motosFiltradas.reduce((acc, v) => acc + calcLiquidoMoto(v), 0),
+      motosVendidas: motosFiltradas.length,
+      comissoes: motosFiltradas.reduce((acc, v) => acc + toNumber(v.comissao_valor), 0),
+      estoqueAtual: estoqueAtualPorLoja.reduce((acc, l) => acc + toNumber(l.total), 0),
     };
-  }, [motosFiltradas, pecasFiltradas]);
+  }, [motosFiltradas, estoqueAtualPorLoja]);
 
+  /* ================= UI ================= */
   return (
     <div
       className="dash-auto tv-corp"
@@ -437,23 +476,55 @@ export default function DashboardAuto() {
         color: THEME.text,
       }}
     >
-      <div style={{ padding: "18px 22px 10px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <div>
-          <div style={{ fontSize: 24, fontWeight: 900 }}>MotoNow Dashboard</div>
-          <div style={{ fontSize: 13, color: THEME.subtext }}>
-            {slides[slide]?.title} • {empresaFiltro === "TODAS" ? "Todas empresas" : empresaFiltro}
+      <div
+        style={{
+          padding: "18px 22px 10px 22px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 14,
+        }}
+      >
+        <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+          <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
+            <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: 0.2 }}>MotoNow</div>
+            <div style={{ opacity: 0.7, fontWeight: 600 }}>Dashboard • TV</div>
+          </div>
+          <div style={{ fontSize: 12, opacity: 0.7 }}>
+            {slides[slide]?.title} • {empresaFiltro === "TODAS" ? "Todas empresas" : empresaFiltro}{" "}
+            {dataInicio || dataFim ? `• ${dataInicio || "…"} → ${dataFim || "…"}` : "• Sem filtro de data"}
           </div>
         </div>
 
-        <div style={{ display: "flex", gap: 8 }}>
+        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
           <button className="tv-btn" onClick={() => nav("/home")}>⬅</button>
           <button className="tv-btn" onClick={prevSlide}>◀</button>
-          <button className="tv-btn" onClick={() => setAutoPlay((a) => !a)}>{autoPlay ? "⏸" : "▶"}</button>
+          <button className="tv-btn" onClick={() => setAutoPlay((a) => !a)}>
+            {autoPlay ? "⏸" : "▶"}
+          </button>
           <button className="tv-btn" onClick={nextSlide}>▶</button>
+          <button
+            className="tv-btn"
+            onClick={() => {
+              if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+              else document.exitFullscreen?.();
+            }}
+            title="Tela cheia"
+          >
+            ⛶
+          </button>
         </div>
       </div>
 
-      <div style={{ padding: "0 22px 12px", display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+      <div
+        style={{
+          padding: "0 22px 12px 22px",
+          display: "flex",
+          flexWrap: "wrap",
+          gap: 10,
+          alignItems: "center",
+        }}
+      >
         <select className="tv-select" value={empresaFiltro} onChange={(e) => setEmpresaFiltro(e.target.value)}>
           <option value="TODAS">Todas Empresas</option>
           <option value="EMENEZES">Emenezes</option>
@@ -463,105 +534,174 @@ export default function DashboardAuto() {
         <input className="tv-input" type="date" value={dataInicio} onChange={(e) => setDataInicio(e.target.value)} />
         <input className="tv-input" type="date" value={dataFim} onChange={(e) => setDataFim(e.target.value)} />
 
-        <button className="tv-chip" onClick={aplicarHoje}>Hoje</button>
-        <button className="tv-chip" onClick={aplicar7Dias}>7d</button>
-        <button className="tv-chip" onClick={aplicar30Dias}>30d</button>
-        <button className="tv-chip" onClick={aplicarMesAtual}>Mês</button>
-        <button className="tv-chip" onClick={limparDatas}>Limpar</button>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <button className="tv-chip" onClick={aplicarHoje}>Hoje</button>
+          <button className="tv-chip" onClick={aplicar7Dias}>7d</button>
+          <button className="tv-chip" onClick={aplicar30Dias}>30d</button>
+          <button className="tv-chip" onClick={aplicarMesAtual}>Mês</button>
+          <button className="tv-chip" onClick={limparDatas}>Limpar</button>
+        </div>
       </div>
 
-      <div style={{ padding: "0 22px 10px", display: "flex", gap: 8 }}>
+      <div style={{ padding: "0 22px 10px 22px", display: "flex", gap: 8, alignItems: "center" }}>
         {slides.map((s, idx) => (
           <button
             key={s.id}
             onClick={() => setSlide(idx)}
+            title={s.title}
             style={{
-              width: idx === slide ? 28 : 10,
+              width: idx === slide ? 26 : 10,
               height: 10,
               borderRadius: 999,
               border: "none",
-              background: idx === slide ? "#fff" : "rgba(255,255,255,0.22)",
               cursor: "pointer",
+              background: idx === slide ? "rgba(255,255,255,0.85)" : "rgba(255,255,255,0.22)",
+              transition: "all .18s ease",
             }}
           />
         ))}
+        <div style={{ marginLeft: "auto", fontSize: 12, opacity: 0.65 }}>
+          Dica: <b>Espaço</b> play/pausa • <b>←/→</b> troca • <b>F</b> tela cheia
+        </div>
       </div>
 
-      <div style={{ height: "calc(100vh - 150px)", padding: "0 22px 18px" }}>
+      <div style={{ height: "calc(100vh - 150px)", padding: "0 22px 18px 22px" }}>
         {slides[slide]?.id === "kpis" && (
-          <div style={{ height: "100%", display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14 }}>
+          <div style={{ height: "100%", display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 14 }}>
             <KpiCard title="Faturamento motos" value={formatBRL(kpis.faturamentoMotos)} />
             <KpiCard title="Líquido motos" value={formatBRL(kpis.liquidoMotos)} />
-            <KpiCard title="Faturamento peças" value={formatBRL(kpis.faturamentoPecas)} />
-            <KpiCard title="Ticket médio peças" value={formatBRL(kpis.ticketMedioPecas)} />
-            <KpiCard title="Motos vendidas" value={kpis.totalMotos} />
-            <KpiCard title="Vendas de peças" value={kpis.qtdVendasPecas} />
+            <KpiCard title="Motos vendidas" value={kpis.qtdMotos} />
+            <KpiCard title="Comissões" value={formatBRL(kpis.comissoes)} />
+            <KpiCard title="Vendas últimos 7 dias" value={kpis.motos7d} />
           </div>
         )}
 
         {slides[slide]?.id === "fat_dia" && (
-          <div style={{ height: "100%", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
-            <Panel title="Faturamento motos por dia">
-              <ResponsiveContainer width="100%" height={470}>
-                <BarChart data={motosPorDia}>
-                  <CartesianGrid {...THEME.grid} />
-                  <XAxis dataKey="dia" angle={-30} textAnchor="end" height={60} {...THEME.axis} />
-                  <YAxis {...THEME.axis} />
-                  <Tooltip {...tooltipProps((v) => [formatBRL(v), "Motos"])} />
-                  <Bar dataKey="total" fill="rgba(110,240,200,0.82)" radius={[10, 10, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </Panel>
-
-            <Panel title="Faturamento peças por dia">
-              <ResponsiveContainer width="100%" height={470}>
-                <BarChart data={pecasPorDia}>
-                  <CartesianGrid {...THEME.grid} />
-                  <XAxis dataKey="dia" angle={-30} textAnchor="end" height={60} {...THEME.axis} />
-                  <YAxis {...THEME.axis} />
-                  <Tooltip {...tooltipProps((v) => [formatBRL(v), "Peças"])} />
-                  <Bar dataKey="total" fill="rgba(120,160,255,0.88)" radius={[10, 10, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </Panel>
-          </div>
-        )}
-
-        {slides[slide]?.id === "estoque_motos" && (
-          <Panel title="Fluxo de estoque de motos">
+          <Panel title="Faturamento de motos por dia" rightHint="(período filtrado)">
             <ResponsiveContainer width="100%" height={470}>
-              <BarChart data={fluxoEstoqueMotos}>
+              <BarChart data={faturamentoPorDia} margin={{ top: 18, right: 16, bottom: 44, left: 8 }}>
                 <CartesianGrid {...THEME.grid} />
                 <XAxis dataKey="dia" angle={-30} textAnchor="end" height={60} {...THEME.axis} />
                 <YAxis {...THEME.axis} />
-                <Tooltip {...tooltipProps((v, name) => [v, name])} />
-                <Legend />
-                <Bar dataKey="entradas" fill="rgba(110,240,200,0.82)" />
-                <Bar dataKey="saidas" fill="rgba(255,120,120,0.82)" />
-                <Bar dataKey="saldo" fill="rgba(120,160,255,0.88)" />
+                <Tooltip {...tooltipProps((v) => [formatBRL(v), "Faturamento"])} />
+                <Bar dataKey="faturamento" radius={[10, 10, 0, 0]} fill="rgba(110,240,200,0.82)" stroke="rgba(255,255,255,0.06)" />
               </BarChart>
             </ResponsiveContainer>
           </Panel>
         )}
 
-        {slides[slide]?.id === "fechamento_loja" && (
+        {slides[slide]?.id === "ultimos_7" && (
+          <Panel title="Vendas nos últimos 7 dias" rightHint="(quantidade por dia)">
+            <ResponsiveContainer width="100%" height={470}>
+              <LineChart data={vendasUltimos7Dias} margin={{ top: 18, right: 16, bottom: 30, left: 8 }}>
+                <CartesianGrid {...THEME.grid} />
+                <XAxis dataKey="dia" {...THEME.axis} />
+                <YAxis allowDecimals={false} {...THEME.axis} />
+                <Tooltip {...tooltipProps((v, name) => [name === "faturamento" ? formatBRL(v) : v, name])} />
+                <Legend />
+                <Line type="monotone" dataKey="motos" name="Motos" stroke="rgba(120,160,255,0.95)" strokeWidth={3} />
+              </LineChart>
+            </ResponsiveContainer>
+          </Panel>
+        )}
+
+        {slides[slide]?.id === "estoque_motos" && (
           <div style={{ height: "100%", display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: 14 }}>
-            <Panel title="Fechamento por loja">
+            <Panel title="Estoque atual de motos por loja" rightHint="(real atual)">
               <ResponsiveContainer width="100%" height={470}>
-                <BarChart data={fechamentoPorLoja}>
+                <BarChart data={estoqueAtualPorLoja} margin={{ top: 18, right: 16, bottom: 40, left: 8 }}>
                   <CartesianGrid {...THEME.grid} />
                   <XAxis dataKey="loja" angle={-20} textAnchor="end" height={60} {...THEME.axis} />
-                  <YAxis {...THEME.axis} />
-                  <Tooltip {...tooltipProps((v, name) => [name === "motos" ? v : formatBRL(v), name])} />
+                  <YAxis allowDecimals={false} {...THEME.axis} />
+                  <Tooltip {...tooltipProps((v, name) => [v, name])} />
                   <Legend />
-                  <Bar dataKey="faturamento" fill="rgba(120,160,255,0.88)" />
-                  <Bar dataKey="liquido" fill="rgba(110,240,200,0.82)" />
+                  <Bar dataKey="disponiveis" name="Disponíveis" fill="rgba(110,240,200,0.82)" />
+                  <Bar dataKey="negociacao" name="Negociação" fill="rgba(255,190,90,0.88)" />
+                  <Bar dataKey="pendente" name="Pendente" fill="rgba(120,160,255,0.88)" />
                 </BarChart>
               </ResponsiveContainer>
             </Panel>
 
-            <Panel title="Resumo por loja">
-              <div style={{ display: "flex", flexDirection: "column", gap: 12, maxHeight: 470, overflow: "auto" }}>
+            <Panel title="Resumo do estoque atual" rightHint="(por loja)">
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 12,
+                  maxHeight: 470,
+                  overflow: "auto",
+                  paddingRight: 6,
+                }}
+              >
+                {estoqueAtualPorLoja.map((item) => (
+                  <div
+                    key={item.loja}
+                    style={{
+                      background: "rgba(255,255,255,0.04)",
+                      border: "1px solid rgba(255,255,255,0.08)",
+                      borderRadius: 16,
+                      padding: 14,
+                    }}
+                  >
+                    <div style={{ fontSize: 15, fontWeight: 800 }}>{item.loja}</div>
+                    <div style={{ marginTop: 6 }}>Total: <strong>{item.total}</strong></div>
+                    <div>Disponíveis: <strong>{item.disponiveis}</strong></div>
+                    <div>Negociação: <strong>{item.negociacao}</strong></div>
+                    <div>Pendente: <strong>{item.pendente}</strong></div>
+                  </div>
+                ))}
+
+                {estoqueAtualPorLoja.length === 0 && (
+                  <div style={{ opacity: 0.7, fontSize: 14 }}>
+                    Nenhum estoque encontrado.
+                  </div>
+                )}
+              </div>
+            </Panel>
+          </div>
+        )}
+
+        {slides[slide]?.id === "fechamento_loja" && (
+          <div
+            style={{
+              height: "100%",
+              display: "grid",
+              gridTemplateColumns: "1.2fr 1fr 0.9fr",
+              gap: 14,
+            }}
+          >
+            <Panel title="Fechamento por loja" rightHint="(período filtrado)">
+              <ResponsiveContainer width="100%" height={470}>
+                <BarChart data={fechamentoPorLoja} margin={{ top: 18, right: 16, bottom: 40, left: 8 }}>
+                  <CartesianGrid {...THEME.grid} />
+                  <XAxis dataKey="loja" angle={-20} textAnchor="end" height={60} {...THEME.axis} />
+                  <YAxis {...THEME.axis} />
+                  <Tooltip
+                    {...tooltipProps((v, name) => {
+                      if (name === "faturamento" || name === "liquido" || name === "comissoes") {
+                        return [formatBRL(v), name];
+                      }
+                      return [v, name];
+                    })}
+                  />
+                  <Legend />
+                  <Bar dataKey="faturamento" name="Faturamento" fill="rgba(120,160,255,0.88)" />
+                  <Bar dataKey="liquido" name="Líquido" fill="rgba(110,240,200,0.82)" />
+                </BarChart>
+              </ResponsiveContainer>
+            </Panel>
+
+            <Panel title="Resumo por loja" rightHint="(período filtrado)">
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 12,
+                  maxHeight: 470,
+                  overflow: "auto",
+                  paddingRight: 6,
+                }}
+              >
                 {fechamentoPorLoja.map((item) => (
                   <div
                     key={item.loja}
@@ -572,95 +712,117 @@ export default function DashboardAuto() {
                       padding: 14,
                     }}
                   >
-                    <div style={{ fontWeight: 800 }}>{item.loja}</div>
-                    <div>Faturamento: <strong>{formatBRL(item.faturamento)}</strong></div>
+                    <div style={{ fontSize: 15, fontWeight: 800 }}>{item.loja}</div>
+                    <div style={{ marginTop: 8 }}>Faturamento: <strong>{formatBRL(item.faturamento)}</strong></div>
                     <div>Líquido: <strong>{formatBRL(item.liquido)}</strong></div>
+                    <div>Comissões: <strong>{formatBRL(item.comissoes)}</strong></div>
                     <div>Motos: <strong>{item.motos}</strong></div>
                   </div>
                 ))}
+
+                {fechamentoPorLoja.length === 0 && (
+                  <div style={{ opacity: 0.7, fontSize: 14 }}>
+                    Nenhum dado encontrado nesse período.
+                  </div>
+                )}
+              </div>
+            </Panel>
+
+            <Panel title="Fechamento geral" rightHint="(período filtrado)">
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 12,
+                  height: "100%",
+                }}
+              >
+                <BigStat label="Faturamento geral" value={formatBRL(fechamentoGeral.faturamento)} />
+                <BigStat label="Líquido geral" value={formatBRL(fechamentoGeral.liquido)} />
+                <BigStat label="Motos vendidas" value={fechamentoGeral.motosVendidas} />
+                <BigStat label="Comissões" value={formatBRL(fechamentoGeral.comissoes)} />
+                <BigStat label="Ticket médio" value={formatBRL(fechamentoGeral.ticketMedio)} />
+                <BigStat label="Lojas ativas" value={fechamentoGeral.lojasAtivas} />
               </div>
             </Panel>
           </div>
         )}
 
         {slides[slide]?.id === "top_modelos" && (
-          <div style={{ height: "100%", display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 14 }}>
-            <Panel title="Top modelos">
+          <div style={{ height: "100%", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+            <Panel title="Top 10 modelos vendidos" rightHint="(período filtrado)">
               <ResponsiveContainer width="100%" height={470}>
-                <BarChart data={topModelos} layout="vertical">
+                <BarChart data={topModelos} layout="vertical" margin={{ top: 12, right: 18, bottom: 12, left: 22 }}>
                   <CartesianGrid {...THEME.grid} />
-                  <XAxis type="number" {...THEME.axis} />
-                  <YAxis type="category" dataKey="modelo" width={180} {...THEME.axis} />
+                  <XAxis type="number" allowDecimals={false} {...THEME.axis} />
+                  <YAxis
+                    type="category"
+                    dataKey="modelo"
+                    width={220}
+                    tick={{ fill: "rgba(255,255,255,0.72)", fontSize: 12 }}
+                    axisLine={{ stroke: "rgba(255,255,255,0.08)" }}
+                    tickLine={{ stroke: "rgba(255,255,255,0.04)" }}
+                  />
                   <Tooltip {...tooltipProps((v) => [v, "Vendas"])} />
-                  <Bar dataKey="total" fill="rgba(160,120,255,0.88)" radius={[0, 10, 10, 0]} />
+                  <Bar dataKey="total" radius={[0, 10, 10, 0]} fill="rgba(160,120,255,0.88)" stroke="rgba(255,255,255,0.06)" />
                 </BarChart>
               </ResponsiveContainer>
             </Panel>
 
-            <Panel title="Vendas por cidade">
+            <Panel title="Vendas por cidade" rightHint="(período filtrado)">
               <ResponsiveContainer width="100%" height={470}>
-                <BarChart data={vendasPorCidade} layout="vertical">
+                <BarChart data={vendasPorCidade} layout="vertical" margin={{ top: 12, right: 18, bottom: 12, left: 22 }}>
                   <CartesianGrid {...THEME.grid} />
-                  <XAxis type="number" {...THEME.axis} />
-                  <YAxis type="category" dataKey="cidade" width={180} {...THEME.axis} />
+                  <XAxis type="number" allowDecimals={false} {...THEME.axis} />
+                  <YAxis
+                    type="category"
+                    dataKey="cidade"
+                    width={220}
+                    tick={{ fill: "rgba(255,255,255,0.72)", fontSize: 12 }}
+                    axisLine={{ stroke: "rgba(255,255,255,0.08)" }}
+                    tickLine={{ stroke: "rgba(255,255,255,0.04)" }}
+                  />
                   <Tooltip {...tooltipProps((v) => [v, "Vendas"])} />
-                  <Bar dataKey="total" fill="rgba(110,240,200,0.82)" radius={[0, 10, 10, 0]} />
+                  <Bar dataKey="total" radius={[0, 10, 10, 0]} fill="rgba(110,240,200,0.82)" stroke="rgba(255,255,255,0.06)" />
                 </BarChart>
-              </ResponsiveContainer>
-            </Panel>
-
-            <Panel title="Pagamento motos">
-              <ResponsiveContainer width="100%" height={470}>
-                <PieChart>
-                  <Tooltip {...tooltipProps((v, name) => [v, name])} />
-                  <Legend />
-                  <Pie data={pagamentoMotos} dataKey="qtd" nameKey="forma" outerRadius={150} />
-                </PieChart>
               </ResponsiveContainer>
             </Panel>
           </div>
         )}
 
-        {slides[slide]?.id === "pecas" && (
-          <Panel title="Top peças">
-            <ResponsiveContainer width="100%" height={470}>
-              <BarChart data={topPecas} layout="vertical">
-                <CartesianGrid {...THEME.grid} />
-                <XAxis type="number" {...THEME.axis} />
-                <YAxis type="category" dataKey="peca" width={260} {...THEME.axis} />
-                <Tooltip {...tooltipProps((v) => [v, "Qtd"])} />
-                <Bar dataKey="qtd" fill="rgba(255,190,90,0.88)" radius={[0, 10, 10, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </Panel>
-        )}
-
         {slides[slide]?.id === "resumo_final" && (
-          <div style={{ height: "100%", display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14 }}>
+          <div
+            style={{
+              height: "100%",
+              display: "grid",
+              gridTemplateColumns: "repeat(5, 1fr)",
+              gap: 14,
+            }}
+          >
             <KpiCard title="Faturamento motos" value={formatBRL(resumoFinal.faturamentoMotos)} />
-            <KpiCard title="Faturamento peças" value={formatBRL(resumoFinal.faturamentoPecas)} />
-            <KpiCard title="Faturamento geral" value={formatBRL(resumoFinal.faturamentoGeral)} />
             <KpiCard title="Líquido motos" value={formatBRL(resumoFinal.liquidoMotos)} />
-            <KpiCard title="Motos vendidas" value={resumoFinal.totalMotos} />
-            <KpiCard title="Vendas de peças" value={resumoFinal.totalPecas} />
+            <KpiCard title="Motos vendidas" value={resumoFinal.motosVendidas} />
+            <KpiCard title="Comissões" value={formatBRL(resumoFinal.comissoes)} />
+            <KpiCard title="Estoque atual" value={resumoFinal.estoqueAtual} />
           </div>
         )}
       </div>
 
       <style>{`
         .tv-corp .tv-btn{
-          height: 38px;
-          min-width: 46px;
+          height: 36px;
+          min-width: 44px;
           border-radius: 12px;
           background: rgba(255,255,255,0.06);
           border: 1px solid rgba(255,255,255,0.10);
-          color: rgba(255,255,255,0.92);
+          color: rgba(255,255,255,0.90);
           cursor: pointer;
+          box-shadow: 0 10px 30px rgba(0,0,0,0.35);
         }
         .tv-corp .tv-btn:hover{ background: rgba(255,255,255,0.10); }
 
         .tv-corp .tv-select, .tv-corp .tv-input{
-          height: 38px;
+          height: 36px;
           border-radius: 12px;
           background: rgba(255,255,255,0.05);
           border: 1px solid rgba(255,255,255,0.10);
@@ -670,7 +832,7 @@ export default function DashboardAuto() {
         }
 
         .tv-corp .tv-chip{
-          height: 36px;
+          height: 34px;
           padding: 0 12px;
           border-radius: 999px;
           background: rgba(255,255,255,0.05);
@@ -678,12 +840,14 @@ export default function DashboardAuto() {
           color: rgba(255,255,255,0.90);
           cursor: pointer;
         }
+        .tv-corp .tv-chip:hover{ background: rgba(255,255,255,0.10); }
       `}</style>
     </div>
   );
 }
 
-function KpiCard({ title, value }) {
+/* ================= COMPONENTES ================= */
+function KpiCard({ title, value, hint }) {
   return (
     <div
       style={{
@@ -692,16 +856,40 @@ function KpiCard({ title, value }) {
         borderRadius: 18,
         padding: 16,
         boxShadow: THEME.shadow,
-        minHeight: 100,
+        backdropFilter: "blur(8px)",
+        minHeight: 98,
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "space-between",
       }}
     >
-      <div style={{ fontSize: 12, opacity: 0.75 }}>{title}</div>
-      <div style={{ fontSize: 30, fontWeight: 900, marginTop: 10 }}>{value}</div>
+      <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
+        <div style={{ fontSize: 12, opacity: 0.75, letterSpacing: 0.35 }}>{title}</div>
+        {hint ? <div style={{ fontSize: 11, opacity: 0.55 }}>{hint}</div> : null}
+      </div>
+      <div style={{ fontSize: 28, fontWeight: 850, marginTop: 8 }}>{value}</div>
     </div>
   );
 }
 
-function Panel({ title, children }) {
+function BigStat({ label, value }) {
+  return (
+    <div
+      style={{
+        background: THEME.card,
+        border: THEME.border,
+        borderRadius: 18,
+        padding: 16,
+        boxShadow: THEME.shadow,
+      }}
+    >
+      <div style={{ fontSize: 12, opacity: 0.72 }}>{label}</div>
+      <div style={{ fontSize: 34, fontWeight: 900, marginTop: 6 }}>{value}</div>
+    </div>
+  );
+}
+
+function Panel({ title, rightHint, children }) {
   return (
     <div
       style={{
@@ -711,10 +899,15 @@ function Panel({ title, children }) {
         borderRadius: 20,
         padding: 16,
         boxShadow: THEME.shadow,
+        backdropFilter: "blur(8px)",
+        overflow: "hidden",
       }}
     >
-      <div style={{ fontSize: 16, fontWeight: 900, marginBottom: 10 }}>{title}</div>
-      <div style={{ height: "calc(100% - 30px)" }}>{children}</div>
+      <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 12 }}>
+        <div style={{ fontSize: 16, fontWeight: 850 }}>{title}</div>
+        {rightHint ? <div style={{ fontSize: 12, opacity: 0.65 }}>{rightHint}</div> : null}
+      </div>
+      <div style={{ marginTop: 10, height: "calc(100% - 34px)" }}>{children}</div>
     </div>
   );
 }
