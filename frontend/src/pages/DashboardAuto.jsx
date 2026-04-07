@@ -319,28 +319,28 @@ export default function DashboardAuto() {
 
   /* ================= ÚLTIMOS 7 DIAS ================= */
   const vendasUltimos7Dias = useMemo(() => {
-    const hoje = new Date();
-    const arr = [];
+  const hoje = new Date();
+  const arr = [];
 
-    for (let i = 6; i >= 0; i--) {
-      const d = new Date();
-      d.setDate(hoje.getDate() - i);
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(hoje.getDate() - i);
 
-      const iso = d.toISOString().slice(0, 10);
+    const iso = d.toISOString().slice(0, 10);
 
-      const vendasDoDia = motosFiltradas.filter(
-        (v) => isoDateOnly(v.data_venda || v.created_at) === iso
-      );
+    const vendasDoDia = motosBase7Dias.filter(
+      (v) => isoDateOnly(v.data_venda || v.created_at) === iso
+    );
 
-      arr.push({
-        dia: d.toLocaleDateString("pt-BR"),
-        motos: vendasDoDia.length,
-        faturamento: vendasDoDia.reduce((acc, v) => acc + toNumber(v.valor), 0),
-      });
-    }
+    arr.push({
+      dia: d.toLocaleDateString("pt-BR"),
+      motos: vendasDoDia.length,
+      faturamento: vendasDoDia.reduce((acc, v) => acc + toNumber(v.valor), 0),
+    });
+  }
 
-    return arr;
-  }, [motosFiltradas]);
+  return arr;
+}, [motosBase7Dias]);
 
   /* ================= ESTOQUE ATUAL REAL ================= */
   const estoqueAtualPorLoja = useMemo(() => {
