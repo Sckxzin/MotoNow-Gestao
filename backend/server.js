@@ -105,33 +105,33 @@ function normalizarModeloComissao(nome) {
 }
 
 const TABELA_COMISSOES = {
-  PHOENIXS50: { v30: 8500, v50: 9000 },
-  PHOENIX50SEFI: { v30: 9800, v50: 10500 },
-  JET50: { v30: 9800, v50: 10000 },
-  RIO125: { v30: 10650, v50: 11200 },
-  JET125SS: { v30: 10500, v50: 11000 },
-  NEWJET125: { v30: 11300, v50: 11600 },
-  JET125EFI: { v30: 12390, v50: 12800 },
-  JEF150S: { v30: 13990, v50: 14500 },
-  JEF150EFI: { v30: 15500, v50: 16800 },
-  NEWJEF: { v30: 15000, v50: 16000 },
-  SHI175: { v30: 14390, v50: 14800 },
-  SHI175SEFI: { v30: 16800, v50: 17000 },
-  FREE150EFI: { v30: 12000, v50: 12890 },
-  URBAN150EFI: { v30: 20000, v50: 21000 },
-  SHI250EFI: { v30: 22500, v50: 23490 },
-  STORM200: { v30: 20390, v50: 21000 },
-  FLASH250: { v30: 22800, v50: 23490 },
-  TITANIUM: { v30: 25428, v50: 26490 },
-  DENVER: { v30: 25428, v50: 26490 },
-  IRON: { v30: 23490, v50: 23490 },
-  PT1: { v30: 6800, v50: 6800 },
-  PT1S: { v30: 7000, v50: 7300 },
-  ATV125: { v30: 15500, v50: 15500 },
-  ATV125EFI: { v30: 17000, v50: 17000 },
-  ATV200: { v30: 22788, v50: 22000 },
-  ATVEFI200: { v30: 25000, v50: 25000 },
-  NEWATV200EFI: { v30: 25000, v50: 25500 },
+  PHOENIXS50: { v30: 8500, v50: 9000, v100: 9800 },
+  PHOENIX50SEFI: { v30: 9800, v50: 10500, v100: 11550 },
+  JET50: { v30: 9800, v50: 10000, v100: 10800 },
+  RIO125: { v30: 10650, v50: 11200, v100: 12200 },
+  JET125SS: { v30: 10500, v50: 11000, v100: 11700 },
+  NEWJET125: { v30: 11300, v50: 11600, v100: 12390 },
+  JET125EFI: { v30: 12390, v50: 12800, v100: 13390 },
+  JEF150S: { v30: 13990, v50: 14500, v100: 15290 },
+  JEF150EFI: { v30: 15500, v50: 16800, v100: 17160 },
+  NEWJEF: { v30: 15000, v50: 16000, v100: 16190 },
+  SHI175: { v30: 14390, v50: 14800, v100: 16280 },
+  SHI175SEFI: { v30: 16800, v50: 17000, v100: 18300 },
+  FREE150EFI: { v30: 12000, v50: 12890, v100: 14179 },
+  URBAN150EFI: { v30: 20000, v50: 21000, v100: 22990 },
+  SHI250EFI: { v30: 22500, v50: 23490, v100: 25839 },
+  STORM200: { v30: 20390, v50: 21000, v100: 22990 },
+  FLASH250: { v30: 22800, v50: 23490, v100: 25839 },
+  TITANIUM: { v30: 25428, v50: 26490, v100: 29139 },
+  DENVER: { v30: 25428, v50: 26490, v100: 29139 },
+  IRON: { v30: 23490, v50: 23490, v100: 25839 },
+  PT1: { v30: 6800, v50: 6800, v100: 7480 },
+  PT1S: { v30: 7000, v50: 7300, v100: 8030 },
+  ATV125: { v30: 15500, v50: 15500, v100: 17050 },
+  ATV125EFI: { v30: 17000, v50: 17000, v100: 18700 },
+  ATV200: { v30: 22788, v50: 22000, v100: 24200 },
+  ATVEFI200: { v30: 25000, v50: 25000, v100: 26000 },
+  NEWATV200EFI: { v30: 25000, v50: 25500, v100: 26500 },
 };
 
 function calcularComissaoMoto(modelo, valorVenda) {
@@ -139,10 +139,29 @@ function calcularComissaoMoto(modelo, valorVenda) {
   const regra = TABELA_COMISSOES[chave];
   const valor = Number(valorVenda || 0);
 
-  if (!regra) return 0;
-  if (valor <= regra.v30) return 30;
-  if (valor <= regra.v50) return 50;
-  return 100;
+  if (!regra || !valor) return 0;
+
+  const v30 = Number(regra.v30 || 0);
+  const v50 = Number(regra.v50 || 0);
+  const v100 = Number(regra.v100 || 0);
+
+  // 🔥 bateu meta máxima
+  if (valor >= v100) return 100;
+
+  // 🔥 entre v50 e v100
+  if (valor >= v50) {
+    const extra = Math.floor((valor - v50) / 20);
+    return Math.min(50 + extra, 99);
+  }
+
+  // 🔥 entre v30 e v50
+  if (valor >= v30) {
+    const extra = Math.floor((valor - v30) / 20);
+    return Math.min(30 + extra, 49);
+  }
+
+  // 🔥 abaixo do mínimo
+  return 30;
 }
 
 /* ================= REGRA REPASSE SANTANDER POR FILIAL + MODELO ================= */
