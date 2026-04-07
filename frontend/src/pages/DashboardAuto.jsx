@@ -256,6 +256,11 @@ export default function DashboardAuto() {
       .filter((v) => empresaFiltro === "TODAS" || getEmpresa(v) === empresaFiltro);
   }, [vendasMotos, dataInicio, dataFim, empresaFiltro]);
 
+  const motosBase7Dias = useMemo(() => {
+    return (vendasMotos || []).filter(
+      (v) => empresaFiltro === "TODAS" || getEmpresa(v) === empresaFiltro);
+  }, [vendasMotos, empresaFiltro]);
+
   /* ================= KPIS ================= */
   const kpis = useMemo(() => {
     const faturamentoMotos = motosFiltradas.reduce((acc, v) => acc + toNumber(v.valor), 0);
