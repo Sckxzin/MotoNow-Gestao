@@ -164,6 +164,65 @@ function calcularComissaoMoto(modelo, valorVenda) {
   return 30;
 }
 
+app.put("/vendas-motos/:id", async (req, res) => {
+  const { id } = req.params;
+
+  const {
+    valor,
+    rp,
+    forma_pagamento,
+    gasolina,
+    brinde,
+    local_retirada,
+    filial_retirada,
+    comissao_valor,
+  } = req.body;
+
+  try {
+    const vendaExiste = await db.query(
+      `SELECT id FROM vendas_motos WHERE id = $1`,
+      [id]
+    );
+
+    if (vendaExiste.rows.length === 0) {
+      return res.status(404).json({ message: "Venda de moto não encontrada" });
+    }
+
+    const result = await db.query(
+      `UPDATE vendas_motos
+       SET valor = $1,
+           rp = $2,
+           forma_pagamento = $3,
+           gasolina = $4,
+           brinde = $5,
+           local_retirada = $6,
+           filial_retirada = $7,
+           comissao_valor = $8
+       WHERE id = $9
+       RETURNING *`,
+      [
+        valor != null && valor !== "" ? Number(valor) : 0,
+        Boolean(rp),
+        forma_pagamento || null,
+        gasolina != null && gasolina !== "" ? Number(gasolina) : null,
+        Boolean(brinde),
+        local_retirada || null,
+        filial_retirada || null,
+        comissao_valor != null && comissao_valor !== "" ? Number(comissao_valor) : 0,
+        Number(id),
+      ]
+    );
+
+    res.json({
+      message: "Venda de moto atualizada com sucesso",
+      venda: result.rows[0],
+    });
+  } catch (err) {
+    console.error("Erro editar venda moto:", err);
+    res.status(500).json({ message: "Erro ao editar venda moto" });
+  }
+});
+
 /* ================= REGRA REPASSE SANTANDER POR FILIAL + MODELO ================= */
 
 // normaliza texto genérico
