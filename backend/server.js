@@ -199,7 +199,7 @@ const REPASSE_SANTANDER_POR_MODELO = {
   [normModeloKey("PHOENIX 50S")]:7100,
   [normModeloKey("JEF 150 EFI")]:13800,
   [normModeloKey("ATV 200 EFI")]:23000,
-  [normModeloKey("NEW JET 125")]:01,
+  [normModeloKey("NEW JET 125 EFI")]:14600,
   [normModeloKey("PT4 PRO")]:8300,
 };
 
