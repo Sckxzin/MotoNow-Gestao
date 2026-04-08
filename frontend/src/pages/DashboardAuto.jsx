@@ -160,6 +160,7 @@ export default function DashboardAuto() {
       { id: "kpis", title: "Resumo executivo" },
       { id: "fat_dia", title: "Faturamento por dia" },
       { id: "ultimos_7", title: "Vendas nos últimos 7 dias" },
+{ id: "acumulado_7", title: "Acumulado 7 dias" },
       { id: "estoque_motos", title: "Estoque atual de motos" },
       { id: "fechamento_loja", title: "Fechamento por loja" },
       { id: "top_modelos", title: "Top modelos e cidades" },
@@ -340,6 +341,42 @@ export default function DashboardAuto() {
   }
 
   return arr;
+}, [motosBase7Dias]);
+
+const acumulado7Dias = useMemo(() => {
+  const base = motosBase7Dias;
+
+  const map = new Map();
+
+  base.forEach((v) => {
+    const d = isoDateOnly(v.data_venda || v.created_at);
+    if (!d) return;
+
+    map.set(d, (map.get(d) || 0) + 1);
+  });
+
+  const datas = Array.from(map.keys()).sort();
+
+  const resultado = [];
+
+  datas.forEach((data, index) => {
+    let soma = 0;
+
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(data);
+      d.setDate(d.getDate() - i);
+
+      const key = d.toISOString().slice(0, 10);
+      soma += map.get(key) || 0;
+    }
+
+    resultado.push({
+      dia: formatDateBRFromISO(data),
+      total: soma,
+    });
+  });
+
+  return resultado;
 }, [motosBase7Dias]);
 
   /* ================= ESTOQUE ATUAL REAL ================= */
@@ -595,324 +632,4 @@ export default function DashboardAuto() {
           </Panel>
         )}
 
-        {slides[slide]?.id === "ultimos_7" && (
-          <Panel title="Vendas nos últimos 7 dias" rightHint="(quantidade por dia)">
-            <ResponsiveContainer width="100%" height={470}>
-              <LineChart data={vendasUltimos7Dias} margin={{ top: 18, right: 16, bottom: 30, left: 8 }}>
-                <CartesianGrid {...THEME.grid} />
-                <XAxis dataKey="dia" {...THEME.axis} />
-                <YAxis allowDecimals={false} {...THEME.axis} />
-                <Tooltip {...tooltipProps((v, name) => [name === "faturamento" ? formatBRL(v) : v, name])} />
-                <Legend />
-                <Line type="monotone" dataKey="motos" name="Motos" stroke="rgba(120,160,255,0.95)" strokeWidth={3} />
-              </LineChart>
-            </ResponsiveContainer>
-          </Panel>
-        )}
-
-        {slides[slide]?.id === "estoque_motos" && (
-          <div style={{ height: "100%", display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: 14 }}>
-            <Panel title="Estoque atual de motos por loja" rightHint="(real atual)">
-              <ResponsiveContainer width="100%" height={470}>
-                <BarChart data={estoqueAtualPorLoja} margin={{ top: 18, right: 16, bottom: 40, left: 8 }}>
-                  <CartesianGrid {...THEME.grid} />
-                  <XAxis dataKey="loja" angle={-20} textAnchor="end" height={60} {...THEME.axis} />
-                  <YAxis allowDecimals={false} {...THEME.axis} />
-                  <Tooltip {...tooltipProps((v, name) => [v, name])} />
-                  <Legend />
-                  <Bar dataKey="disponiveis" name="Disponíveis" fill="rgba(110,240,200,0.82)" />
-                  <Bar dataKey="negociacao" name="Negociação" fill="rgba(255,190,90,0.88)" />
-                  <Bar dataKey="pendente" name="Pendente" fill="rgba(120,160,255,0.88)" />
-                </BarChart>
-              </ResponsiveContainer>
-            </Panel>
-
-            <Panel title="Resumo do estoque atual" rightHint="(por loja)">
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 12,
-                  maxHeight: 470,
-                  overflow: "auto",
-                  paddingRight: 6,
-                }}
-              >
-                {estoqueAtualPorLoja.map((item) => (
-                  <div
-                    key={item.loja}
-                    style={{
-                      background: "rgba(255,255,255,0.04)",
-                      border: "1px solid rgba(255,255,255,0.08)",
-                      borderRadius: 16,
-                      padding: 14,
-                    }}
-                  >
-                    <div style={{ fontSize: 15, fontWeight: 800 }}>{item.loja}</div>
-                    <div style={{ marginTop: 6 }}>Total: <strong>{item.total}</strong></div>
-                    <div>Disponíveis: <strong>{item.disponiveis}</strong></div>
-                    <div>Negociação: <strong>{item.negociacao}</strong></div>
-                    <div>Pendente: <strong>{item.pendente}</strong></div>
-                  </div>
-                ))}
-
-                {estoqueAtualPorLoja.length === 0 && (
-                  <div style={{ opacity: 0.7, fontSize: 14 }}>
-                    Nenhum estoque encontrado.
-                  </div>
-                )}
-              </div>
-            </Panel>
-          </div>
-        )}
-
-        {slides[slide]?.id === "fechamento_loja" && (
-          <div
-            style={{
-              height: "100%",
-              display: "grid",
-              gridTemplateColumns: "1.2fr 1fr 0.9fr",
-              gap: 14,
-            }}
-          >
-            <Panel title="Fechamento por loja" rightHint="(período filtrado)">
-              <ResponsiveContainer width="100%" height={470}>
-                <BarChart data={fechamentoPorLoja} margin={{ top: 18, right: 16, bottom: 40, left: 8 }}>
-                  <CartesianGrid {...THEME.grid} />
-                  <XAxis dataKey="loja" angle={-20} textAnchor="end" height={60} {...THEME.axis} />
-                  <YAxis {...THEME.axis} />
-                  <Tooltip
-                    {...tooltipProps((v, name) => {
-                      if (name === "faturamento" || name === "liquido" || name === "comissoes") {
-                        return [formatBRL(v), name];
-                      }
-                      return [v, name];
-                    })}
-                  />
-                  <Legend />
-                  <Bar dataKey="faturamento" name="Faturamento" fill="rgba(120,160,255,0.88)" />
-                  <Bar dataKey="liquido" name="Líquido" fill="rgba(110,240,200,0.82)" />
-                </BarChart>
-              </ResponsiveContainer>
-            </Panel>
-
-            <Panel title="Resumo por loja" rightHint="(período filtrado)">
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 12,
-                  maxHeight: 470,
-                  overflow: "auto",
-                  paddingRight: 6,
-                }}
-              >
-                {fechamentoPorLoja.map((item) => (
-                  <div
-                    key={item.loja}
-                    style={{
-                      background: "rgba(255,255,255,0.04)",
-                      border: "1px solid rgba(255,255,255,0.08)",
-                      borderRadius: 16,
-                      padding: 14,
-                    }}
-                  >
-                    <div style={{ fontSize: 15, fontWeight: 800 }}>{item.loja}</div>
-                    <div style={{ marginTop: 8 }}>Faturamento: <strong>{formatBRL(item.faturamento)}</strong></div>
-                    <div>Líquido: <strong>{formatBRL(item.liquido)}</strong></div>
-                    <div>Comissões: <strong>{formatBRL(item.comissoes)}</strong></div>
-                    <div>Motos: <strong>{item.motos}</strong></div>
-                  </div>
-                ))}
-
-                {fechamentoPorLoja.length === 0 && (
-                  <div style={{ opacity: 0.7, fontSize: 14 }}>
-                    Nenhum dado encontrado nesse período.
-                  </div>
-                )}
-              </div>
-            </Panel>
-
-            <Panel title="Fechamento geral" rightHint="(período filtrado)">
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 12,
-                  height: "100%",
-                }}
-              >
-                <BigStat label="Faturamento geral" value={formatBRL(fechamentoGeral.faturamento)} />
-                <BigStat label="Líquido geral" value={formatBRL(fechamentoGeral.liquido)} />
-                <BigStat label="Motos vendidas" value={fechamentoGeral.motosVendidas} />
-                <BigStat label="Comissões" value={formatBRL(fechamentoGeral.comissoes)} />
-                <BigStat label="Ticket médio" value={formatBRL(fechamentoGeral.ticketMedio)} />
-                <BigStat label="Lojas ativas" value={fechamentoGeral.lojasAtivas} />
-              </div>
-            </Panel>
-          </div>
-        )}
-
-        {slides[slide]?.id === "top_modelos" && (
-          <div style={{ height: "100%", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
-            <Panel title="Top 10 modelos vendidos" rightHint="(período filtrado)">
-              <ResponsiveContainer width="100%" height={470}>
-                <BarChart data={topModelos} layout="vertical" margin={{ top: 12, right: 18, bottom: 12, left: 22 }}>
-                  <CartesianGrid {...THEME.grid} />
-                  <XAxis type="number" allowDecimals={false} {...THEME.axis} />
-                  <YAxis
-                    type="category"
-                    dataKey="modelo"
-                    width={220}
-                    tick={{ fill: "rgba(255,255,255,0.72)", fontSize: 12 }}
-                    axisLine={{ stroke: "rgba(255,255,255,0.08)" }}
-                    tickLine={{ stroke: "rgba(255,255,255,0.04)" }}
-                  />
-                  <Tooltip {...tooltipProps((v) => [v, "Vendas"])} />
-                  <Bar dataKey="total" radius={[0, 10, 10, 0]} fill="rgba(160,120,255,0.88)" stroke="rgba(255,255,255,0.06)" />
-                </BarChart>
-              </ResponsiveContainer>
-            </Panel>
-
-            <Panel title="Vendas por cidade" rightHint="(período filtrado)">
-              <ResponsiveContainer width="100%" height={470}>
-                <BarChart data={vendasPorCidade} layout="vertical" margin={{ top: 12, right: 18, bottom: 12, left: 22 }}>
-                  <CartesianGrid {...THEME.grid} />
-                  <XAxis type="number" allowDecimals={false} {...THEME.axis} />
-                  <YAxis
-                    type="category"
-                    dataKey="cidade"
-                    width={220}
-                    tick={{ fill: "rgba(255,255,255,0.72)", fontSize: 12 }}
-                    axisLine={{ stroke: "rgba(255,255,255,0.08)" }}
-                    tickLine={{ stroke: "rgba(255,255,255,0.04)" }}
-                  />
-                  <Tooltip {...tooltipProps((v) => [v, "Vendas"])} />
-                  <Bar dataKey="total" radius={[0, 10, 10, 0]} fill="rgba(110,240,200,0.82)" stroke="rgba(255,255,255,0.06)" />
-                </BarChart>
-              </ResponsiveContainer>
-            </Panel>
-          </div>
-        )}
-
-        {slides[slide]?.id === "resumo_final" && (
-          <div
-            style={{
-              height: "100%",
-              display: "grid",
-              gridTemplateColumns: "repeat(5, 1fr)",
-              gap: 14,
-            }}
-          >
-            <KpiCard title="Faturamento motos" value={formatBRL(resumoFinal.faturamentoMotos)} />
-            <KpiCard title="Líquido motos" value={formatBRL(resumoFinal.liquidoMotos)} />
-            <KpiCard title="Motos vendidas" value={resumoFinal.motosVendidas} />
-            <KpiCard title="Comissões" value={formatBRL(resumoFinal.comissoes)} />
-            <KpiCard title="Estoque atual" value={resumoFinal.estoqueAtual} />
-          </div>
-        )}
-      </div>
-
-      <style>{`
-        .tv-corp .tv-btn{
-          height: 36px;
-          min-width: 44px;
-          border-radius: 12px;
-          background: rgba(255,255,255,0.06);
-          border: 1px solid rgba(255,255,255,0.10);
-          color: rgba(255,255,255,0.90);
-          cursor: pointer;
-          box-shadow: 0 10px 30px rgba(0,0,0,0.35);
-        }
-        .tv-corp .tv-btn:hover{ background: rgba(255,255,255,0.10); }
-
-        .tv-corp .tv-select, .tv-corp .tv-input{
-          height: 36px;
-          border-radius: 12px;
-          background: rgba(255,255,255,0.05);
-          border: 1px solid rgba(255,255,255,0.10);
-          color: rgba(255,255,255,0.90);
-          padding: 0 12px;
-          outline: none;
-        }
-
-        .tv-corp .tv-chip{
-          height: 34px;
-          padding: 0 12px;
-          border-radius: 999px;
-          background: rgba(255,255,255,0.05);
-          border: 1px solid rgba(255,255,255,0.10);
-          color: rgba(255,255,255,0.90);
-          cursor: pointer;
-        }
-        .tv-corp .tv-chip:hover{ background: rgba(255,255,255,0.10); }
-      `}</style>
-    </div>
-  );
-}
-
-/* ================= COMPONENTES ================= */
-function KpiCard({ title, value, hint }) {
-  return (
-    <div
-      style={{
-        background: THEME.card,
-        border: THEME.border,
-        borderRadius: 18,
-        padding: 16,
-        boxShadow: THEME.shadow,
-        backdropFilter: "blur(8px)",
-        minHeight: 98,
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "space-between",
-      }}
-    >
-      <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
-        <div style={{ fontSize: 12, opacity: 0.75, letterSpacing: 0.35 }}>{title}</div>
-        {hint ? <div style={{ fontSize: 11, opacity: 0.55 }}>{hint}</div> : null}
-      </div>
-      <div style={{ fontSize: 28, fontWeight: 850, marginTop: 8 }}>{value}</div>
-    </div>
-  );
-}
-
-function BigStat({ label, value }) {
-  return (
-    <div
-      style={{
-        background: THEME.card,
-        border: THEME.border,
-        borderRadius: 18,
-        padding: 16,
-        boxShadow: THEME.shadow,
-      }}
-    >
-      <div style={{ fontSize: 12, opacity: 0.72 }}>{label}</div>
-      <div style={{ fontSize: 34, fontWeight: 900, marginTop: 6 }}>{value}</div>
-    </div>
-  );
-}
-
-function Panel({ title, rightHint, children }) {
-  return (
-    <div
-      style={{
-        height: "100%",
-        background: THEME.card,
-        border: THEME.border,
-        borderRadius: 20,
-        padding: 16,
-        boxShadow: THEME.shadow,
-        backdropFilter: "blur(8px)",
-        overflow: "hidden",
-      }}
-    >
-      <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 12 }}>
-        <div style={{ fontSize: 16, fontWeight: 850 }}>{title}</div>
-        {rightHint ? <div style={{ fontSize: 12, opacity: 0.65 }}>{rightHint}</div> : null}
-      </div>
-      <div style={{ marginTop: 10, height: "calc(100% - 34px)" }}>{children}</div>
-    </div>
-  );
-}
+        {slides[slide]?
