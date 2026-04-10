@@ -1,4 +1,3 @@
-
 /* eslint-disable no-unused-vars */
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -155,20 +154,27 @@ export default function DashboardAuto() {
   const [dataFim, setDataFim] = useState("");
   const [empresaFiltro, setEmpresaFiltro] = useState("TODAS");
 
+  /* ================= FINANCEIRO ================= */
+  const [saldo, setSaldo] = useState(0);
+  const [aReceber, setAReceber] = useState(0);
+  const [estoqueCompra, setEstoqueCompra] = useState(0);
+  const [estoqueVenda, setEstoqueVenda] = useState(0);
+  const [shineray, setShineray] = useState(0);
+  const [eduardo, setEduardo] = useState(0);
+  const [fornecedor, setFornecedor] = useState(0);
+
   const slides = useMemo(
     () => [
       { id: "kpis", title: "Resumo executivo" },
       { id: "fat_dia", title: "Faturamento por dia" },
       { id: "ultimos_7", title: "Vendas nos últimos 7 dias" },
-{ id: "acumulado_7", title: "Acumulado 7 dias" },
+      { id: "acumulado_7", title: "Acumulado 7 dias" },
       { id: "estoque_motos", title: "Estoque atual de motos" },
       { id: "fechamento_loja", title: "Fechamento por loja" },
-      { id: "top_modelos", title: "Top
- modelos e cidades" },
+      { id: "top_modelos", title: "Top modelos e cidades" },
       { id: "financeiro_inputs", title: "Controle financeiro" },
       { id: "financeiro_resultado", title: "Resultado financeiro" },
       { id: "resumo_final", title: "Resumo final" },
-
     ],
     []
   );
@@ -188,6 +194,17 @@ export default function DashboardAuto() {
       .get("/motos")
       .then((res) => setMotos(res.data || []))
       .catch(() => setMotos([]));
+
+    api
+      .get("/estoque-motos-resumo")
+      .then((res) => {
+        setEstoqueCompra(toNumber(res?.data?.totalCompra));
+        setEstoqueVenda(toNumber(res?.data?.totalVenda));
+      })
+      .catch(() => {
+        setEstoqueCompra(0);
+        setEstoqueVenda(0);
+      });
   }, []);
 
   function aplicarHoje() {
@@ -243,7 +260,10 @@ export default function DashboardAuto() {
     function onKey(e) {
       if (e.key === "ArrowRight") nextSlide();
       if (e.key === "ArrowLeft") prevSlide();
-      if (e.key.toLowerCase() === " ") setAutoPlay((a) => !a);
+      if (e.key.toLowerCase() === " ") {
+        e.preventDefault();
+        setAutoPlay((a) => !a);
+      }
       if (e.key.toLowerCase() === "f") {
         if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
         else document.exitFullscreen?.();
@@ -252,7 +272,7 @@ export default function DashboardAuto() {
 
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  });
+  }, [slides.length]);
 
   /* ================= BASE FILTRADA ================= */
   const motosFiltradas = useMemo(() => {
@@ -263,7 +283,8 @@ export default function DashboardAuto() {
 
   const motosBase7Dias = useMemo(() => {
     return (vendasMotos || []).filter(
-      (v) => empresaFiltro === "TODAS" || getEmpresa(v) === empresaFiltro);
+      (v) => empresaFiltro === "TODAS" || getEmpresa(v) === empresaFiltro
+    );
   }, [vendasMotos, empresaFiltro]);
 
   /* ================= KPIS ================= */
@@ -317,71 +338,64 @@ export default function DashboardAuto() {
       map.set(key, cur);
     });
 
-    return Array.from(map.values())
-      .sort((a, b) => a.diaISO.localeCompare(b.diaISO))
-      .slice(-45);
+    return Array.from(map.values()).sort((a, b) => a.diaISO.localeCompare(b.diaISO)).slice(-45);
   }, [motosFiltradas]);
 
   /* ================= ÚLTIMOS 7 DIAS ================= */
   const vendasUltimos7Dias = useMemo(() => {
-  const hoje = new Date();
-  const arr = [];
+    const hoje = new Date();
+    const arr = [];
 
-  for (let i = 6; i >= 0; i--) {
-    const d = new Date();
-    d.setDate(hoje.getDate() - i);
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(hoje.getDate() - i);
 
-    const iso = d.toISOString().slice(0, 10);
+      const iso = d.toISOString().slice(0, 10);
 
-    const vendasDoDia = motosBase7Dias.filter(
-      (v) => isoDateOnly(v.data_venda || v.created_at) === iso
-    );
+      const vendasDoDia = motosBase7Dias.filter(
+        (v) => isoDateOnly(v.data_venda || v.created_at) === iso
+      );
 
-    arr.push({
-      dia: d.toLocaleDateString("pt-BR"),
-      motos: vendasDoDia.length,
-      faturamento: vendasDoDia.reduce((acc, v) => acc + toNumber(v.valor), 0),
-    });
-  }
-
-  return arr;
-}, [motosBase7Dias]);
-
-const acumulado7Dias = useMemo(() => {
-  const base = motosBase7Dias;
-
-  const map = new Map();
-
-  base.forEach((v) => {
-    const d = isoDateOnly(v.data_venda || v.created_at);
-    if (!d) return;
-
-    map.set(d, (map.get(d) || 0) + 1);
-  });
-
-  const datas = Array.from(map.keys()).sort();
-
-  const resultado = [];
-
-  datas.forEach((data, index) => {
-    let soma = 0;
-
-    for (let i = 0; i < 7; i++) {
-      const d = new Date(data);
-      d.setDate(d.getDate() - i);
-
-      const key = d.toISOString().slice(0, 10);
-      soma += map.get(key) || 0;
+      arr.push({
+        dia: d.toLocaleDateString("pt-BR"),
+        motos: vendasDoDia.length,
+        faturamento: vendasDoDia.reduce((acc, v) => acc + toNumber(v.valor), 0),
+      });
     }
 
-    resultado.push({
-      dia: formatDateBRFromISO(data),
-      total: soma,
-    });
-  });
+    return arr;
+  }, [motosBase7Dias]);
 
-  return resultado;
-}, [motosBase7Dias]);
+  const acumulado7Dias = useMemo(() => {
+    const map = new Map();
+
+    motosBase7Dias.forEach((v) => {
+      const d = isoDateOnly(v.data_venda || v.created_at);
+      if (!d) return;
+      map.set(d, (map.get(d) || 0) + 1);
+    });
+
+    const datas = Array.from(map.keys()).sort();
+    const resultado = [];
+
+    datas.forEach((data) => {
+      let soma = 0;
+
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(`${data}T00:00:00`);
+        d.setDate(d.getDate() - i);
+        const key = d.toISOString().slice(0, 10);
+        soma += map.get(key) || 0;
+      }
+
+      resultado.push({
+        dia: formatDateBRFromISO(data),
+        total: soma,
+      });
+    });
+
+    return resultado.slice(-45);
+  }, [motosBase7Dias]);
 
   /* ================= ESTOQUE ATUAL REAL ================= */
   const estoqueAtualPorLoja = useMemo(() => {
@@ -510,8 +524,22 @@ const acumulado7Dias = useMemo(() => {
     };
   }, [motosFiltradas, estoqueAtualPorLoja]);
 
+  /* ================= FINANCEIRO ================= */
+  const jotaCompra =
+    Number(saldo) +
+    Number(aReceber) +
+    Number(estoqueCompra) -
+    Number(shineray) -
+    Number(eduardo) -
+    Number(fornecedor);
 
-
+  const jotaVenda =
+    Number(saldo) +
+    Number(aReceber) +
+    Number(estoqueVenda) -
+    Number(shineray) -
+    Number(eduardo) -
+    Number(fornecedor);
 
   /* ================= UI ================= */
   return (
@@ -639,38 +667,40 @@ const acumulado7Dias = useMemo(() => {
           </Panel>
         )}
 
-{/* ================= FINANCEIRO ================= */}
+        {slides[slide]?.id === "financeiro_inputs" && (
+          <Panel title="Controle financeiro">
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(3, 1fr)",
+                gap: 20,
+              }}
+            >
+              <Input label="Saldo" value={saldo} setValue={setSaldo} />
+              <Input label="A Receber" value={aReceber} setValue={setAReceber} />
+              <Input label="Shineray" value={shineray} setValue={setShineray} />
+              <Input label="Eduardo" value={eduardo} setValue={setEduardo} />
+              <Input label="Fornecedor" value={fornecedor} setValue={setFornecedor} />
 
-{slides[slide]?.id === "financeiro_inputs" && (
-  <Panel title="Controle financeiro">
-    <div style={{
-      display: "grid",
-      gridTemplateColumns: "repeat(3, 1fr)",
-      gap: 20
-    }}>
-      <Input label="Saldo" value={saldo} setValue={setSaldo} />
-      <Input label="A Receber" value={aReceber} setValue={setAReceber} />
-      <Input label="Shineray" value={shineray} setValue={setShineray} />
-      <Input label="Eduardo" value={eduardo} setValue={setEduardo} />
-      <Input label="Fornecedor" value={fornecedor} setValue={setFornecedor} />
+              <Stat label="Estoque Compra" value={formatBRL(estoqueCompra)} />
+              <Stat label="Estoque Venda" value={formatBRL(estoqueVenda)} />
+            </div>
+          </Panel>
+        )}
 
-      <Stat label="Estoque Compra" value={formatBRL(estoqueCompra)} />
-      <Stat label="Estoque Venda" value={formatBRL(estoqueVenda)} />
-    </div>
-  </Panel>
-)}
-
-{slides[slide]?.id === "financeiro_resultado" && (
-  <div style={{
-    height: "100%",
-    display: "grid",
-    gridTemplateColumns: "repeat(2, 1fr)",
-    gap: 20
-  }}>
-    <BigStat label="🟢 JOTA COMPRA" value={formatBRL(jotaCompra)} />
-    <BigStat label="🔵 JOTA VENDA" value={formatBRL(jotaVenda)} />
-  </div>
-)}
+        {slides[slide]?.id === "financeiro_resultado" && (
+          <div
+            style={{
+              height: "100%",
+              display: "grid",
+              gridTemplateColumns: "repeat(2, 1fr)",
+              gap: 20,
+            }}
+          >
+            <BigStat label="🟢 JOTA COMPRA" value={formatBRL(jotaCompra)} />
+            <BigStat label="🔵 JOTA VENDA" value={formatBRL(jotaVenda)} />
+          </div>
+        )}
 
         {slides[slide]?.id === "ultimos_7" && (
           <Panel title="Vendas nos últimos 7 dias" rightHint="(quantidade por dia)">
@@ -687,23 +717,19 @@ const acumulado7Dias = useMemo(() => {
           </Panel>
         )}
 
-{slides[slide]?.id === "acumulado_7" && (
-  <Panel title="Vendas acumuladas nos últimos 7 dias" rightHint="(janela móvel)">
-    <ResponsiveContainer width="100%" height={470}>
-      <BarChart data={acumulado7Dias} margin={{ top: 18, right: 16, bottom: 40, left: 8 }}>
-        <CartesianGrid {...THEME.grid} />
-        <XAxis dataKey="dia" angle={-30} textAnchor="end" height={60} {...THEME.axis} />
-        <YAxis allowDecimals={false} {...THEME.axis} />
-        <Tooltip {...tooltipProps((v) => [v, "Total últimos 7 dias"])} />
-        <Bar
-          dataKey="total"
-          radius={[10, 10, 0, 0]}
-          fill="rgba(120,160,255,0.88)"
-        />
-      </BarChart>
-    </ResponsiveContainer>
-  </Panel>
-)}
+        {slides[slide]?.id === "acumulado_7" && (
+          <Panel title="Vendas acumuladas nos últimos 7 dias" rightHint="(janela móvel)">
+            <ResponsiveContainer width="100%" height={470}>
+              <BarChart data={acumulado7Dias} margin={{ top: 18, right: 16, bottom: 40, left: 8 }}>
+                <CartesianGrid {...THEME.grid} />
+                <XAxis dataKey="dia" angle={-30} textAnchor="end" height={60} {...THEME.axis} />
+                <YAxis allowDecimals={false} {...THEME.axis} />
+                <Tooltip {...tooltipProps((v) => [v, "Total últimos 7 dias"])} />
+                <Bar dataKey="total" radius={[10, 10, 0, 0]} fill="rgba(120,160,255,0.88)" />
+              </BarChart>
+            </ResponsiveContainer>
+          </Panel>
+        )}
 
         {slides[slide]?.id === "estoque_motos" && (
           <div style={{ height: "100%", display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: 14 }}>
@@ -744,17 +770,23 @@ const acumulado7Dias = useMemo(() => {
                     }}
                   >
                     <div style={{ fontSize: 15, fontWeight: 800 }}>{item.loja}</div>
-                    <div style={{ marginTop: 6 }}>Total: <strong>{item.total}</strong></div>
-                    <div>Disponíveis: <strong>{item.disponiveis}</strong></div>
-                    <div>Negociação: <strong>{item.negociacao}</strong></div>
-                    <div>Pendente: <strong>{item.pendente}</strong></div>
+                    <div style={{ marginTop: 6 }}>
+                      Total: <strong>{item.total}</strong>
+                    </div>
+                    <div>
+                      Disponíveis: <strong>{item.disponiveis}</strong>
+                    </div>
+                    <div>
+                      Negociação: <strong>{item.negociacao}</strong>
+                    </div>
+                    <div>
+                      Pendente: <strong>{item.pendente}</strong>
+                    </div>
                   </div>
                 ))}
 
                 {estoqueAtualPorLoja.length === 0 && (
-                  <div style={{ opacity: 0.7, fontSize: 14 }}>
-                    Nenhum estoque encontrado.
-                  </div>
+                  <div style={{ opacity: 0.7, fontSize: 14 }}>Nenhum estoque encontrado.</div>
                 )}
               </div>
             </Panel>
@@ -813,10 +845,18 @@ const acumulado7Dias = useMemo(() => {
                     }}
                   >
                     <div style={{ fontSize: 15, fontWeight: 800 }}>{item.loja}</div>
-                    <div style={{ marginTop: 8 }}>Faturamento: <strong>{formatBRL(item.faturamento)}</strong></div>
-                    <div>Líquido: <strong>{formatBRL(item.liquido)}</strong></div>
-                    <div>Comissões: <strong>{formatBRL(item.comissoes)}</strong></div>
-                    <div>Motos: <strong>{item.motos}</strong></div>
+                    <div style={{ marginTop: 8 }}>
+                      Faturamento: <strong>{formatBRL(item.faturamento)}</strong>
+                    </div>
+                    <div>
+                      Líquido: <strong>{formatBRL(item.liquido)}</strong>
+                    </div>
+                    <div>
+                      Comissões: <strong>{formatBRL(item.comissoes)}</strong>
+                    </div>
+                    <div>
+                      Motos: <strong>{item.motos}</strong>
+                    </div>
                   </div>
                 ))}
 
@@ -1011,6 +1051,7 @@ function Panel({ title, rightHint, children }) {
     </div>
   );
 }
+
 function Input({ label, value, setValue }) {
   return (
     <div>
@@ -1026,7 +1067,7 @@ function Input({ label, value, setValue }) {
           padding: 8,
           background: "rgba(255,255,255,0.05)",
           border: "1px solid rgba(255,255,255,0.1)",
-          color: "#fff"
+          color: "#fff",
         }}
       />
     </div>
