@@ -1,24 +1,48 @@
-
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import api from "../api";
 import "./VendasMotos.css";
 
 export default function Financeiro() {
+  /* ================= STATES ================= */
   const [data, setData] = useState("");
 
   const [saldo, setSaldo] = useState(0);
   const [aReceber, setAReceber] = useState(0);
+
   const [estoqueCompra, setEstoqueCompra] = useState(0);
   const [estoqueVenda, setEstoqueVenda] = useState(0);
+  const [qtdEstoque, setQtdEstoque] = useState(0);
+
   const [shineray, setShineray] = useState(0);
   const [eduardo, setEduardo] = useState(0);
   const [fornecedor, setFornecedor] = useState(0);
 
+  /* ================= FORMAT ================= */
   function formatar(valor) {
     return Number(valor || 0).toLocaleString("pt-BR", {
       style: "currency",
       currency: "BRL",
     });
   }
+
+  /* ================= ESTOQUE AUTOMATICO ================= */
+  useEffect(() => {
+    async function carregarEstoque() {
+      try {
+        const res = await api.get("/estoque-motos-resumo");
+
+        setEstoqueCompra(res.data.totalCompra || 0);
+        setEstoqueVenda(res.data.totalVenda || 0);
+        setQtdEstoque(res.data.quantidade || 0);
+
+      } catch (err) {
+        console.error("Erro estoque:", err);
+        alert("Erro ao carregar estoque");
+      }
+    }
+
+    carregarEstoque();
+  }, []);
 
   /* ================= CALCULOS ================= */
 
@@ -42,6 +66,7 @@ export default function Financeiro() {
 
   return (
     <div className="vendas-motos-container">
+
       <h2 className="vm-title">💰 Controle Financeiro</h2>
 
       {/* DATA */}
@@ -54,7 +79,7 @@ export default function Financeiro() {
         />
       </div>
 
-      {/* PLANILHA */}
+      {/* INPUTS */}
       <div className="vm-card">
         <h3>📊 Valores</h3>
 
@@ -78,22 +103,20 @@ export default function Financeiro() {
             />
           </div>
 
+          {/* ESTOQUE AUTOMATICO */}
           <div className="vm-field">
             <label>Estoque (Compra)</label>
-            <input
-              type="number"
-              value={estoqueCompra}
-              onChange={(e) => setEstoqueCompra(e.target.value)}
-            />
+            <div>{formatar(estoqueCompra)}</div>
           </div>
 
           <div className="vm-field">
             <label>Estoque (Venda)</label>
-            <input
-              type="number"
-              value={estoqueVenda}
-              onChange={(e) => setEstoqueVenda(e.target.value)}
-            />
+            <div>{formatar(estoqueVenda)}</div>
+          </div>
+
+          <div className="vm-field">
+            <label>Qtd Motos</label>
+            <div>{qtdEstoque}</div>
           </div>
 
           <div className="vm-field">
@@ -122,6 +145,7 @@ export default function Financeiro() {
               onChange={(e) => setFornecedor(e.target.value)}
             />
           </div>
+
         </div>
       </div>
 
@@ -139,6 +163,7 @@ export default function Financeiro() {
         </div>
 
       </div>
+
     </div>
   );
 }
