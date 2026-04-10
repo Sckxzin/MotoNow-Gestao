@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+ import { useEffect, useState } from "react";
 import api from "../api";
 import "./VendasMotos.css";
 
@@ -23,11 +23,12 @@ export default function Financeiro() {
     });
   }
 
-  /* ================= PUXAR ESTOQUE ================= */
   useEffect(() => {
+    if (!data) return;
+
     async function carregarEstoque() {
       try {
-        const res = await api.get("/estoque-motos-resumo");
+        const res = await api.get(`/estoque-motos-resumo?data=${data}`);
 
         setEstoqueCompra(res.data.totalCompra);
         setEstoqueVenda(res.data.totalVenda);
@@ -39,9 +40,7 @@ export default function Financeiro() {
     }
 
     carregarEstoque();
-  }, []);
-
-  /* ================= CALCULOS ================= */
+  }, [data]);
 
   const jotaCompra =
     Number(saldo) +
@@ -61,6 +60,7 @@ export default function Financeiro() {
 
   return (
     <div className="vendas-motos-container">
+
       <h2 className="vm-title">💰 Controle Financeiro</h2>
 
       <div className="vm-card">
@@ -127,6 +127,7 @@ export default function Financeiro() {
         </div>
 
       </div>
+
     </div>
   );
 }
