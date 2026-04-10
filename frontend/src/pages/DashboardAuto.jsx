@@ -165,6 +165,15 @@ export default function DashboardAuto() {
       { id: "fechamento_loja", title: "Fechamento por loja" },
       { id: "top_modelos", title: "Top modelos e cidades" },
       { id: "resumo_final", title: "Resumo final" },
+const [saldo, setSaldo] = useState(0);
+const [aReceber, setAReceber] = useState(0);
+
+const [estoqueCompra, setEstoqueCompra] = useState(0);
+const [estoqueVenda, setEstoqueVenda] = useState(0);
+
+const [shineray, setShineray] = useState(0);
+const [eduardo, setEduardo] = useState(0);
+const [fornecedor, setFornecedor] = useState(0);
     ],
     []
   );
@@ -249,6 +258,37 @@ export default function DashboardAuto() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   });
+
+useEffect(() => {
+  async function carregarEstoque() {
+    try {
+      const res = await api.get("/estoque-motos-resumo");
+
+      setEstoqueCompra(res.data.totalCompra);
+      setEstoqueVenda(res.data.totalVenda);
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  carregarEstoque();
+}, []);
+
+const jotaCompra =
+  Number(saldo) +
+  Number(aReceber) +
+  Number(estoqueCompra) -
+  Number(shineray) -
+  Number(eduardo) -
+  Number(fornecedor);
+
+const jotaVenda =
+  Number(saldo) +
+  Number(aReceber) +
+  Number(estoqueVenda) -
+  Number(shineray) -
+  Number(eduardo) -
+  Number(fornecedor);
 
   /* ================= BASE FILTRADA ================= */
   const motosFiltradas = useMemo(() => {
@@ -615,6 +655,8 @@ const acumulado7Dias = useMemo(() => {
             <KpiCard title="Motos vendidas" value={kpis.qtdMotos} />
             <KpiCard title="Comissões" value={formatBRL(kpis.comissoes)} />
             <KpiCard title="Vendas últimos 7 dias" value={kpis.motos7d} />
+{ id: "financeiro_inputs", title: "Controle financeiro" },
+{ id: "financeiro_resultado", title: "Resultado financeiro" },
           </div>
         )}
 
@@ -646,6 +688,48 @@ const acumulado7Dias = useMemo(() => {
             </ResponsiveContainer>
           </Panel>
         )}
+
+{slides[slide]?.id === "financeiro_inputs" && (
+  <Panel title="Controle financeiro (inputs)">
+    <div style={{
+      display: "grid",
+      gridTemplateColumns: "repeat(3, 1fr)",
+      gap: 20
+    }}>
+
+      <Input label="Saldo" value={saldo} setValue={setSaldo} />
+      <Input label="A Receber" value={aReceber} setValue={setAReceber} />
+      <Input label="Shineray" value={shineray} setValue={setShineray} />
+      <Input label="Eduardo" value={eduardo} setValue={setEduardo} />
+      <Input label="Fornecedor" value={fornecedor} setValue={setFornecedor} />
+
+      <Stat label="Estoque Compra" value={formatBRL(estoqueCompra)} />
+      <Stat label="Estoque Venda" value={formatBRL(estoqueVenda)} />
+
+    </div>
+  </Panel>
+)}
+
+{slides[slide]?.id === "financeiro_resultado" && (
+  <div style={{
+    height: "100%",
+    display: "grid",
+    gridTemplateColumns: "repeat(2, 1fr)",
+    gap: 20
+  }}>
+
+    <BigStat
+      label="🟢 JOTA COMPRA"
+      value={formatBRL(jotaCompra)}
+    />
+
+    <BigStat
+      label="🔵 JOTA VENDA"
+      value={formatBRL(jotaVenda)}
+    />
+
+  </div>
+)}
 
 {slides[slide]?.id === "acumulado_7" && (
   <Panel title="Vendas acumuladas nos últimos 7 dias" rightHint="(janela móvel)">
@@ -968,6 +1052,36 @@ function Panel({ title, rightHint, children }) {
         {rightHint ? <div style={{ fontSize: 12, opacity: 0.65 }}>{rightHint}</div> : null}
       </div>
       <div style={{ marginTop: 10, height: "calc(100% - 34px)" }}>{children}</div>
+    </div>
+  );
+}
+function Input({ label, value, setValue }) {
+  return (
+    <div>
+      <div style={{ fontSize: 12, opacity: 0.7 }}>{label}</div>
+      <input
+        type="number"
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        style={{
+          width: "100%",
+          height: 40,
+          borderRadius: 10,
+          border: "1px solid rgba(255,255,255,0.2)",
+          background: "rgba(255,255,255,0.05)",
+          color: "white",
+          padding: "0 10px"
+        }}
+      />
+    </div>
+  );
+}
+
+function Stat({ label, value }) {
+  return (
+    <div>
+      <div style={{ fontSize: 12, opacity: 0.7 }}>{label}</div>
+      <div style={{ fontSize: 18, fontWeight: "bold" }}>{value}</div>
     </div>
   );
 }
