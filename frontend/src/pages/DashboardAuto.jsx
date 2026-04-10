@@ -165,8 +165,8 @@ export default function DashboardAuto() {
       { id: "fechamento_loja", title: "Fechamento por loja" },
       { id: "top_modelos", title: "Top
  modelos e cidades" },
-{ id: "financeiro_inputs", title: "Controle financeiro" },
-{ id: "financeiro_resultado", title: "Resultado financeiro" },
+      { id: "financeiro_inputs", title: "Controle financeiro" },
+      { id: "financeiro_resultado", title: "Resultado financeiro" },
       { id: "resumo_final", title: "Resumo final" },
 const [saldo, setSaldo] = useState(0);
 const [aReceber, setAReceber] = useState(0);
