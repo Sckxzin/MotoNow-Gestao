@@ -3,7 +3,6 @@ import api from "../api";
 import "./VendasMotos.css";
 
 export default function Financeiro() {
-  /* ================= STATES ================= */
   const [data, setData] = useState("");
 
   const [saldo, setSaldo] = useState(0);
@@ -17,7 +16,6 @@ export default function Financeiro() {
   const [eduardo, setEduardo] = useState(0);
   const [fornecedor, setFornecedor] = useState(0);
 
-  /* ================= FORMAT ================= */
   function formatar(valor) {
     return Number(valor || 0).toLocaleString("pt-BR", {
       style: "currency",
@@ -25,18 +23,17 @@ export default function Financeiro() {
     });
   }
 
-  /* ================= ESTOQUE AUTOMATICO ================= */
+  /* ================= PUXAR ESTOQUE ================= */
   useEffect(() => {
     async function carregarEstoque() {
       try {
         const res = await api.get("/estoque-motos-resumo");
 
-        setEstoqueCompra(res.data.totalCompra || 0);
-        setEstoqueVenda(res.data.totalVenda || 0);
-        setQtdEstoque(res.data.quantidade || 0);
-
+        setEstoqueCompra(res.data.totalCompra);
+        setEstoqueVenda(res.data.totalVenda);
+        setQtdEstoque(res.data.quantidade);
       } catch (err) {
-        console.error("Erro estoque:", err);
+        console.error(err);
         alert("Erro ao carregar estoque");
       }
     }
@@ -62,48 +59,28 @@ export default function Financeiro() {
     Number(eduardo) -
     Number(fornecedor);
 
-  /* ================= UI ================= */
-
   return (
     <div className="vendas-motos-container">
-
       <h2 className="vm-title">💰 Controle Financeiro</h2>
 
-      {/* DATA */}
       <div className="vm-card">
-        <label>📅 Data de referência</label>
-        <input
-          type="date"
-          value={data}
-          onChange={(e) => setData(e.target.value)}
-        />
+        <label>📅 Data</label>
+        <input type="date" value={data} onChange={(e) => setData(e.target.value)} />
       </div>
 
-      {/* INPUTS */}
       <div className="vm-card">
-        <h3>📊 Valores</h3>
-
         <div className="vm-filters-grid">
 
           <div className="vm-field">
             <label>Saldo</label>
-            <input
-              type="number"
-              value={saldo}
-              onChange={(e) => setSaldo(e.target.value)}
-            />
+            <input type="number" value={saldo} onChange={(e) => setSaldo(e.target.value)} />
           </div>
 
           <div className="vm-field">
             <label>A Receber</label>
-            <input
-              type="number"
-              value={aReceber}
-              onChange={(e) => setAReceber(e.target.value)}
-            />
+            <input type="number" value={aReceber} onChange={(e) => setAReceber(e.target.value)} />
           </div>
 
-          {/* ESTOQUE AUTOMATICO */}
           <div className="vm-field">
             <label>Estoque (Compra)</label>
             <div>{formatar(estoqueCompra)}</div>
@@ -121,35 +98,22 @@ export default function Financeiro() {
 
           <div className="vm-field">
             <label>Shineray</label>
-            <input
-              type="number"
-              value={shineray}
-              onChange={(e) => setShineray(e.target.value)}
-            />
+            <input type="number" value={shineray} onChange={(e) => setShineray(e.target.value)} />
           </div>
 
           <div className="vm-field">
             <label>Eduardo</label>
-            <input
-              type="number"
-              value={eduardo}
-              onChange={(e) => setEduardo(e.target.value)}
-            />
+            <input type="number" value={eduardo} onChange={(e) => setEduardo(e.target.value)} />
           </div>
 
           <div className="vm-field">
             <label>Fornecedor</label>
-            <input
-              type="number"
-              value={fornecedor}
-              onChange={(e) => setFornecedor(e.target.value)}
-            />
+            <input type="number" value={fornecedor} onChange={(e) => setFornecedor(e.target.value)} />
           </div>
 
         </div>
       </div>
 
-      {/* RESULTADOS */}
       <div className="vm-stats">
 
         <div className="vm-stat vm-stat-highlight">
@@ -163,7 +127,6 @@ export default function Financeiro() {
         </div>
 
       </div>
-
     </div>
   );
 }
