@@ -282,6 +282,40 @@ function isDiretoria(req) {
   return role === "DIRETORIA";
 }
 
+app.get("/estoque-motos-resumo", async (req, res) => {
+  try {
+    const result = await db.query(`
+      SELECT 
+        modelo,
+        valor_compra,
+        repasse
+      FROM motos
+      WHERE status = 'DISPONIVEL'
+    `);
+
+    let totalCompra = 0;
+    let totalVenda = 0;
+
+    result.rows.forEach(m => {
+      const compra = Number(m.valor_compra || 0);
+      const venda = Number(m.repasse || 0);
+
+      totalCompra += compra;
+      totalVenda += venda;
+    });
+
+    res.json({
+      totalCompra,
+      totalVenda,
+      quantidade: result.rows.length
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Erro ao buscar estoque" });
+  }
+});
+
 /* ================= EMPLACAMENTOS ================= */
 
 // LISTAR
