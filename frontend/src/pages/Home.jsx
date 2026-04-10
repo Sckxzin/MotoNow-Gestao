@@ -535,6 +535,9 @@ async function alterarStatusMoto(id, novoStatus) {
             📺 Dashboard TV
           </button>
         )}
+<button onClick={() => nav("/financeiro")}>
+  💰 Financeiro
+</button>
       </div>
     </div>
 
