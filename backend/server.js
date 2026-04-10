@@ -255,89 +255,89 @@ const VALOR_VENDA_MODELOS = {
   NEWATV200EFI: 25000,
 };
 
-/* ================= NORMALIZAR FORTE ================= */
+/* ================= NORMALIZAR ================= */
 function normalizarModelo(modelo) {
   return (modelo || "")
     .toUpperCase()
     .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "") // remove acento
-    .replace(/\s+/g, "") // remove espaços
-    .replace(/[^A-Z0-9]/g, ""); // remove símbolos
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, "")
+    .replace(/[^A-Z0-9]/g, "");
 }
 
-/* ================= MAPA DE CORREÇÃO ================= */
+/* ================= MAP ================= */
 const MAP_MODELOS = {
   JET125: "JET125SS",
-  JET125SS2024: "JET125SS",
-  JET125SSI: "JET125SS",
-
   SHI175EFI: "SHI175SEFI",
-  SHI175CARBURADA: "SHI175",
-
   PHOENIX50: "PHOENIXS50",
-  PHOENIX50EFI: "PHOENIX50SEFI",
-
   NEWJET: "NEWJET125",
-
   JEF150: "JEF150S",
-
   ATV200EFI: "ATVEFI200",
 };
 
-/* ================= FUNÇÃO PRINCIPAL ================= */
+/* ================= VALOR FINAL ================= */
 function getValorVendaModelo(modelo) {
-  const original = modelo;
+  const normalizado = normalizarModelo(modelo);
+  const chave = MAP_MODELOS[normalizado] || normalizado;
 
-  const chaveNormalizada = normalizarModelo(modelo);
-
-  const chaveFinal =
-    MAP_MODELOS[chaveNormalizada] || chaveNormalizada;
-
-  let valor = VALOR_VENDA_MODELOS[chaveFinal];
+  const valor = VALOR_VENDA_MODELOS[chave];
 
   if (!valor) {
-    console.warn("⚠️ MODELO SEM VALOR:", original);
-    console.warn("👉 Normalizado:", chaveNormalizada);
-    console.warn("👉 Usado:", chaveFinal);
-    console.warn("--------------------------");
-
+    console.warn("⚠️ MODELO SEM VALOR:", modelo);
     return 0;
   }
 
   return valor;
 }
 
-/* ================= ESTOQUE REAL ================= */
+/* ================= ESTOQUE POR DATA ================= */
 app.get("/estoque-motos-resumo", async (req, res) => {
   try {
+    const { data } = req.query;
+
+    if (!data) {
+      return res.status(400).json({ message: "Data obrigatória" });
+    }
+
     const result = await db.query(`
-      SELECT modelo, valor_compra
+      SELECT modelo, valor_compra, data_venda, created_at
       FROM motos
-      WHERE status = 'DISPONIVEL'
-    `);
+      WHERE DATE(created_at) <= $1
+    `, [data]);
 
     let totalCompra = 0;
     let totalVenda = 0;
+    let quantidade = 0;
 
-    result.rows.forEach((m) => {
-      const compra = Number(m.valor_compra || 0);
-      const venda = getValorVendaModelo(m.modelo);
+    result.rows.forEach(m => {
+      const vendaData = m.data_venda ? new Date(m.data_venda) : null;
+      const dataFiltro = new Date(data);
 
-      totalCompra += compra;
-      totalVenda += venda;
+      const aindaNoEstoque =
+        !vendaData || vendaData > dataFiltro;
+
+      if (aindaNoEstoque) {
+        quantidade++;
+
+        const compra = Number(m.valor_compra || 0);
+        const venda = getValorVendaModelo(m.modelo);
+
+        totalCompra += compra;
+        totalVenda += venda;
+      }
     });
 
     res.json({
       totalCompra,
       totalVenda,
-      quantidade: result.rows.length,
+      quantidade,
     });
+
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Erro ao buscar estoque" });
+    res.status(500).json({ message: "Erro no estoque por data" });
   }
 });
-
 
 /* ================= REGRA REPASSE SANTANDER POR FILIAL + MODELO ================= */
 
