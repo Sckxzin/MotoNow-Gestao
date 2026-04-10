@@ -259,85 +259,43 @@ const VALOR_VENDA_MODELOS = {
 function normalizarModelo(modelo) {
   return (modelo || "")
     .toUpperCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/\s+/g, "")
+    .replace(/\s/g, "")
     .replace(/[^A-Z0-9]/g, "");
 }
 
-/* ================= MAP ================= */
-const MAP_MODELOS = {
-  JET125: "JET125SS",
-  SHI175EFI: "SHI175SEFI",
-  PHOENIX50: "PHOENIXS50",
-  NEWJET: "NEWJET125",
-  JEF150: "JEF150S",
-  ATV200EFI: "ATVEFI200",
-};
-
-/* ================= VALOR FINAL ================= */
-function getValorVendaModelo(modelo) {
-  const normalizado = normalizarModelo(modelo);
-  const chave = MAP_MODELOS[normalizado] || normalizado;
-
-  const valor = VALOR_VENDA_MODELOS[chave];
-
-  if (!valor) {
-    console.warn("⚠️ MODELO SEM VALOR:", modelo);
-    return 0;
-  }
-
-  return valor;
-}
-
-/* ================= ESTOQUE POR DATA ================= */
+/* ================= ESTOQUE REAL ================= */
 app.get("/estoque-motos-resumo", async (req, res) => {
   try {
-    const { data } = req.query;
-
-    if (!data) {
-      return res.status(400).json({ message: "Data obrigatória" });
-    }
-
     const result = await db.query(`
-      SELECT modelo, valor_compra, data_venda, created_at
+      SELECT modelo, valor_compra
       FROM motos
-      WHERE DATE(created_at) <= $1
-    `, [data]);
+      WHERE status = 'DISPONIVEL'
+    `);
 
     let totalCompra = 0;
     let totalVenda = 0;
-    let quantidade = 0;
 
-    result.rows.forEach(m => {
-      const vendaData = m.data_venda ? new Date(m.data_venda) : null;
-      const dataFiltro = new Date(data);
+    result.rows.forEach((m) => {
+      const compra = Number(m.valor_compra || 0);
 
-      const aindaNoEstoque =
-        !vendaData || vendaData > dataFiltro;
+      const chave = normalizarModelo(m.modelo);
+      const venda = VALOR_VENDA_MODELOS[chave] || 0;
 
-      if (aindaNoEstoque) {
-        quantidade++;
-
-        const compra = Number(m.valor_compra || 0);
-        const venda = getValorVendaModelo(m.modelo);
-
-        totalCompra += compra;
-        totalVenda += venda;
-      }
+      totalCompra += compra;
+      totalVenda += venda;
     });
 
     res.json({
       totalCompra,
       totalVenda,
-      quantidade,
+      quantidade: result.rows.length,
     });
-
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Erro no estoque por data" });
+    res.status(500).json({ message: "Erro ao buscar estoque" });
   }
 });
+
 
 /* ================= REGRA REPASSE SANTANDER POR FILIAL + MODELO ================= */
 
