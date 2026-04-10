@@ -223,6 +223,80 @@ app.put("/vendas-motos/:id", async (req, res) => {
   }
 });
 
+
+/* ================= VALORES DE VENDA ================= */
+const VALOR_VENDA_MODELOS = {
+  PHOENIXS50: 8500,
+  PHOENIX50SEFI: 9800,
+  JET50: 9800,
+  RIO125: 10650,
+  JET125SS: 10500,
+  NEWJET125: 11300,
+  JET125EFI: 12390,
+  JEF150S: 13990,
+  JEF150EFI: 15500,
+  NEWJEF: 15000,
+  SHI175: 14390,
+  SHI175SEFI: 16800,
+  FREE150EFI: 12000,
+  URBAN150EFI: 20000,
+  SHI250EFI: 22500,
+  STORM200: 20390,
+  FLASH250: 22800,
+  TITANIUM: 25428,
+  DENVER: 25428,
+  IRON: 23490,
+  PT1: 6800,
+  PT1S: 7000,
+  ATV125: 15500,
+  ATV125EFI: 17000,
+  ATV200: 22788,
+  ATVEFI200: 25000,
+  NEWATV200EFI: 25000,
+};
+
+/* ================= NORMALIZAR ================= */
+function normalizarModelo(modelo) {
+  return (modelo || "")
+    .toUpperCase()
+    .replace(/\s/g, "")
+    .replace(/[^A-Z0-9]/g, "");
+}
+
+/* ================= ESTOQUE REAL ================= */
+app.get("/estoque-motos-resumo", async (req, res) => {
+  try {
+    const result = await db.query(`
+      SELECT modelo, valor_compra
+      FROM motos
+      WHERE status = 'DISPONIVEL'
+    `);
+
+    let totalCompra = 0;
+    let totalVenda = 0;
+
+    result.rows.forEach((m) => {
+      const compra = Number(m.valor_compra || 0);
+
+      const chave = normalizarModelo(m.modelo);
+      const venda = VALOR_VENDA_MODELOS[chave] || 0;
+
+      totalCompra += compra;
+      totalVenda += venda;
+    });
+
+    res.json({
+      totalCompra,
+      totalVenda,
+      quantidade: result.rows.length,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Erro ao buscar estoque" });
+  }
+});
+
+
 /* ================= REGRA REPASSE SANTANDER POR FILIAL + MODELO ================= */
 
 // normaliza texto genérico
