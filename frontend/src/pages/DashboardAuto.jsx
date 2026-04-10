@@ -168,13 +168,7 @@ export default function DashboardAuto() {
       { id: "financeiro_inputs", title: "Controle financeiro" },
       { id: "financeiro_resultado", title: "Resultado financeiro" },
       { id: "resumo_final", title: "Resumo final" },
-const [saldo, setSaldo] = useState(0);
-const [aReceber, setAReceber] = useState(0);
-const [estoqueCompra, setEstoqueCompra] = useState(0);
-const [estoqueVenda, setEstoqueVenda] = useState(0);
-const [shineray, setShineray] = useState(0);
-const [eduardo, setEduardo] = useState(0);
-const [fornecedor, setFornecedor] = useState(0);
+
     ],
     []
   );
@@ -518,21 +512,6 @@ const acumulado7Dias = useMemo(() => {
 
 
 
-const jotaCompra =
-  Number(saldo) +
-  Number(aReceber) +
-  Number(estoqueCompra) -
-  Number(shineray) -
-  Number(eduardo) -
-  Number(fornecedor);
-
-const jotaVenda =
-  Number(saldo) +
-  Number(aReceber) +
-  Number(estoqueVenda) -
-  Number(shineray) -
-  Number(eduardo) -
-  Number(fornecedor);
 
   /* ================= UI ================= */
   return (
