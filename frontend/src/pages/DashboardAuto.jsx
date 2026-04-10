@@ -163,8 +163,18 @@ export default function DashboardAuto() {
 { id: "acumulado_7", title: "Acumulado 7 dias" },
       { id: "estoque_motos", title: "Estoque atual de motos" },
       { id: "fechamento_loja", title: "Fechamento por loja" },
-      { id: "top_modelos", title: "Top modelos e cidades" },
+      { id: "top_modelos", title: "Top
+ modelos e cidades" },
+{ id: "financeiro_inputs", title: "Controle financeiro" },
+{ id: "financeiro_resultado", title: "Resultado financeiro" },
       { id: "resumo_final", title: "Resumo final" },
+const [saldo, setSaldo] = useState(0);
+const [aReceber, setAReceber] = useState(0);
+const [estoqueCompra, setEstoqueCompra] = useState(0);
+const [estoqueVenda, setEstoqueVenda] = useState(0);
+const [shineray, setShineray] = useState(0);
+const [eduardo, setEduardo] = useState(0);
+const [fornecedor, setFornecedor] = useState(0);
     ],
     []
   );
@@ -505,6 +515,55 @@ const acumulado7Dias = useMemo(() => {
       estoqueAtual: estoqueAtualPorLoja.reduce((acc, l) => acc + toNumber(l.total), 0),
     };
   }, [motosFiltradas, estoqueAtualPorLoja]);
+
+{/* ================= FINANCEIRO ================= */}
+
+{slides[slide]?.id === "financeiro_inputs" && (
+  <Panel title="Controle financeiro">
+    <div style={{
+      display: "grid",
+      gridTemplateColumns: "repeat(3, 1fr)",
+      gap: 20
+    }}>
+      <Input label="Saldo" value={saldo} setValue={setSaldo} />
+      <Input label="A Receber" value={aReceber} setValue={setAReceber} />
+      <Input label="Shineray" value={shineray} setValue={setShineray} />
+      <Input label="Eduardo" value={eduardo} setValue={setEduardo} />
+      <Input label="Fornecedor" value={fornecedor} setValue={setFornecedor} />
+
+      <Stat label="Estoque Compra" value={formatBRL(estoqueCompra)} />
+      <Stat label="Estoque Venda" value={formatBRL(estoqueVenda)} />
+    </div>
+  </Panel>
+)}
+
+{slides[slide]?.id === "financeiro_resultado" && (
+  <div style={{
+    height: "100%",
+    display: "grid",
+    gridTemplateColumns: "repeat(2, 1fr)",
+    gap: 20
+  }}>
+    <BigStat label="🟢 JOTA COMPRA" value={formatBRL(jotaCompra)} />
+    <BigStat label="🔵 JOTA VENDA" value={formatBRL(jotaVenda)} />
+  </div>
+)}
+
+const jotaCompra =
+  Number(saldo) +
+  Number(aReceber) +
+  Number(estoqueCompra) -
+  Number(shineray) -
+  Number(eduardo) -
+  Number(fornecedor);
+
+const jotaVenda =
+  Number(saldo) +
+  Number(aReceber) +
+  Number(estoqueVenda) -
+  Number(shineray) -
+  Number(eduardo) -
+  Number(fornecedor);
 
   /* ================= UI ================= */
   return (
