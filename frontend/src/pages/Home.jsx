@@ -535,9 +535,11 @@ async function alterarStatusMoto(id, novoStatus) {
             📺 Dashboard TV
           </button>
         )}
+        {user.role === "DIRETORIA" && (
 <button onClick={() => nav("/financeiro")}>
   💰 Financeiro
 </button>
+    )}
       </div>
     </div>
 
