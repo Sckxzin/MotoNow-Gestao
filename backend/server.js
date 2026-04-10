@@ -255,12 +255,56 @@ const VALOR_VENDA_MODELOS = {
   NEWATV200EFI: 25000,
 };
 
-/* ================= NORMALIZAR ================= */
+/* ================= NORMALIZAR FORTE ================= */
 function normalizarModelo(modelo) {
   return (modelo || "")
     .toUpperCase()
-    .replace(/\s/g, "")
-    .replace(/[^A-Z0-9]/g, "");
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "") // remove acento
+    .replace(/\s+/g, "") // remove espaços
+    .replace(/[^A-Z0-9]/g, ""); // remove símbolos
+}
+
+/* ================= MAPA DE CORREÇÃO ================= */
+const MAP_MODELOS = {
+  JET125: "JET125SS",
+  JET125SS2024: "JET125SS",
+  JET125SSI: "JET125SS",
+
+  SHI175EFI: "SHI175SEFI",
+  SHI175CARBURADA: "SHI175",
+
+  PHOENIX50: "PHOENIXS50",
+  PHOENIX50EFI: "PHOENIX50SEFI",
+
+  NEWJET: "NEWJET125",
+
+  JEF150: "JEF150S",
+
+  ATV200EFI: "ATVEFI200",
+};
+
+/* ================= FUNÇÃO PRINCIPAL ================= */
+function getValorVendaModelo(modelo) {
+  const original = modelo;
+
+  const chaveNormalizada = normalizarModelo(modelo);
+
+  const chaveFinal =
+    MAP_MODELOS[chaveNormalizada] || chaveNormalizada;
+
+  let valor = VALOR_VENDA_MODELOS[chaveFinal];
+
+  if (!valor) {
+    console.warn("⚠️ MODELO SEM VALOR:", original);
+    console.warn("👉 Normalizado:", chaveNormalizada);
+    console.warn("👉 Usado:", chaveFinal);
+    console.warn("--------------------------");
+
+    return 0;
+  }
+
+  return valor;
 }
 
 /* ================= ESTOQUE REAL ================= */
@@ -277,9 +321,7 @@ app.get("/estoque-motos-resumo", async (req, res) => {
 
     result.rows.forEach((m) => {
       const compra = Number(m.valor_compra || 0);
-
-      const chave = normalizarModelo(m.modelo);
-      const venda = VALOR_VENDA_MODELOS[chave] || 0;
+      const venda = getValorVendaModelo(m.modelo);
 
       totalCompra += compra;
       totalVenda += venda;
