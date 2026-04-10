@@ -516,38 +516,7 @@ const acumulado7Dias = useMemo(() => {
     };
   }, [motosFiltradas, estoqueAtualPorLoja]);
 
-{/* ================= FINANCEIRO ================= */}
 
-{slides[slide]?.id === "financeiro_inputs" && (
-  <Panel title="Controle financeiro">
-    <div style={{
-      display: "grid",
-      gridTemplateColumns: "repeat(3, 1fr)",
-      gap: 20
-    }}>
-      <Input label="Saldo" value={saldo} setValue={setSaldo} />
-      <Input label="A Receber" value={aReceber} setValue={setAReceber} />
-      <Input label="Shineray" value={shineray} setValue={setShineray} />
-      <Input label="Eduardo" value={eduardo} setValue={setEduardo} />
-      <Input label="Fornecedor" value={fornecedor} setValue={setFornecedor} />
-
-      <Stat label="Estoque Compra" value={formatBRL(estoqueCompra)} />
-      <Stat label="Estoque Venda" value={formatBRL(estoqueVenda)} />
-    </div>
-  </Panel>
-)}
-
-{slides[slide]?.id === "financeiro_resultado" && (
-  <div style={{
-    height: "100%",
-    display: "grid",
-    gridTemplateColumns: "repeat(2, 1fr)",
-    gap: 20
-  }}>
-    <BigStat label="🟢 JOTA COMPRA" value={formatBRL(jotaCompra)} />
-    <BigStat label="🔵 JOTA VENDA" value={formatBRL(jotaVenda)} />
-  </div>
-)}
 
 const jotaCompra =
   Number(saldo) +
@@ -690,6 +659,39 @@ const jotaVenda =
             </ResponsiveContainer>
           </Panel>
         )}
+
+{/* ================= FINANCEIRO ================= */}
+
+{slides[slide]?.id === "financeiro_inputs" && (
+  <Panel title="Controle financeiro">
+    <div style={{
+      display: "grid",
+      gridTemplateColumns: "repeat(3, 1fr)",
+      gap: 20
+    }}>
+      <Input label="Saldo" value={saldo} setValue={setSaldo} />
+      <Input label="A Receber" value={aReceber} setValue={setAReceber} />
+      <Input label="Shineray" value={shineray} setValue={setShineray} />
+      <Input label="Eduardo" value={eduardo} setValue={setEduardo} />
+      <Input label="Fornecedor" value={fornecedor} setValue={setFornecedor} />
+
+      <Stat label="Estoque Compra" value={formatBRL(estoqueCompra)} />
+      <Stat label="Estoque Venda" value={formatBRL(estoqueVenda)} />
+    </div>
+  </Panel>
+)}
+
+{slides[slide]?.id === "financeiro_resultado" && (
+  <div style={{
+    height: "100%",
+    display: "grid",
+    gridTemplateColumns: "repeat(2, 1fr)",
+    gap: 20
+  }}>
+    <BigStat label="🟢 JOTA COMPRA" value={formatBRL(jotaCompra)} />
+    <BigStat label="🔵 JOTA VENDA" value={formatBRL(jotaVenda)} />
+  </div>
+)}
 
         {slides[slide]?.id === "ultimos_7" && (
           <Panel title="Vendas nos últimos 7 dias" rightHint="(quantidade por dia)">
@@ -1027,6 +1029,36 @@ function Panel({ title, rightHint, children }) {
         {rightHint ? <div style={{ fontSize: 12, opacity: 0.65 }}>{rightHint}</div> : null}
       </div>
       <div style={{ marginTop: 10, height: "calc(100% - 34px)" }}>{children}</div>
+    </div>
+  );
+}
+function Input({ label, value, setValue }) {
+  return (
+    <div>
+      <div style={{ fontSize: 12 }}>{label}</div>
+      <input
+        type="number"
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        style={{
+          width: "100%",
+          height: 36,
+          borderRadius: 10,
+          padding: 8,
+          background: "rgba(255,255,255,0.05)",
+          border: "1px solid rgba(255,255,255,0.1)",
+          color: "#fff"
+        }}
+      />
+    </div>
+  );
+}
+
+function Stat({ label, value }) {
+  return (
+    <div>
+      <div style={{ fontSize: 12 }}>{label}</div>
+      <div style={{ fontSize: 18, fontWeight: "bold" }}>{value}</div>
     </div>
   );
 }
