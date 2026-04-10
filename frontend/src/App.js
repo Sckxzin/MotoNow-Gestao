@@ -13,6 +13,8 @@ import Carrinho from "./pages/Carrinho";
 import DashboardAuto from "./pages/DashboardAuto";
 import VendasMotosPendentes from"./pages/VendasMotosPendentes";
 import Emplacamentos from "./pages/Emplacamentos";
+import Financeiro from "./pages/Financeiro";
+
 
 export default function App() {
   return (
@@ -31,6 +33,7 @@ export default function App() {
         <Route path="/vendas-motos-pendentes" element={<VendasMotosPendentes />} />
         <Route path="/dashboard-tv" element={<DashboardAuto />} />
 <Route path="/emplacamentos" element={<Emplacamentos />} />
+<Route path="/financeiro" element={<Financeiro />} />
       </Routes>
     </BrowserRouter>
   );
