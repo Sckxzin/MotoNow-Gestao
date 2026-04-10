@@ -19,7 +19,6 @@ import {
 
 /* ================= HELPERS ================= */
 const toNumber = (v) => Number(v) || 0;
-
 const formatBRL = (v) =>
   Number(v || 0).toLocaleString("pt-BR", {
     style: "currency",
@@ -32,9 +31,10 @@ const isoDate = (d) => new Date(d).toISOString().slice(0, 10);
 export default function DashboardAuto() {
   const nav = useNavigate();
 
-  const [vendas, setVendas] = useState([]);
+  const [vendasMotos, setVendasMotos] = useState([]);
+  const [motos, setMotos] = useState([]);
 
-  // 🔥 FINANCEIRO STATES
+  // 🔥 FINANCEIRO
   const [saldo, setSaldo] = useState(0);
   const [aReceber, setAReceber] = useState(0);
   const [estoqueCompra, setEstoqueCompra] = useState(0);
@@ -46,6 +46,7 @@ export default function DashboardAuto() {
   const slides = [
     { id: "kpis", title: "Resumo" },
     { id: "fat_dia", title: "Faturamento por dia" },
+    { id: "ultimos_7", title: "Últimos 7 dias" },
     { id: "financeiro_inputs", title: "Controle financeiro" },
     { id: "financeiro_resultado", title: "Resultado financeiro" },
   ];
@@ -53,7 +54,8 @@ export default function DashboardAuto() {
   const [slide, setSlide] = useState(0);
 
   useEffect(() => {
-    api.get("/vendas-motos").then((res) => setVendas(res.data || []));
+    api.get("/vendas-motos").then((res) => setVendasMotos(res.data || []));
+    api.get("/motos").then((res) => setMotos(res.data || []));
   }, []);
 
   useEffect(() => {
@@ -63,26 +65,53 @@ export default function DashboardAuto() {
     });
   }, []);
 
-  /* ================= CALCULOS ================= */
-
+  /* ================= KPIS ================= */
   const kpis = useMemo(() => {
     return {
-      faturamento: vendas.reduce((a, v) => a + toNumber(v.valor), 0),
-      motos: vendas.length,
+      faturamento: vendasMotos.reduce((a, v) => a + toNumber(v.valor), 0),
+      motos: vendasMotos.length,
+      comissoes: vendasMotos.reduce((a, v) => a + toNumber(v.comissao_valor), 0),
     };
-  }, [vendas]);
+  }, [vendasMotos]);
 
+  /* ================= FATURAMENTO DIA ================= */
   const faturamentoDia = useMemo(() => {
     const map = new Map();
 
-    vendas.forEach((v) => {
+    vendasMotos.forEach((v) => {
       const d = isoDate(v.data_venda || v.created_at);
       if (!map.has(d)) map.set(d, { dia: d, total: 0 });
       map.get(d).total += toNumber(v.valor);
     });
 
     return Array.from(map.values());
-  }, [vendas]);
+  }, [vendasMotos]);
+
+  /* ================= ÚLTIMOS 7 ================= */
+  const ultimos7 = useMemo(() => {
+    const hoje = new Date();
+    const arr = [];
+
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(hoje.getDate() - i);
+
+      const iso = d.toISOString().slice(0, 10);
+
+      const qtd = vendasMotos.filter(
+        (v) => isoDate(v.data_venda || v.created_at) === iso
+      ).length;
+
+      arr.push({
+        dia: d.toLocaleDateString("pt-BR"),
+        vendas: qtd,
+      });
+    }
+
+    return arr;
+  }, [vendasMotos]);
+
+  /* ================= FINANCEIRO ================= */
 
   const jotaCompra =
     Number(saldo) +
@@ -108,7 +137,7 @@ export default function DashboardAuto() {
 
       <div style={{ marginBottom: 10 }}>
         <button onClick={() => setSlide((s) => (s + 1) % slides.length)}>
-          Próximo
+          Próximo Slide
         </button>
       </div>
 
@@ -117,6 +146,7 @@ export default function DashboardAuto() {
         <div style={{ display: "flex", gap: 20 }}>
           <Card title="Faturamento" value={formatBRL(kpis.faturamento)} />
           <Card title="Motos" value={kpis.motos} />
+          <Card title="Comissões" value={formatBRL(kpis.comissoes)} />
         </div>
       )}
 
@@ -133,7 +163,19 @@ export default function DashboardAuto() {
         </ResponsiveContainer>
       )}
 
-      {/* FINANCEIRO INPUT */}
+      {/* ÚLTIMOS 7 */}
+      {slides[slide].id === "ultimos_7" && (
+        <ResponsiveContainer width="100%" height={300}>
+          <LineChart data={ultimos7}>
+            <XAxis dataKey="dia" />
+            <YAxis />
+            <Tooltip />
+            <Line dataKey="vendas" stroke="#8884d8" />
+          </LineChart>
+        </ResponsiveContainer>
+      )}
+
+      {/* INPUT FINANCEIRO */}
       {slides[slide].id === "financeiro_inputs" && (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 10 }}>
           <Input label="Saldo" value={saldo} setValue={setSaldo} />
@@ -158,7 +200,8 @@ export default function DashboardAuto() {
   );
 }
 
-/* COMPONENTES */
+/* ================= COMPONENTES ================= */
+
 function Card({ title, value }) {
   return (
     <div style={{ background: "#111", padding: 20 }}>
