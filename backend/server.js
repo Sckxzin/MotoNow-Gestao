@@ -1836,8 +1836,9 @@ if (isFilialRepasseSantanderObrigatorio(p.filial_venda)) {
     );
 
     // baixa moto
-    await client.query(`UPDATE motos SET status = 'VENDIDA' WHERE id = $1`, [
+    await client.query(`UPDATE motos SET status = 'VENDIDA', data_venda = $2 WHERE id = $1`, [
       p.moto_id,
+      p.data_venda
     ]);
 
     // baixa capacete se brinde
