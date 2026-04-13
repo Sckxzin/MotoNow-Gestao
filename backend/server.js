@@ -349,10 +349,10 @@ app.get("/estoque-motos-por-data", async (req, res) => {
         COALESCE(SUM(valor_compra), 0) AS total_compra,
         COALESCE(SUM(repasse), 0) AS total_venda
       FROM motos
-      WHERE created_at <= $1
+      WHERE created_at < $1::date + interval '1 day'
       AND (
         data_venda IS NULL
-        OR data_venda > $1
+        OR data_venda >= $1::date + interval '1 day'
       )
     `, [data]);
 
