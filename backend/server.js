@@ -343,7 +343,7 @@ app.get("/financeiro", async (req, res) => {
   const { data } = req.query;
 
   try {
-    const result = await pool.query(
+    const result = await db.query(
       `SELECT * FROM financeiro WHERE data = $1 LIMIT 1`,
       [data]
     );
@@ -627,7 +627,7 @@ app.post("/financeiro", async (req, res) => {
   } = req.body;
 
   try {
-    await pool.query(
+    await db.query(
       `INSERT INTO financeiro (
         data,
         saldo,
