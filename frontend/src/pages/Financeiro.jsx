@@ -23,6 +23,29 @@ export default function Financeiro() {
     });
   }
 
+async function salvarFinanceiro() {
+  try {
+    await api.post("/financeiro", {
+      data,
+      saldo: Number(saldo),
+      a_receber: Number(aReceber),
+      estoque_compra: Number(estoqueCompra),
+      estoque_venda: Number(estoqueVenda),
+      qtd_estoque: Number(qtdEstoque),
+      shineray: Number(shineray),
+      eduardo: Number(eduardo),
+      fornecedor: Number(fornecedor),
+      jota_compra: Number(jotaCompra),
+      jota_venda: Number(jotaVenda),
+    });
+
+    alert("Salvo com sucesso!");
+  } catch (err) {
+    console.error(err);
+    alert("Erro ao salvar");
+  }
+}
+
   /* ================= PUXAR ESTOQUE ================= */
   useEffect(() => {
     async function carregarEstoque() {
@@ -110,6 +133,11 @@ export default function Financeiro() {
             <label>Fornecedor</label>
             <input type="number" value={fornecedor} onChange={(e) => setFornecedor(e.target.value)} />
           </div>
+<div style={{ marginTop: 15 }}>
+  <button className="vm-btn vm-btn-primary" onClick={salvarFinanceiro}>
+    💾 Salvar
+  </button>
+</div>
 
         </div>
       </div>
