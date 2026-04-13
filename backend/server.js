@@ -344,10 +344,7 @@ app.get("/estoque-motos-por-data", async (req, res) => {
 
   try {
     const result = await db.query(`
-      SELECT 
-        COUNT(*) AS quantidade,
-        COALESCE(SUM(valor_compra), 0) AS total_compra,
-        COALESCE(SUM(repasse), 0) AS total_venda
+      SELECT modelo, valor_compra
       FROM motos
       WHERE created_at < $1::date + interval '1 day'
       AND (
@@ -356,10 +353,21 @@ app.get("/estoque-motos-por-data", async (req, res) => {
       )
     `, [data]);
 
+    let totalCompra = 0;
+    let totalVenda = 0;
+
+    result.rows.forEach((m) => {
+      const compra = Number(m.valor_compra || 0);
+      const venda = getValorVendaModelo(m.modelo);
+
+      totalCompra += compra;
+      totalVenda += venda;
+    });
+
     res.json({
-      quantidade: Number(result.rows[0].quantidade),
-      totalCompra: Number(result.rows[0].total_compra),
-      totalVenda: Number(result.rows[0].total_venda),
+      quantidade: result.rows.length,
+      totalCompra,
+      totalVenda,
     });
 
   } catch (err) {
@@ -367,7 +375,6 @@ app.get("/estoque-motos-por-data", async (req, res) => {
     res.status(500).json({ message: "Erro ao calcular estoque" });
   }
 });
-
 /* ================= REGRA REPASSE SANTANDER POR FILIAL + MODELO ================= */
 
 // normaliza texto genérico
