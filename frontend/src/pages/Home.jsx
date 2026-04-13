@@ -686,18 +686,25 @@ async function alterarStatusMoto(id, novoStatus) {
       {tab === "motos" && (
   <>
     <div className="vm-stats">
-      {Object.entries(resumoMotos).map(([c, d]) => (
-        <div key={c} className="vm-stat">
-          <div className="vm-stat-label">{c}</div>
-          <div className="vm-stat-value">🟢 {d.disponiveis} | 🔴 {d.vendidas}</div>
-        </div>
-<div className="vm-stat vm-stat-highlight">
-  <div className="vm-stat-label">🏍 TOTAL GERAL</div>
-  <div className="vm-stat-value">
-    🟢 {totalGeral.disponiveis} | 🔴 {totalGeral.vendidas}
-  </div>
-      ))}
+    <div className="vm-stats">
+  {/* TOTAL GERAL */}
+  <div className="vm-stat vm-stat-highlight">
+    <div className="vm-stat-label">🏍 TOTAL GERAL</div>
+    <div className="vm-stat-value">
+      🟢 {totalGeral.disponiveis} | 🔴 {totalGeral.vendidas}
     </div>
+  </div>
+
+  {/* POR CIDADE */}
+  {Object.entries(resumoMotos).map(([c, d]) => (
+    <div key={c} className="vm-stat">
+      <div className="vm-stat-label">{c}</div>
+      <div className="vm-stat-value">
+        🟢 {d.disponiveis} | 🔴 {d.vendidas}
+      </div>
+    </div>
+  ))}
+</div>
 
     <div className="vm-card">
       <div className="vm-filters-grid">
