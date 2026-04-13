@@ -355,6 +355,39 @@ app.get("/financeiro", async (req, res) => {
   }
 });
 
+app.get("/estoque-motos-por-data", async (req, res) => {
+  const { data } = req.query;
+
+  try {
+    const result = await db.query(
+      `
+      SELECT 
+        COUNT(*) as quantidade,
+        COALESCE(SUM(valor_compra),0) as total_compra,
+        COALESCE(SUM(repasse),0) as total_venda
+      FROM motos
+      WHERE status != 'VENDIDA'
+         OR id NOT IN (
+            SELECT moto_id 
+            FROM vendas_motos 
+            WHERE data_venda <= $1
+         )
+      `,
+      [data]
+    );
+
+    res.json({
+      quantidade: Number(result.rows[0].quantidade),
+      totalCompra: Number(result.rows[0].total_compra),
+      totalVenda: Number(result.rows[0].total_venda),
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Erro ao calcular estoque por data" });
+  }
+});
+
 /* ================= REGRA REPASSE SANTANDER POR FILIAL + MODELO ================= */
 
 // normaliza texto genérico
