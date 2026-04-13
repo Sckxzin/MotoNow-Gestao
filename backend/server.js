@@ -358,23 +358,23 @@ app.get("/financeiro", async (req, res) => {
 app.get("/estoque-motos-por-data", async (req, res) => {
   const { data } = req.query;
 
+  if (!data) {
+    return res.status(400).json({ message: "Data obrigatória" });
+  }
+
   try {
-    const result = await db.query(
-      `
+    const result = await db.query(`
       SELECT 
-        COUNT(*) as quantidade,
-        COALESCE(SUM(valor_compra),0) as total_compra,
-        COALESCE(SUM(repasse),0) as total_venda
+        COUNT(*) AS quantidade,
+        COALESCE(SUM(valor_compra), 0) AS total_compra,
+        COALESCE(SUM(repasse), 0) AS total_venda
       FROM motos
-      WHERE status != 'VENDIDA'
-         OR id NOT IN (
-            SELECT moto_id 
-            FROM vendas_motos 
-            WHERE data_venda <= $1
-         )
-      `,
-      [data]
-    );
+      WHERE id NOT IN (
+        SELECT moto_id
+        FROM vendas_motos
+        WHERE data_venda <= '${data}'
+      )
+    `);
 
     res.json({
       quantidade: Number(result.rows[0].quantidade),
@@ -383,8 +383,8 @@ app.get("/estoque-motos-por-data", async (req, res) => {
     });
 
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Erro ao calcular estoque por data" });
+    console.error("ERRO REAL:", err); // 👈 ISSO AQUI É IMPORTANTE
+    res.status(500).json({ message: "Erro interno" });
   }
 });
 
