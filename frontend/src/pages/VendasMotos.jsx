@@ -124,7 +124,7 @@ export default function VendasMotos() {
     try {
       const res = await api.put(`/vendas-motos/${modalEditar.id}`, {
         valor: editarValor,
-        rp: editarRp,
+        rp: editarRp ? true : false,
         forma_pagamento: editarPagamento,
         gasolina: editarGasolina,
         brinde: editarBrinde,
@@ -136,7 +136,7 @@ export default function VendasMotos() {
       const vendaAtualizada = res.data.venda;
 
       setVendas((prev) =>
-        prev.map((v) => (v.id === modalEditar.id ? { ...v, ...vendaAtualizada } : v))
+        prev.map((v) => (v.id === modalEditar.id ? { ...v, ...vendaAtualizada, rp: editarRp, } : v))
       );
 
       setModalEditar(null);
@@ -465,7 +465,7 @@ export default function VendasMotos() {
       case "brinde":
         return v.brinde ? "SIM" : "NÃO";
       case "rp":
-        return v.rp ? "SIM" : "NÃO";
+        return v.rp === true ? "SIM" : "NÃO";
       case "data":
         return new Date(v.data_venda || v.created_at).toLocaleDateString("pt-BR");
       case "a_repassar":
