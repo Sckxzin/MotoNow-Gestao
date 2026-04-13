@@ -304,10 +304,31 @@ const [historico, setHistorico] = useState([]);
 
   /* ================= BASE FILTRADA ================= */
   const motosFiltradas = useMemo(() => {
-    return (vendasMotos || [])
-      .filter((v) => clampDateRange(v.data_venda || v.created_at, dataInicio, dataFim))
-      .filter((v) => empresaFiltro === "TODAS" || getEmpresa(v) === empresaFiltro);
-  }, [vendasMotos, dataInicio, dataFim, empresaFiltro]);
+  return (vendasMotos || [])
+    .filter((v) => {
+      // SEM FILTRO = MOSTRA TUDO
+      if (!dataInicio && !dataFim) return true;
+
+      const data = v.created_at; // FORÇA usar created_at
+
+      if (!data) return false;
+
+      const dt = new Date(data);
+
+      if (dataInicio) {
+        const di = new Date(dataInicio);
+        if (dt < di) return false;
+      }
+
+      if (dataFim) {
+        const df = new Date(dataFim + "T23:59:59");
+        if (dt > df) return false;
+      }
+
+      return true;
+    })
+    .filter((v) => empresaFiltro === "TODAS" || getEmpresa(v) === empresaFiltro);
+}, [vendasMotos, dataInicio, dataFim, empresaFiltro]);
 
   const motosBase7Dias = useMemo(() => {
     return (vendasMotos || []).filter(
