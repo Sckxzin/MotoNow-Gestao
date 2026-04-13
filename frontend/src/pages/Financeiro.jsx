@@ -64,6 +64,43 @@ async function salvarFinanceiro() {
     carregarEstoque();
   }, []);
 
+
+useEffect(() => {
+  if (!data) return;
+
+  async function carregarFinanceiro() {
+    try {
+      const res = await api.get("/financeiro", {
+        params: { data },
+      });
+
+      if (!res.data) {
+        // limpa se não existir
+        setSaldo(0);
+        setAReceber(0);
+        setShineray(0);
+        setEduardo(0);
+        setFornecedor(0);
+        return;
+      }
+
+      const f = res.data;
+
+      setSaldo(f.saldo || 0);
+      setAReceber(f.a_receber || 0);
+      setShineray(f.shineray || 0);
+      setEduardo(f.eduardo || 0);
+      setFornecedor(f.fornecedor || 0);
+
+    } catch (err) {
+      console.error(err);
+      alert("Erro ao carregar financeiro");
+    }
+  }
+
+  carregarFinanceiro();
+}, [data]);
+
   /* ================= CALCULOS ================= */
 
   const jotaCompra =
