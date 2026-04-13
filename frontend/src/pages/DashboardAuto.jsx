@@ -154,6 +154,32 @@ export default function DashboardAuto() {
   const [dataFim, setDataFim] = useState("");
   const [empresaFiltro, setEmpresaFiltro] = useState("TODAS");
 
+useEffect(() => {
+  api.get("/financeiro").then((res) => {
+    setHistorico(res.data || []);
+  });
+}, []);
+
+async function salvarFinanceiro() {
+  await api.post("/financeiro", {
+    data: new Date().toISOString().slice(0, 10),
+    saldo,
+    a_receber: aReceber,
+    estoque_compra: estoqueCompra,
+    estoque_venda: estoqueVenda,
+    shineray,
+    eduardo,
+    fornecedor,
+    jota_compra: jotaCompra,
+    jota_venda: jotaVenda,
+  });
+
+  alert("Salvo!");
+
+  const res = await api.get("/financeiro");
+  setHistorico(res.data || []);
+}
+
   /* ================= FINANCEIRO ================= */
   const [saldo, setSaldo] = useState(0);
   const [aReceber, setAReceber] = useState(0);
@@ -162,6 +188,7 @@ export default function DashboardAuto() {
   const [shineray, setShineray] = useState(0);
   const [eduardo, setEduardo] = useState(0);
   const [fornecedor, setFornecedor] = useState(0);
+const [historico, setHistorico] = useState([]);
 
   const slides = useMemo(
     () => [
@@ -174,6 +201,7 @@ export default function DashboardAuto() {
       { id: "top_modelos", title: "Top modelos e cidades" },
       { id: "financeiro_inputs", title: "Controle financeiro" },
       { id: "financeiro_resultado", title: "Resultado financeiro" },
+{ id: "financeiro_grafico", title: "Histórico financeiro" },
       { id: "resumo_final", title: "Resumo final" },
     ],
     []
@@ -686,6 +714,9 @@ export default function DashboardAuto() {
               <Stat label="Estoque Venda" value={formatBRL(estoqueVenda)} />
             </div>
           </Panel>
+<button className="tv-btn" onClick={salvarFinanceiro}>
+  💾 Salvar
+</button>
         )}
 
         {slides[slide]?.id === "financeiro_resultado" && (
@@ -701,6 +732,34 @@ export default function DashboardAuto() {
             <BigStat label="🔵 JOTA VENDA" value={formatBRL(jotaVenda)} />
           </div>
         )}
+
+{slides[slide]?.id === "financeiro_grafico" && (
+  <Panel title="Histórico financeiro">
+    <ResponsiveContainer width="100%" height={470}>
+      <LineChart data={historico}>
+        <CartesianGrid {...THEME.grid} />
+        <XAxis dataKey="data" {...THEME.axis} />
+        <YAxis {...THEME.axis} />
+        <Tooltip />
+        <Legend />
+        <Line
+          type="monotone"
+          dataKey="jota_compra"
+          name="Compra"
+          stroke="rgba(110,240,200,0.82)"
+          strokeWidth={3}
+        />
+        <Line
+          type="monotone"
+          dataKey="jota_venda"
+          name="Venda"
+          stroke="rgba(120,160,255,0.95)"
+          strokeWidth={3}
+        />
+      </LineChart>
+    </ResponsiveContainer>
+  </Panel>
+)}
 
         {slides[slide]?.id === "ultimos_7" && (
           <Panel title="Vendas nos últimos 7 dias" rightHint="(quantidade por dia)">
