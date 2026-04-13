@@ -686,7 +686,6 @@ async function alterarStatusMoto(id, novoStatus) {
       {tab === "motos" && (
   <>
     <div className="vm-stats">
-    <div className="vm-stats">
   {/* TOTAL GERAL */}
   <div className="vm-stat vm-stat-highlight">
     <div className="vm-stat-label">🏍 TOTAL GERAL</div>
