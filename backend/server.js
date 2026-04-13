@@ -339,6 +339,22 @@ app.get("/estoque-motos-resumo", async (req, res) => {
 });
 
 
+app.get("/financeiro", async (req, res) => {
+  const { data } = req.query;
+
+  try {
+    const result = await pool.query(
+      `SELECT * FROM financeiro WHERE data = $1 LIMIT 1`,
+      [data]
+    );
+
+    res.json(result.rows[0] || null);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Erro ao buscar financeiro" });
+  }
+});
+
 /* ================= REGRA REPASSE SANTANDER POR FILIAL + MODELO ================= */
 
 // normaliza texto genérico
