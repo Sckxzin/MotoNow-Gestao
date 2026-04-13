@@ -237,7 +237,7 @@ app.post("/financeiro", async (req, res) => {
     jota_venda
   } = req.body;
 
-  await pool.query(
+  await db.query(
     `INSERT INTO financeiro_historico 
     (data, saldo, a_receber, estoque_compra, estoque_venda, shineray, eduardo, fornecedor, jota_compra, jota_venda)
     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,
@@ -259,7 +259,7 @@ app.post("/financeiro", async (req, res) => {
 });
 
 app.get("/financeiro", async (req, res) => {
-  const r = await pool.query(
+  const r = await d.query(
     "SELECT * FROM financeiro_historico ORDER BY data ASC"
   );
 
