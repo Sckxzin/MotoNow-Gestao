@@ -18,6 +18,12 @@ export default function Financeiro() {
   const [eduardo, setEduardo] = useState(0);
   const [fornecedor, setFornecedor] = useState(0);
 
+  function formatar(valor) {
+    return Number(valor || 0).toLocaleString("pt-BR", {
+      style: "currency",
+      currency: "BRL",
+    });
+  }
 
   /* ================= CALCULOS ================= */
 
