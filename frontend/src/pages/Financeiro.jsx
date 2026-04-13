@@ -50,8 +50,9 @@ async function salvarFinanceiro() {
   useEffect(() => {
     async function carregarEstoque() {
       try {
-        const res = await api.get("/estoque-motos-por-data", {params: { data }
-                                                             });
+        const res = await api.get("/estoque-motos-por-data", {
+            params: { data }
+               });
     
 
         setEstoqueCompra(res.data.totalCompra);
