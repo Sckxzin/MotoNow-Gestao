@@ -15,6 +15,9 @@ export default function Financeiro() {
   const [shineray, setShineray] = useState(0);
   const [eduardo, setEduardo] = useState(0);
   const [fornecedor, setFornecedor] = useState(0);
+const [data, setData] = useState(
+  new Date().toISOString().split("T")[0]
+);
 
   function formatar(valor) {
     return Number(valor || 0).toLocaleString("pt-BR", {
@@ -48,62 +51,26 @@ async function salvarFinanceiro() {
 
   /* ================= PUXAR ESTOQUE ================= */
   useEffect(() => {
-    async function carregarEstoque() {
-      try {
-        const res = await api.get("/estoque-motos-por-data", {
-            params: { data }
-               });
-    
-
-        setEstoqueCompra(res.data.totalCompra);
-        setEstoqueVenda(res.data.totalVenda);
-        setQtdEstoque(res.data.quantidade);
-      } catch (err) {
-        console.error(err);
-        alert("Erro ao carregar estoque");
-      }
-    }
-
-    carregarEstoque();
-  }, []);
-
-
-useEffect(() => {
-  if (!data) return;
-
-  async function carregarFinanceiro() {
+  async function carregarEstoque() {
     try {
-      const res = await api.get("/financeiro", {
-        params: { data },
+      if (!data) return; // 👈 NÃO chama sem data
+
+      const res = await api.get("/estoque-motos-por-data", {
+        params: { data }
       });
 
-      if (!res.data) {
-        // limpa se não existir
-        setSaldo(0);
-        setAReceber(0);
-        setShineray(0);
-        setEduardo(0);
-        setFornecedor(0);
-        return;
-      }
-
-      const f = res.data;
-
-      setSaldo(f.saldo || 0);
-      setAReceber(f.a_receber || 0);
-      setShineray(f.shineray || 0);
-      setEduardo(f.eduardo || 0);
-      setFornecedor(f.fornecedor || 0);
+      setEstoqueCompra(res.data.totalCompra);
+      setEstoqueVenda(res.data.totalVenda);
+      setQtdEstoque(res.data.quantidade);
 
     } catch (err) {
       console.error(err);
-      alert("Erro ao carregar financeiro");
+      alert("Erro ao carregar estoque");
     }
   }
 
-  carregarFinanceiro();
+  carregarEstoque();
 }, [data]);
-
   /* ================= CALCULOS ================= */
 
   const jotaCompra =
