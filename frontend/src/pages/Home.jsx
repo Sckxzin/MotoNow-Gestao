@@ -883,7 +883,7 @@ async function alterarStatusMoto(id, novoStatus) {
         </tbody>
       </table>
     </div>
-  </>
+  </div>
 )}
 
       {/* ================= MODAL VENDA ================= */}
