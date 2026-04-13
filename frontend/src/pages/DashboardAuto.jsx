@@ -712,11 +712,13 @@ const [historico, setHistorico] = useState([]);
 
               <Stat label="Estoque Compra" value={formatBRL(estoqueCompra)} />
               <Stat label="Estoque Venda" value={formatBRL(estoqueVenda)} />
-            </div>
-          </Panel>
-<button className="tv-btn" onClick={salvarFinanceiro}>
+
+              <button className="tv-btn" onClick={salvarFinanceiro}>
   💾 Salvar
 </button>
+            </div>
+          </Panel>
+
         )}
 
         {slides[slide]?.id === "financeiro_resultado" && (
