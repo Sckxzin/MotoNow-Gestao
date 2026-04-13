@@ -339,52 +339,37 @@ app.get("/estoque-motos-resumo", async (req, res) => {
 });
 
 
-app.get("/financeiro", async (req, res) => {
-  const { data } = req.query;
-
-  try {
-    const result = await db.query(
-      `SELECT * FROM financeiro WHERE data = $1 LIMIT 1`,
-      [data]
-    );
-
-    res.json(result.rows[0] || null);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Erro ao buscar financeiro" });
-  }
-});
-
 app.get("/estoque-motos-por-data", async (req, res) => {
   const { data } = req.query;
 
-  if (!data) {
-    return res.status(400).json({ message: "Data obrigatória" });
-  }
-
   try {
-    const result = await db.query(`
-      SELECT 
-        COUNT(*) AS quantidade,
-        COALESCE(SUM(valor_compra), 0) AS total_compra,
-        COALESCE(SUM(repasse), 0) AS total_venda
+    const motosTotal = await db.query(`
+      SELECT COUNT(*) as total,
+             COALESCE(SUM(valor_compra),0) as total_compra,
+             COALESCE(SUM(repasse),0) as total_venda
       FROM motos
-      WHERE id NOT IN (
-        SELECT moto_id
-        FROM vendas_motos
-        WHERE data_venda <= '${data}'
-      )
-    `);
+      WHERE created_at <= $1
+    `, [data]);
+
+    const vendas = await db.query(`
+      SELECT COUNT(*) as vendidas
+      FROM vendas_motos
+      WHERE data_venda <= $1
+    `, [data]);
+
+    const quantidade =
+      Number(motosTotal.rows[0].total) -
+      Number(vendas.rows[0].vendidas);
 
     res.json({
-      quantidade: Number(result.rows[0].quantidade),
-      totalCompra: Number(result.rows[0].total_compra),
-      totalVenda: Number(result.rows[0].total_venda),
+      quantidade,
+      totalCompra: Number(motosTotal.rows[0].total_compra),
+      totalVenda: Number(motosTotal.rows[0].total_venda),
     });
 
   } catch (err) {
-    console.error("ERRO REAL:", err); // 👈 ISSO AQUI É IMPORTANTE
-    res.status(500).json({ message: "Erro interno" });
+    console.error(err);
+    res.status(500).json({ message: "Erro" });
   }
 });
 
