@@ -3,9 +3,9 @@ import api from "../api";
 import "./VendasMotos.css";
 
 export default function Financeiro() {
-  const [data, setData] = useState(
-    new Date().toISOString().split("T")[0]
-  );
+  const hojeBR = new Date().toLocaleDateString("en-CA"); // formato YYYY-MM-DD
+
+const [data, setData] = useState(hojeBR);
 
   const [saldo, setSaldo] = useState(0);
   const [aReceber, setAReceber] = useState(0);
