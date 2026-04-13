@@ -186,6 +186,14 @@ const [precoEntrada, setPrecoEntrada] = useState("");
   }
 
   const resumoMotos = calcularResumoMotos(motos);
+const totalGeral = motos.reduce(
+  (acc, m) => {
+    if (m.status === "DISPONIVEL") acc.disponiveis++;
+    if (m.status === "VENDIDA") acc.vendidas++;
+    return acc;
+  },
+  { disponiveis: 0, vendidas: 0 }
+);
 
   const tiposPecas = ["TODOS", ...Array.from(new Set(pecas.map((p) => p.tipo_moto).filter(Boolean)))];
 
@@ -683,6 +691,12 @@ async function alterarStatusMoto(id, novoStatus) {
           <div className="vm-stat-label">{c}</div>
           <div className="vm-stat-value">🟢 {d.disponiveis} | 🔴 {d.vendidas}</div>
         </div>
+<div className="vm-stat vm-stat-highlight">
+  <div className="vm-stat-label">🏍 TOTAL GERAL</div>
+  <div className="vm-stat-value">
+    🟢 {totalGeral.disponiveis} | 🔴 {totalGeral.vendidas}
+  </div>
+</div>
       ))}
     </div>
 
