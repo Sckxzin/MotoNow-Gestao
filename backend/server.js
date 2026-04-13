@@ -595,6 +595,58 @@ app.post("/login", async (req, res) => {
   }
 });
 
+app.post("/financeiro", async (req, res) => {
+  const {
+    data,
+    saldo,
+    a_receber,
+    estoque_compra,
+    estoque_venda,
+    qtd_estoque,
+    shineray,
+    eduardo,
+    fornecedor,
+    jota_compra,
+    jota_venda,
+  } = req.body;
+
+  try {
+    await pool.query(
+      `INSERT INTO financeiro (
+        data,
+        saldo,
+        a_receber,
+        estoque_compra,
+        estoque_venda,
+        qtd_estoque,
+        shineray,
+        eduardo,
+        fornecedor,
+        jota_compra,
+        jota_venda
+      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
+      [
+        data,
+        saldo,
+        a_receber,
+        estoque_compra,
+        estoque_venda,
+        qtd_estoque,
+        shineray,
+        eduardo,
+        fornecedor,
+        jota_compra,
+        jota_venda,
+      ]
+    );
+
+    res.json({ ok: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Erro ao salvar financeiro" });
+  }
+});
+
 /* ================= CADASTRAR MOTO ================= */
 app.post("/motos", async (req, res) => {
   const {
