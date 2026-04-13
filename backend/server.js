@@ -640,7 +640,21 @@ app.post("/financeiro", async (req, res) => {
         fornecedor,
         jota_compra,
         jota_venda
-      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
+      )
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
+      ON CONFLICT (data)
+      DO UPDATE SET
+        saldo = EXCLUDED.saldo,
+        a_receber = EXCLUDED.a_receber,
+        estoque_compra = EXCLUDED.estoque_compra,
+        estoque_venda = EXCLUDED.estoque_venda,
+        qtd_estoque = EXCLUDED.qtd_estoque,
+        shineray = EXCLUDED.shineray,
+        eduardo = EXCLUDED.eduardo,
+        fornecedor = EXCLUDED.fornecedor,
+        jota_compra = EXCLUDED.jota_compra,
+        jota_venda = EXCLUDED.jota_venda
+      `,
       [
         data,
         saldo,
@@ -662,7 +676,6 @@ app.post("/financeiro", async (req, res) => {
     res.status(500).json({ error: "Erro ao salvar financeiro" });
   }
 });
-
 /* ================= CADASTRAR MOTO ================= */
 app.post("/motos", async (req, res) => {
   const {
