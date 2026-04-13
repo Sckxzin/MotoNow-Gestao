@@ -358,14 +358,16 @@ app.get("/estoque-motos-por-data", async (req, res) => {
     `, [data]);
 
     const quantidade =
-      Number(motosTotal.rows[0].total) -
-      Number(vendas.rows[0].vendidas);
+  Number(motosTotal.rows[0].total) -
+  Number(vendas.rows[0].vendidas);
 
-    res.json({
-      quantidade,
-      totalCompra: Number(motosTotal.rows[0].total_compra),
-      totalVenda: Number(motosTotal.rows[0].total_venda),
-    });
+const quantidadeFinal = Math.max(0, quantidade);
+
+res.json({
+  quantidade: quantidadeFinal,
+  totalCompra: Number(motosTotal.rows[0].total_compra),
+  totalVenda: Number(motosTotal.rows[0].total_venda),
+});
 
   } catch (err) {
     console.error(err);
