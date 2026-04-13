@@ -696,7 +696,6 @@ async function alterarStatusMoto(id, novoStatus) {
   <div className="vm-stat-value">
     🟢 {totalGeral.disponiveis} | 🔴 {totalGeral.vendidas}
   </div>
-</div>
       ))}
     </div>
 
