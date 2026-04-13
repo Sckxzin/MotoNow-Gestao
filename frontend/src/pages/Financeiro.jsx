@@ -18,6 +18,13 @@ export default function Financeiro() {
   const [eduardo, setEduardo] = useState(0);
   const [fornecedor, setFornecedor] = useState(0);
 
+const quantidade =
+  Number(motosTotal.rows[0].total) -
+  Number(vendas.rows[0].vendidas);
+
+// 👇 TRAVA PRA NÃO FICAR NEGATIVO
+const quantidadeFinal = Math.max(0, quantidade);
+
   function formatar(valor) {
     return Number(valor || 0).toLocaleString("pt-BR", {
       style: "currency",
