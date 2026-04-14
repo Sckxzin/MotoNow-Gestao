@@ -219,6 +219,7 @@ export default function Vendas() {
         observacao: venda.observacao || null,
         total: Number(venda.total || 0),
         rp: !!novoValor,
+        rr: !!venda.rr,
       };
 
       const res = await api.put(`/vendas/${venda.id}`, payload);
