@@ -66,6 +66,7 @@ export default function VendasMotos() {
   const [editarLocalRetirada, setEditarLocalRetirada] = useState("");
   const [editarFilialRetirada, setEditarFilialRetirada] = useState("");
   const [editarComissao, setEditarComissao] = useState("");
+const [editarRr, setEditarRr] = useState(false);
 
   /* ================= CIDADES PADRÃO ================= */
   const cidadesPadrao = [
@@ -116,6 +117,7 @@ export default function VendasMotos() {
     setEditarLocalRetirada(v.local_retirada || "");
     setEditarFilialRetirada(v.filial_retirada || "");
     setEditarComissao(v.comissao_valor ?? "");
+setEditarRr(!!v.rr);
   }
 
   async function salvarEdicaoVenda() {
@@ -131,6 +133,7 @@ export default function VendasMotos() {
         local_retirada: editarLocalRetirada,
         filial_retirada: editarLocalRetirada === "FILIAL" ? editarFilialRetirada : null,
         comissao_valor: editarComissao,
+rr: editarRr ? true : false,
       });
 
       const vendaAtualizada = res.data.venda;
@@ -889,6 +892,14 @@ export default function VendasMotos() {
               RP
             </label>
 
+<label style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 10 }}>
+  <input
+    type="checkbox"
+    checked={editarRr}
+    onChange={(e) => setEditarRr(e.target.checked)}
+  />
+  RR
+</label>
             <select
               value={editarLocalRetirada}
               onChange={(e) => setEditarLocalRetirada(e.target.value)}
