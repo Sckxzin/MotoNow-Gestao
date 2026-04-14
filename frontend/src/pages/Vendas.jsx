@@ -625,7 +625,8 @@ export default function Vendas() {
     RR
   </label>
 </div>
-
+            </div>
+          
             <div className="vm-modal-actions">
               <button
                 className="vm-btn vm-btn-ghost"
