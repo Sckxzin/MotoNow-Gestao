@@ -1246,7 +1246,9 @@ app.get("/vendas", async (req, res) => {
          modelo_moto,
          chassi_moto,
          km,
-         rp
+         rp,
+         rr,
+
        FROM vendas
        ORDER BY created_at DESC`
     );
@@ -1287,6 +1289,7 @@ app.put("/vendas/:id", async (req, res) => {
     km,
     total,
     rp,
+    rr,
   } = req.body;
 
   try {
@@ -1311,7 +1314,8 @@ app.put("/vendas/:id", async (req, res) => {
            km = $8,
            total = $9,
            rp = $10
-       WHERE id = $11
+           rr = $11
+       WHERE id = $12
        RETURNING *`,
       [
         cliente_nome || null,
@@ -1324,6 +1328,7 @@ app.put("/vendas/:id", async (req, res) => {
         km != null && km !== "" ? Number(km) : null,
         total != null && total !== "" ? Number(total) : 0,
         Boolean(rp),
+        Boolean(rr),
         Number(id),
       ]
     );
