@@ -1247,7 +1247,6 @@ app.get("/vendas", async (req, res) => {
          chassi_moto,
          km,
          rp,
-         rr,
 
        FROM vendas
        ORDER BY created_at DESC`
