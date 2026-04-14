@@ -348,6 +348,7 @@ rr: editarRr ? true : false,
       { key: "filial_retirada", label: "Filial retirada" },
       { key: "comissao", label: "Comissão" },
       { key: "acoes", label: "Ações" },
+{ key: "rr", label: "RR" },
     ],
     []
   );
