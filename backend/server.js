@@ -194,13 +194,13 @@ app.put("/vendas-motos/:id", async (req, res) => {
        SET valor = $1,
            rp = $2,
            rr= $3,
-           forma_pagamento = $3,
-           gasolina = $4,
-           brinde = $5,
-           local_retirada = $6,
-           filial_retirada = $7,
-           comissao_valor = $8
-       WHERE id = $9
+           forma_pagamento = $4,
+           gasolina = $5,
+           brinde = $6,
+           local_retirada = $7,
+           filial_retirada = $8,
+           comissao_valor = $9
+       WHERE id = $10
        RETURNING *`,
       [
         valor != null && valor !== "" ? Number(valor) : 0,
