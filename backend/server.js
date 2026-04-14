@@ -170,6 +170,7 @@ app.put("/vendas-motos/:id", async (req, res) => {
   const {
     valor,
     rp,
+    rr,
     forma_pagamento,
     gasolina,
     brinde,
@@ -192,6 +193,7 @@ app.put("/vendas-motos/:id", async (req, res) => {
       `UPDATE vendas_motos
        SET valor = $1,
            rp = $2,
+           rr= $3,
            forma_pagamento = $3,
            gasolina = $4,
            brinde = $5,
@@ -203,6 +205,7 @@ app.put("/vendas-motos/:id", async (req, res) => {
       [
         valor != null && valor !== "" ? Number(valor) : 0,
         Boolean(rp),
+        Boolean(rr),
         forma_pagamento || null,
         gasolina != null && gasolina !== "" ? Number(gasolina) : null,
         Boolean(brinde),
