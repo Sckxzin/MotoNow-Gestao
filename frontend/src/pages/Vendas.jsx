@@ -33,13 +33,14 @@ export default function Vendas() {
   const [vendaEditando, setVendaEditando] = useState(null);
 
   const [formEdicao, setFormEdicao] = useState({
-    cliente_nome: "",
-    cidade: "",
-    forma_pagamento: "",
-    observacao: "",
-    total: "",
-    rp: false,
-  });
+  cliente_nome: "",
+  cidade: "",
+  forma_pagamento: "",
+  observacao: "",
+  total: "",
+  rp: false,
+  rr: false,
+});
 
   useEffect(() => {
     carregarVendas();
@@ -140,13 +141,14 @@ export default function Vendas() {
   function abrirModalEdicao(v) {
     setVendaEditando(v);
     setFormEdicao({
-      cliente_nome: v.cliente_nome || "",
-      cidade: v.cidade || "",
-      forma_pagamento: v.forma_pagamento || "",
-      observacao: v.observacao || "",
-      total: v.total != null ? String(v.total) : "",
-      rp: !!v.rp,
-    });
+  cliente_nome: v.cliente_nome || "",
+  cidade: v.cidade || "",
+  forma_pagamento: v.forma_pagamento || "",
+  observacao: v.observacao || "",
+  total: v.total != null ? String(v.total) : "",
+  rp: !!v.rp,
+  rr: !!v.rr,
+});
     setModalEditar(true);
   }
 
@@ -154,13 +156,14 @@ export default function Vendas() {
     setModalEditar(false);
     setVendaEditando(null);
     setFormEdicao({
-      cliente_nome: "",
-      cidade: "",
-      forma_pagamento: "",
-      observacao: "",
-      total: "",
-      rp: false,
-    });
+  cliente_nome: "",
+  cidade: "",
+  forma_pagamento: "",
+  observacao: "",
+  total: "",
+  rp: false,
+  rr: false,
+});
   }
 
   function alterarCampoEdicao(e) {
@@ -179,13 +182,14 @@ export default function Vendas() {
       setSalvandoEdicao(true);
 
       const payload = {
-        cliente_nome: formEdicao.cliente_nome?.trim() || null,
-        cidade: formEdicao.cidade || null,
-        forma_pagamento: formEdicao.forma_pagamento?.trim() || null,
-        observacao: formEdicao.observacao?.trim() || null,
-        total: formEdicao.total !== "" ? Number(formEdicao.total) : 0,
-        rp: !!formEdicao.rp,
-      };
+  cliente_nome: formEdicao.cliente_nome?.trim() || null,
+  cidade: formEdicao.cidade || null,
+  forma_pagamento: formEdicao.forma_pagamento?.trim() || null,
+  observacao: formEdicao.observacao?.trim() || null,
+  total: formEdicao.total !== "" ? Number(formEdicao.total) : 0,
+  rp: !!formEdicao.rp,
+  rr: !!formEdicao.rr,
+};
 
       const res = await api.put(`/vendas/${vendaEditando.id}`, payload);
       const vendaAtualizada = res.data;
@@ -398,6 +402,7 @@ export default function Vendas() {
                 <th>Pagamento</th>
                 <th>Cidade</th>
                 <th>RP</th>
+                <th>RR</th>
                 <th>Detalhes</th>
                 <th>Editar</th>
                 <th>Nota</th>
@@ -424,6 +429,10 @@ export default function Vendas() {
                         onChange={(e) => toggleRP(v, e.target.checked)}
                       />
                     </td>
+
+<td>
+  <input type="checkbox" checked={!!v.rr} readOnly />
+</td>
 
                     <td>
                       <button
@@ -578,6 +587,7 @@ export default function Vendas() {
                     type="checkbox"
                     name="rp"
                     checked={!!formEdicao.rp}
+
                     onChange={alterarCampoEdicao}
                   />
                   RP
@@ -594,7 +604,26 @@ export default function Vendas() {
                   placeholder="Digite alguma observação da venda..."
                 />
               </div>
-            </div>
+           
+
+<div className="vm-field">
+  <label
+    style={{
+      display: "flex",
+      alignItems: "center",
+      gap: 8,
+      marginTop: 34,
+    }}
+  >
+    <input
+      type="checkbox"
+      name="rr"
+      checked={!!formEdicao.rr}
+      onChange={alterarCampoEdicao}
+    />
+    RR
+  </label>
+</div>
 
             <div className="vm-modal-actions">
               <button
