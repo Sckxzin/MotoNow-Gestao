@@ -470,6 +470,8 @@ rr: editarRr ? true : false,
         return v.brinde ? "SIM" : "NÃO";
       case "rp":
         return v.rp === true ? "SIM" : "NÃO";
+case "rr":
+  return v.rr ? "SIM" : "NÃO";
       case "data":
         return new Date(v.data_venda || v.created_at).toLocaleDateString("pt-BR");
       case "a_repassar":
