@@ -1313,8 +1313,8 @@ app.put("/vendas/:id", async (req, res) => {
            chassi_moto = $7,
            km = $8,
            total = $9,
-           rp = $10
-           rr = $11
+           rp = $10,
+           rr = $11,
        WHERE id = $12
        RETURNING *`,
       [
