@@ -1314,9 +1314,9 @@ app.put("/vendas/:id", async (req, res) => {
            km = $8,
            total = $9,
            rp = $10,
-           rr = $11,
-       WHERE id = $12,
-       RETURNING *`,
+           rr = $11
+       WHERE id = $12
+       RETURNING *`
       [
         cliente_nome || null,
         cliente_telefone || null,
