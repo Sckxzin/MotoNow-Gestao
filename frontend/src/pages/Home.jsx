@@ -187,6 +187,15 @@ const [precoEntrada, setPrecoEntrada] = useState("");
 
   const resumoMotos = calcularResumoMotos(motos);
 
+const resumoGeralMotos = motos.reduce(
+  (acc, m) => {
+    if (m.status === "DISPONIVEL") acc.disponiveis++;
+    if (m.status === "VENDIDA") acc.vendidas++;
+    return acc;
+  },
+  { disponiveis: 0, vendidas: 0 }
+);
+
   const tiposPecas = ["TODOS", ...Array.from(new Set(pecas.map((p) => p.tipo_moto).filter(Boolean)))];
 
   // ✅ lista de CNPJs disponíveis (para o select)
@@ -678,13 +687,26 @@ async function alterarStatusMoto(id, novoStatus) {
       {tab === "motos" && (
   <>
     <div className="vm-stats">
-      {Object.entries(resumoMotos).map(([c, d]) => (
-        <div key={c} className="vm-stat">
-          <div className="vm-stat-label">{c}</div>
-          <div className="vm-stat-value">🟢 {d.disponiveis} | 🔴 {d.vendidas}</div>
-        </div>
-      ))}
+
+  {/* ✅ GERAL PRIMEIRO */}
+  <div className="vm-stat vm-stat-total">
+    <div className="vm-stat-label">GERAL</div>
+    <div className="vm-stat-value">
+      🟢 {resumoGeralMotos.disponiveis} | 🔴 {resumoGeralMotos.vendidas}
     </div>
+  </div>
+
+  {/* ✅ DEPOIS AS FILIAIS */}
+  {Object.entries(resumoMotos).map(([c, d]) => (
+    <div key={c} className="vm-stat">
+      <div className="vm-stat-label">{c}</div>
+      <div className="vm-stat-value">
+        🟢 {d.disponiveis} | 🔴 {d.vendidas}
+      </div>
+    </div>
+  ))}
+
+</div>
 
     <div className="vm-card">
       <div className="vm-filters-grid">
