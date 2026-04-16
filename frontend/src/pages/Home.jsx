@@ -181,14 +181,6 @@ const [precoEntrada, setPrecoEntrada] = useState("");
       if (!resumo[m.filial]) resumo[m.filial] = { disponiveis: 0, vendidas: 0 };
       if (m.status === "DISPONIVEL") resumo[m.filial].disponiveis++;
       if (m.status === "VENDIDA") resumo[m.filial].vendidas++;
-const resumoGeralMotos = motos.reduce(
-  (acc, m) => {
-    if (m.status === "DISPONIVEL") acc.disponiveis++;
-    if (m.status === "VENDIDA") acc.vendidas++;
-    return acc;
-  },
-  { disponiveis: 0, vendidas: 0 }
-);
     });
     return resumo;
   }
@@ -691,11 +683,6 @@ async function alterarStatusMoto(id, novoStatus) {
           <div className="vm-stat-label">{c}</div>
           <div className="vm-stat-value">🟢 {d.disponiveis} | 🔴 {d.vendidas}</div>
         </div>
-<div className="vm-stat vm-stat-total">
-  <div className="vm-stat-label">GERAL</div>
-  <div className="vm-stat-value">
-    🟢 {resumoGeralMotos.disponiveis} | 🔴 {resumoGeralMotos.vendidas}
-  </div>
       ))}
     </div>
 
