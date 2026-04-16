@@ -71,25 +71,39 @@ const [data, setData] = useState(hojeBR);
   /* ================= PUXAR ESTOQUE ================= */
 
   useEffect(() => {
-    async function carregarEstoque() {
-      try {
-        if (!data) return;
+  async function carregarTudo() {
+    try {
+      if (!data) return;
 
-        const res = await api.get("/estoque-motos-por-data", {
-          params: { data },
-        });
+      // 🔥 busca financeiro salvo
+      const fin = await api.get("/financeiro-por-data", {
+        params: { data },
+      });
 
-        setEstoqueCompra(res.data.totalCompra);
-        setEstoqueVenda(res.data.totalVenda);
-        setQtdEstoque(res.data.quantidade);
-      } catch (err) {
-        console.error(err);
-        alert("Erro ao carregar estoque");
+      if (fin.data) {
+        setSaldo(fin.data.saldo || 0);
+        setAReceber(fin.data.a_receber || 0);
+        setShineray(fin.data.shineray || 0);
+        setEduardo(fin.data.eduardo || 0);
+        setFornecedor(fin.data.fornecedor || 0);
       }
-    }
 
-    carregarEstoque();
-  }, [data]);
+      // 🔥 busca estoque
+      const res = await api.get("/estoque-motos-por-data", {
+        params: { data },
+      });
+
+      setEstoqueCompra(res.data.totalCompra);
+      setEstoqueVenda(res.data.totalVenda);
+      setQtdEstoque(res.data.quantidade);
+
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  carregarTudo();
+}, [data]);
 
   return (
     <div className="vendas-motos-container">
