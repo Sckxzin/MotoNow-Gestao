@@ -154,6 +154,7 @@ export default function DashboardAuto() {
   const [dataInicio, setDataInicio] = useState("");
   const [dataFim, setDataFim] = useState("");
   const [empresaFiltro, setEmpresaFiltro] = useState("TODAS");
+const [financeiro, setFinanceiro] = useState([]);
 
   const slides = useMemo(
     () => [
@@ -164,6 +165,7 @@ export default function DashboardAuto() {
       { id: "estoque_motos", title: "Estoque atual de motos" },
       { id: "fechamento_loja", title: "Fechamento por loja" },
       { id: "top_modelos", title: "Top modelos e cidades" },
+{ id: "financeiro", title: "Financeiro" },
       { id: "resumo_final", title: "Resumo final" },
     ],
     []
@@ -185,6 +187,15 @@ export default function DashboardAuto() {
       .then((res) => setMotos(res.data || []))
       .catch(() => setMotos([]));
   }, []);
+
+useEffect(() => {
+  api
+    .get("/financeiro-dashboard", {
+      params: { dataInicio, dataFim },
+    })
+    .then((res) => setFinanceiro(res.data || []))
+    .catch(() => setFinanceiro([]));
+}, [dataInicio, dataFim]);
 
   function aplicarHoje() {
     const hoje = new Date().toISOString().slice(0, 10);
@@ -249,6 +260,19 @@ export default function DashboardAuto() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   });
+
+const financeiroGrafico = useMemo(() => {
+  return (financeiro || []).map((item) => ({
+    data: formatDateBRFromISO(item.data),
+    dataISO: item.data,
+    saldo: toNumber(item.saldo),
+    aReceber: toNumber(item.a_receber),
+    estoqueCompra: toNumber(item.estoque_compra),
+    estoqueVenda: toNumber(item.estoque_venda),
+    jotaCompra: toNumber(item.jota_compra),
+    jotaVenda: toNumber(item.jota_venda),
+  }));
+}, [financeiro]);
 
   /* ================= BASE FILTRADA ================= */
   const motosFiltradas = useMemo(() => {
@@ -849,6 +873,70 @@ const acumulado7Dias = useMemo(() => {
             </Panel>
           </div>
         )}
+{slides[slide]?.id === "financeiro" && (
+  <div style={{ height: "100%", display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: 14 }}>
+    <Panel title="Evolução financeira" rightHint="(último valor salvo por dia)">
+      <ResponsiveContainer width="100%" height={470}>
+        <LineChart data={financeiroGrafico} margin={{ top: 18, right: 16, bottom: 30, left: 8 }}>
+          <CartesianGrid {...THEME.grid} />
+          <XAxis dataKey="data" {...THEME.axis} />
+          <YAxis {...THEME.axis} />
+          <Tooltip
+            {...tooltipProps((v, name) => [formatBRL(v), name])}
+          />
+          <Legend />
+          <Line type="monotone" dataKey="jotaCompra" name="Jota Compra" stroke="rgba(110,240,200,0.92)" strokeWidth={3} />
+          <Line type="monotone" dataKey="jotaVenda" name="Jota Venda" stroke="rgba(120,160,255,0.95)" strokeWidth={3} />
+          <Line type="monotone" dataKey="saldo" name="Saldo" stroke="rgba(255,190,90,0.95)" strokeWidth={2} />
+        </LineChart>
+      </ResponsiveContainer>
+    </Panel>
+
+    <Panel title="Últimos registros financeiros" rightHint="(último salvo do dia)">
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 12,
+          maxHeight: 470,
+          overflow: "auto",
+          paddingRight: 6,
+        }}
+      >
+        {[...(financeiro || [])]
+          .sort((a, b) => new Date(b.data) - new Date(a.data))
+          .slice(0, 8)
+          .map((item) => (
+            <div
+              key={item.data}
+              style={{
+                background: "rgba(255,255,255,0.04)",
+                border: "1px solid rgba(255,255,255,0.08)",
+                borderRadius: 16,
+                padding: 14,
+              }}
+            >
+              <div style={{ fontSize: 15, fontWeight: 800 }}>
+                {formatDateBRFromISO(item.data)}
+              </div>
+              <div style={{ marginTop: 8 }}>Saldo: <strong>{formatBRL(item.saldo)}</strong></div>
+              <div>A receber: <strong>{formatBRL(item.a_receber)}</strong></div>
+              <div>Estoque compra: <strong>{formatBRL(item.estoque_compra)}</strong></div>
+              <div>Estoque venda: <strong>{formatBRL(item.estoque_venda)}</strong></div>
+              <div>Jota compra: <strong>{formatBRL(item.jota_compra)}</strong></div>
+              <div>Jota venda: <strong>{formatBRL(item.jota_venda)}</strong></div>
+            </div>
+          ))}
+
+        {financeiroGrafico.length === 0 && (
+          <div style={{ opacity: 0.7, fontSize: 14 }}>
+            Nenhum dado financeiro encontrado.
+          </div>
+        )}
+      </div>
+    </Panel>
+  </div>
+)}
 
         {slides[slide]?.id === "resumo_final" && (
           <div
