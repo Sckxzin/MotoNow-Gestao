@@ -373,6 +373,21 @@ app.get("/estoque-motos-por-data", async (req, res) => {
       totalVenda,
     });
 
+app.get("/financeiro-por-data", async (req, res) => {
+  try {
+    const { data } = req.query;
+
+    const result = await pool.query(
+      "SELECT * FROM financeiro WHERE data = $1",
+      [data]
+    );
+
+    res.json(result.rows[0] || null);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Erro");
+  }
+});
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Erro ao calcular estoque" });
