@@ -310,6 +310,30 @@ function getValorVendaModelo(modelo) {
   return valor;
 }
 
+app.get("/financeiro-dashboard", async (req, res) => {
+  try {
+    const result = await db.query(`
+      SELECT DISTINCT ON (data)
+        data,
+        saldo,
+        a_receber,
+        estoque_compra,
+        estoque_venda,
+        qtd_estoque,
+        jota_compra,
+        jota_venda,
+        created_at
+      FROM financeiro
+      ORDER BY data, created_at DESC
+    `);
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Erro ao buscar dashboard" });
+  }
+});
+
 /* ================= ESTOQUE REAL ================= */
 app.get("/estoque-motos-resumo", async (req, res) => {
   try {
