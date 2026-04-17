@@ -28,6 +28,7 @@ const MODELOS_MOTOS = [
   { modelo: "NEW JET 125 EFI", compra_motonow: 10490, compra_santander: 0, santanderDefault: false},
   { modelo: "PT4 PRO", compra_motonow: 7990, compra_santander: 8300, santanderDefault: true},
   { modelo: "PT3 TRICICLO", compra_motonow: 6900, compra_santander: 11590, santanderDefault: true},
+  { modelo: "NEW ATV", compra_motonow: 21490, compra_santander: 23600, santanderDefault: true}.
 ];
 
 /* ================= REGRA: REPASSE OBRIGATÓRIO EM FILIAIS ================= */
@@ -63,6 +64,7 @@ const REPASSE_SANTANDER_POR_MODELO = {
   [normModeloKey("JEF 150 EFI")]:13800,
   [normModeloKey("ATV 200 EFI")]:23000,
   [normModeloKey("PT3 TRICICLO")]:11590,
+  [normModeloKey("NEW ATV 200 EFI")]:23600,
 };
 
 function isRepasseObrigatorio(filial) {
