@@ -79,6 +79,7 @@ const [editarRr, setEditarRr] = useState(false);
     "MARAGOGI",
     "IPOJUCA RICARDO",
     "CHA GRANDE",
+    "TENDA",
   ];
 
   const opcoesCidades = [
