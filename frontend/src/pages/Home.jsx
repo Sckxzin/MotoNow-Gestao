@@ -815,6 +815,7 @@ async function alterarStatusMoto(id, novoStatus) {
         </thead>
         <tbody>
           {motos
+            .filter((m) => m.status !== "VENDIDA")
             .filter((m) => cidadeFiltroMotos === "TODAS" || m.filial === cidadeFiltroMotos)
             .filter((m) => {
               if (santanderFiltro === "TODOS") return true;
