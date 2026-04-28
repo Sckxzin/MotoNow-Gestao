@@ -422,6 +422,18 @@ const acumulado7Dias = useMemo(() => {
             total: 0,
           });
         }
+const estoqueGeral = useMemo(() => {
+  return estoqueAtualPorLoja.reduce(
+    (acc, loja) => {
+      acc.disponiveis += loja.disponiveis;
+      acc.negociacao += loja.negociacao;
+      acc.pendente += loja.pendente;
+      acc.total += loja.total;
+      return acc;
+    },
+    { disponiveis: 0, negociacao: 0, pendente: 0, total: 0 }
+  );
+}, [estoqueAtualPorLoja]);
 
         const cur = map.get(loja);
         cur.total += 1;
@@ -717,6 +729,20 @@ const acumulado7Dias = useMemo(() => {
                   paddingRight: 6,
                 }}
               >
+<div
+  style={{
+    background: "rgba(255,255,255,0.08)",
+    border: "1px solid rgba(255,255,255,0.15)",
+    borderRadius: 16,
+    padding: 14,
+  }}
+>
+  <div style={{ fontSize: 16, fontWeight: 900 }}>GERAL</div>
+  <div style={{ marginTop: 6 }}>Total: <strong>{estoqueGeral.total}</strong></div>
+  <div>Disponíveis: <strong>{estoqueGeral.disponiveis}</strong></div>
+  <div>Negociação: <strong>{estoqueGeral.negociacao}</strong></div>
+  <div>Pendente: <strong>{estoqueGeral.pendente}</strong></div>
+</div>
                 {estoqueAtualPorLoja.map((item) => (
                   <div
                     key={item.loja}
