@@ -422,18 +422,7 @@ const acumulado7Dias = useMemo(() => {
             total: 0,
           });
         }
-const estoqueGeral = useMemo(() => {
-  return estoqueAtualPorLoja.reduce(
-    (acc, loja) => {
-      acc.disponiveis += loja.disponiveis;
-      acc.negociacao += loja.negociacao;
-      acc.pendente += loja.pendente;
-      acc.total += loja.total;
-      return acc;
-    },
-    { disponiveis: 0, negociacao: 0, pendente: 0, total: 0 }
-  );
-}, [estoqueAtualPorLoja]);
+
 
         const cur = map.get(loja);
         cur.total += 1;
@@ -447,6 +436,19 @@ const estoqueGeral = useMemo(() => {
 
     return Array.from(map.values()).sort((a, b) => b.total - a.total);
   }, [motos, empresaFiltro]);
+
+  const estoqueGeral = useMemo(() => {
+  return estoqueAtualPorLoja.reduce(
+    (acc, loja) => {
+      acc.disponiveis += loja.disponiveis;
+      acc.negociacao += loja.negociacao;
+      acc.pendente += loja.pendente;
+      acc.total += loja.total;
+      return acc;
+    },
+    { disponiveis: 0, negociacao: 0, pendente: 0, total: 0 }
+  );
+}, [estoqueAtualPorLoja]);
 
   /* ================= FECHAMENTO POR LOJA ================= */
   const fechamentoPorLoja = useMemo(() => {
