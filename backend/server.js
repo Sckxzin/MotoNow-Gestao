@@ -456,7 +456,7 @@ const REPASSE_SANTANDER_POR_MODELO = {
   [normModeloKey("NEW JET 125 EFI")]:14600,
   [normModeloKey("PT4 PRO")]:8300,
   [normModeloKey("PT3 TRICICLO")]:11590,
-  [normModeloKey("NEW SHI 175 CARB")]:,
+  [normModeloKey("NEW SHI 175 CARB")]:14100,
 };
 
 function repasseSantanderPorModelo(modelo) {
