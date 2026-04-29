@@ -132,6 +132,7 @@ const TABELA_COMISSOES = {
   ATV200: { v30: 22788, v50: 22000, v100: 24200 },
   ATVEFI200: { v30: 25000, v50: 25000, v100: 26000 },
   NEWATV200EFI: { v30: 25000, v50: 25500, v100: 26500 },
+  
 };
 
 function calcularComissaoMoto(modelo, valorVenda) {
@@ -455,6 +456,7 @@ const REPASSE_SANTANDER_POR_MODELO = {
   [normModeloKey("NEW JET 125 EFI")]:14600,
   [normModeloKey("PT4 PRO")]:8300,
   [normModeloKey("PT3 TRICICLO")]:11590,
+  [normModeloKey("NEW SHI 175 CARB")]:,
 };
 
 function repasseSantanderPorModelo(modelo) {
