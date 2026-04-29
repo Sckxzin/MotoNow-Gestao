@@ -29,6 +29,7 @@ const MODELOS_MOTOS = [
   { modelo: "PT4 PRO", compra_motonow: 7990, compra_santander: 8300, santanderDefault: true},
   { modelo: "PT3 TRICICLO", compra_motonow: 6900, compra_santander: 11590, santanderDefault: true},
   { modelo: "NEW ATV 200 EFI", compra_motonow: 21490, compra_santander: 23600, santanderDefault: true},
+  { modelo: "NEW SHI 175 CARB", compra_motonow: 12990, compra_santander: 14100, santanderDefault: true},
 ];
 
 /* ================= REGRA: REPASSE OBRIGATÓRIO EM FILIAIS ================= */
@@ -65,6 +66,7 @@ const REPASSE_SANTANDER_POR_MODELO = {
   [normModeloKey("ATV 200 EFI")]:23000,
   [normModeloKey("PT3 TRICICLO")]:11590,
   [normModeloKey("NEW ATV 200 EFI")]:23600,
+  [normModeloKey("NEW SHI 175 CARB")]:14100,
 };
 
 function isRepasseObrigatorio(filial) {
