@@ -36,7 +36,7 @@ export default function VendasMotos() {
     const valorVenda = Number(v.valor || 0);
     const comissao = Number(v.comissao_valor || 0);
     const valorBrinde = v.brinde ? 100 : 0;
-    return valorVenda - repasse - comissao - valorBrimde;
+    return valorVenda - repasse - comissao - valorBrinde;
   }
 
   function calcLiquido(v) {
