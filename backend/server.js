@@ -807,6 +807,74 @@ if (isFilialRepasseSantanderObrigatorio(filial)) {
   }
 });
 
+app.post("/salvar-estoque-historico", async (req, res) => {
+  try {
+    const result = await db.query(`
+      SELECT
+        modelo,
+        valor_compra,
+        repasse
+      FROM motos
+      WHERE status = 'DISPONIVEL'
+    `);
+
+    let totalCompra = 0;
+    let totalVenda = 0;
+
+    result.rows.forEach((m) => {
+      totalCompra += Number(m.valor_compra || 0);
+      totalVenda += Number(m.repasse || 0);
+    });
+
+    const quantidade = result.rows.length;
+
+    const hoje = new Date().toISOString().slice(0, 10);
+
+    await db.query(`
+      INSERT INTO estoque_motos_historico
+      (data, quantidade, total_compra, total_venda)
+      VALUES ($1,$2,$3,$4)
+      ON CONFLICT (data)
+      DO UPDATE SET
+        quantidade = EXCLUDED.quantidade,
+        total_compra = EXCLUDED.total_compra,
+        total_venda = EXCLUDED.total_venda
+    `, [
+      hoje,
+      quantidade,
+      totalCompra,
+      totalVenda
+    ]);
+
+    res.json({ ok: true });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      message: "Erro ao salvar histórico"
+    });
+  }
+});
+
+app.get("/estoque-motos-historico", async (req, res) => {
+  try {
+
+    const result = await db.query(`
+      SELECT *
+      FROM estoque_motos_historico
+      ORDER BY data ASC
+    `);
+
+    res.json(result.rows);
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      message: "Erro"
+    });
+  }
+});
+
 /* ================= ALTERAR STATUS MOTO ================= */
 app.put("/motos/:id/status", async (req, res) => {
   const { id } = req.params;
