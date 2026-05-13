@@ -164,7 +164,7 @@ const [financeiro, setFinanceiro] = useState([]);
       { id: "ultimos_7", title: "Vendas nos últimos 7 dias" },
 { id: "acumulado_7", title: "Acumulado 7 dias" },
       { id: "estoque_motos", title: "Estoque atual de motos" },
-      { id: "historico_motos", title: "Fechamento de estoque" },
+      { id: "historico_estoque", title: "Fechamento de estoque" },
       { id: "fechamento_loja", title: "Fechamento por loja" },
       { id: "top_modelos", title: "Top modelos e cidades" },
 { id: "financeiro", title: "Financeiro" },
