@@ -190,12 +190,7 @@ const [financeiro, setFinanceiro] = useState([]);
       .catch(() => setMotos([]));
   }, []);
 
-useEffect(() => {
-  api
-   
-   .then((res) => setEstoqueHistorico(res.data || []))
-   .catch(() => setEstoqueHistorico([]));
-}, []);
+
 
 useEffect(() => {
   api
@@ -529,7 +524,7 @@ const acumulado7Dias = useMemo(() => {
 
 
 const estoqueHistoricoGrafico = useMemo(() => {
-  return (estoqueHistorico || []).map((item) => ({
+  return (financieiro || []).map((item) => ({
     data: formatDateBRFromISO(item.data),
     quantidade: toNumber(item.quantidade),
     totalCompra: toNumber(item.total_compra),
@@ -875,7 +870,7 @@ const estoqueHistoricoGrafico = useMemo(() => {
           paddingRight: 6,
         }}
       >
-        {[...(estoqueHistorico || [])]
+        {[...(financeiro || [])]
           .sort((a, b) => new Date(b.data) - new Date(a.data))
           .slice(0, 8)
           .map((item) => (
@@ -899,14 +894,14 @@ const estoqueHistoricoGrafico = useMemo(() => {
 
               <div style={{ marginTop: 8 }}>
                 Quantidade:
-                <strong> {item.quantidade}</strong>
+                <strong> {item.qtd_estoque}</strong>
               </div>
 
               <div>
                 Compra:
                 <strong>
                   {" "}
-                  {formatBRL(item.total_compra)}
+                  {formatBRL(item.estoque_venda)}
                 </strong>
               </div>
 
@@ -914,13 +909,13 @@ const estoqueHistoricoGrafico = useMemo(() => {
                 Venda:
                 <strong>
                   {" "}
-                  {formatBRL(item.total_venda)}
+                  {formatBRL(item.estoque_venda)}
                 </strong>
               </div>
             </div>
           ))}
 
-        {estoqueHistorico.length === 0 && (
+        {financeiro.length === 0 && (
           <div
             style={{
               opacity: 0.7,
