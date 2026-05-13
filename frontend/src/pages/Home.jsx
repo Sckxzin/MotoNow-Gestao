@@ -821,8 +821,8 @@ async function alterarStatusMoto(id, novoStatus) {
             .filter((m) => cidadeFiltroMotos === "TODAS" || m.filial === cidadeFiltroMotos)
             .filter((m) => {
               if (santanderFiltro === "TODOS") return true;
-              if (santanderFiltro === "SIM") return m.santander === true;
-              if (santanderFiltro === "NAO") return m.santander === false || m.santander == null;
+              if (santanderFiltro === "SIM") return m.santander === false;
+              if (santanderFiltro === "NAO") return m.santander === true || m.santander == null;
               return true;
             })
             .filter((m) => {
