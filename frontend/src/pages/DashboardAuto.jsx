@@ -155,7 +155,7 @@ export default function DashboardAuto() {
   const [dataFim, setDataFim] = useState("");
   const [empresaFiltro, setEmpresaFiltro] = useState("TODAS");
 const [financeiro, setFinanceiro] = useState([]);
-  const [estoqueHistorico, setEstoqueHistorico] = useState([]);
+  
 
   const slides = useMemo(
     () => [
@@ -192,7 +192,7 @@ const [financeiro, setFinanceiro] = useState([]);
 
 useEffect(() => {
   api
-   .get("/estoque-motos-historico")
+   
    .then((res) => setEstoqueHistorico(res.data || []))
    .catch(() => setEstoqueHistorico([]));
 }, []);
@@ -535,7 +535,7 @@ const estoqueHistoricoGrafico = useMemo(() => {
     totalCompra: toNumber(item.total_compra),
     totalVenda: toNumber(item.total_venda),
   }));
-}, [estoqueHistorico]);
+}, [financeiro]);
 
   /* ================= VENDAS POR CIDADE ================= */
   const vendasPorCidade = useMemo(() => {
