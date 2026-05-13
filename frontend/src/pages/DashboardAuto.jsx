@@ -527,8 +527,8 @@ const estoqueHistoricoGrafico = useMemo(() => {
   return (financeiro || []).map((item) => ({
     data: formatDateBRFromISO(item.data),
     quantidade: toNumber(item.quantidade),
-    totalCompra: toNumber(item.total_compra),
-    totalVenda: toNumber(item.total_venda),
+    totalCompra: toNumber(item.estoque_compra),
+    totalVenda: toNumber(item.estoque_venda),
   }));
 }, [financeiro]);
 
@@ -901,7 +901,7 @@ const estoqueHistoricoGrafico = useMemo(() => {
                 Compra:
                 <strong>
                   {" "}
-                  {formatBRL(item.estoque_venda)}
+                  {formatBRL(item.estoque_compra)}
                 </strong>
               </div>
 
