@@ -527,6 +527,16 @@ const acumulado7Dias = useMemo(() => {
       .slice(0, 10);
   }, [motosFiltradas]);
 
+
+const estoqueHistoricoGrafico = useMemo(() => {
+  return (estoqueHistorico || []).map((item) => ({
+    data: formatDateBRFromISO(item.data),
+    quantidade: toNumber(item.quantidade),
+    totalCompra: toNumber(item.total_compra),
+    totalVenda: toNumber(item.total_venda),
+  }));
+}, [estoqueHistorico]);
+
   /* ================= VENDAS POR CIDADE ================= */
   const vendasPorCidade = useMemo(() => {
     const map = new Map();
@@ -781,6 +791,149 @@ const acumulado7Dias = useMemo(() => {
             </Panel>
           </div>
         )}
+
+{slides[slide]?.id === "historico_estoque" && (
+  <div
+    style={{
+      height: "100%",
+      display: "grid",
+      gridTemplateColumns: "1.2fr 1fr",
+      gap: 14,
+    }}
+  >
+    <Panel
+      title="Fechamento histórico do estoque"
+      rightHint="(snapshot diário)"
+    >
+      <ResponsiveContainer width="100%" height={470}>
+        <LineChart
+          data={estoqueHistoricoGrafico}
+          margin={{ top: 18, right: 16, bottom: 30, left: 8 }}
+        >
+          <CartesianGrid {...THEME.grid} />
+
+          <XAxis
+            dataKey="data"
+            {...THEME.axis}
+          />
+
+          <YAxis {...THEME.axis} />
+
+          <Tooltip
+            {...tooltipProps((v, name) => {
+              if (
+                name === "totalCompra" ||
+                name === "totalVenda"
+              ) {
+                return [formatBRL(v), name];
+              }
+
+              return [v, name];
+            })}
+          />
+
+          <Legend />
+
+          <Line
+            type="monotone"
+            dataKey="quantidade"
+            name="Qtd motos"
+            stroke="rgba(120,160,255,0.95)"
+            strokeWidth={3}
+          />
+
+          <Line
+            type="monotone"
+            dataKey="totalCompra"
+            name="Compra"
+            stroke="rgba(110,240,200,0.92)"
+            strokeWidth={2}
+          />
+
+          <Line
+            type="monotone"
+            dataKey="totalVenda"
+            name="Venda"
+            stroke="rgba(255,190,90,0.95)"
+            strokeWidth={2}
+          />
+        </LineChart>
+      </ResponsiveContainer>
+    </Panel>
+
+    <Panel
+      title="Últimos fechamentos"
+      rightHint="(estoque diário)"
+    >
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 12,
+          maxHeight: 470,
+          overflow: "auto",
+          paddingRight: 6,
+        }}
+      >
+        {[...(estoqueHistorico || [])]
+          .sort((a, b) => new Date(b.data) - new Date(a.data))
+          .slice(0, 8)
+          .map((item) => (
+            <div
+              key={item.data}
+              style={{
+                background: "rgba(255,255,255,0.04)",
+                border: "1px solid rgba(255,255,255,0.08)",
+                borderRadius: 16,
+                padding: 14,
+              }}
+            >
+              <div
+                style={{
+                  fontSize: 15,
+                  fontWeight: 800,
+                }}
+              >
+                {formatDateBRFromISO(item.data)}
+              </div>
+
+              <div style={{ marginTop: 8 }}>
+                Quantidade:
+                <strong> {item.quantidade}</strong>
+              </div>
+
+              <div>
+                Compra:
+                <strong>
+                  {" "}
+                  {formatBRL(item.total_compra)}
+                </strong>
+              </div>
+
+              <div>
+                Venda:
+                <strong>
+                  {" "}
+                  {formatBRL(item.total_venda)}
+                </strong>
+              </div>
+            </div>
+          ))}
+
+        {estoqueHistorico.length === 0 && (
+          <div
+            style={{
+              opacity: 0.7,
+              fontSize: 14,
+            }}
+          >
+            Nenhum fechamento encontrado.
+          </div>
+        )}
+      </div>
+    </Panel>
+  </div>
+)}
 
         {slides[slide]?.id === "fechamento_loja" && (
           <div
