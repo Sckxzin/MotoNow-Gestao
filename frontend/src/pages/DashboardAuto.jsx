@@ -524,7 +524,7 @@ const acumulado7Dias = useMemo(() => {
 
 
 const estoqueHistoricoGrafico = useMemo(() => {
-  return (financieiro || []).map((item) => ({
+  return (financeiro || []).map((item) => ({
     data: formatDateBRFromISO(item.data),
     quantidade: toNumber(item.quantidade),
     totalCompra: toNumber(item.total_compra),
