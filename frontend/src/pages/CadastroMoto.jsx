@@ -84,6 +84,7 @@ export default function CadastroMoto() {
             <option value="Catende">Catende</option>
             <option value="Xexéu">Xexéu</option>
             <option value="São José">São José</option>
+            <option value="Fabrica">Fabrica</option>
           </select>
           <br /><br />
         </>
