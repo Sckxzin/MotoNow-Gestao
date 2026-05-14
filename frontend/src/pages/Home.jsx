@@ -762,6 +762,7 @@ async function alterarStatusMoto(id, novoStatus) {
             <option value="IPOJUCA RICARDO">Ipojuca Ricardo</option>
             <option value="MARAGOGI">Maragogi</option>
             <option value="CHA GRANDE">Cha Grande</option>
+            <option value="FABRICA">Fabrica</option>
           </select>
         </div>
       </div>
@@ -1018,6 +1019,7 @@ async function alterarStatusMoto(id, novoStatus) {
               <option value="MARAGOGI">Maragogi</option>
               <option value="IPOJUCA RICARDO">Ipojuca Ricardo</option>
               <option value="CHA GRANDE">Cha grande</option>
+              <option value="FABRICA">Fabrica</option>
             </select>
 
             <div style={{ display: "flex", gap: 10, marginTop: 15 }}>
@@ -1170,6 +1172,7 @@ async function alterarStatusMoto(id, novoStatus) {
               <option value="IPOJUCA RICARDO">Ipojuca Ricardo</option>
               <option value="CHA GRANDE">Cha grande</option>
               <option value="TENDA">Tenda</option>
+              <option value="FABRICA">Fabrica</option>
             </select>
 
             <input placeholder="CNPJ da empresa" value={cnpjEmpresa} onChange={(e) => setCnpjEmpresa(e.target.value)} />
