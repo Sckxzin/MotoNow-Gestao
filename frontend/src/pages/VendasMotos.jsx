@@ -369,7 +369,7 @@ rr: editarRr ? true : false,
       "a_repassar",
       "liquido",
       "filial",
-      "empresa",
+      
       "data",
       "acoes",
     ],
@@ -427,7 +427,7 @@ rr: editarRr ? true : false,
       "rp",
       "a_repassar",
       "liquido",
-      "empresa",
+      
       "data",
       "acoes",
     ]);
@@ -465,8 +465,7 @@ rr: editarRr ? true : false,
         return v.filial_venda || "-";
       case "filial_origem":
         return v.filial_origem || "-";
-      case "empresa":
-        return getEmpresa(v);
+      
       case "cnpj":
         return getCNPJ(v);
       case "brinde":
@@ -526,8 +525,7 @@ case "rr":
         return v.filial_venda || "";
       case "filial_origem":
         return v.filial_origem || "";
-      case "empresa":
-        return getEmpresa(v);
+      
       case "cnpj":
         return getCNPJ(v);
       case "brinde":
