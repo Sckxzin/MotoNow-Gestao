@@ -650,6 +650,65 @@ app.delete("/emplacamentos/:id", async (req, res) => {
   }
 });
 
+app.get("/estoque-motos-por-data", async (req, res) => {
+  try {
+    const { data } = req.query;
+
+    if (!data) {
+      return res.status(400).json({
+        erro: "Data obrigatória",
+      });
+    }
+
+    const fimDoDia = `${data} 23:59:59`;
+
+    const motosRes = await pool.query(
+      `
+      SELECT
+        valor_compra,
+        valor,
+        status,
+        created_at,
+        data_venda
+      FROM motos
+      WHERE created_at <= $1
+      `,
+      [fimDoDia]
+    );
+
+    const motos = motosRes.rows || [];
+
+    let quantidade = 0;
+    let totalCompra = 0;
+    let totalVenda = 0;
+
+    motos.forEach((m) => {
+      const foiVendidaAntes =
+        m.status === "VENDIDA" &&
+        m.data_venda &&
+        new Date(m.data_venda) <= new Date(fimDoDia);
+
+      if (!foiVendidaAntes) {
+        quantidade += 1;
+
+        totalCompra += Number(m.valor_compra || 0);
+        totalVenda += Number(m.valor || 0);
+      }
+    });
+
+    res.json({
+      quantidade,
+      totalCompra,
+      totalVenda,
+    });
+  } catch (err) {
+    console.log(err);
+
+    res.status(500).json({
+      erro: "Erro ao calcular estoque",
+    });
+  }
+});
 
 
 /* ================= LOGIN ================= */
