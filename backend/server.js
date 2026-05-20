@@ -313,27 +313,35 @@ function getValorVendaModelo(modelo) {
 
 app.get("/historico-estoque", async (req, res) => {
   try {
+
     const result = await db.query(`
       SELECT
         DATE(data_venda) as data,
         COUNT(*) as quantidade,
-        SUM(valor_compra) as "totalCompra",
-        SUM(valor) as "totalVenda"
+        SUM(valor_compra) as "totalCompra"
       FROM motos
       WHERE status = 'VENDIDA'
       GROUP BY DATE(data_venda)
       ORDER BY DATE(data_venda)
     `);
 
-    res.json(result.rows);
+    const dados = result.rows.map((item) => ({
+      data: item.data,
+      quantidade: Number(item.quantidade || 0),
+      totalCompra: Number(item.totalCompra || 0),
+      totalVenda: 0
+    }));
+
+    res.json(dados);
+
   } catch (err) {
     console.log(err);
+
     res.status(500).json({
-      erro: "Erro ao buscar histórico",
+      erro: "Erro ao buscar histórico"
     });
   }
 });
-
 app.get("/financeiro-dashboard", async (req, res) => {
   try {
     const result = await db.query(`
