@@ -313,7 +313,7 @@ function getValorVendaModelo(modelo) {
 
 app.get("/historico-estoque", async (req, res) => {
   try {
-    const result = await pool.query(`
+    const result = await db.query(`
       SELECT
         DATE(data_venda) as data,
         COUNT(*) as quantidade,
