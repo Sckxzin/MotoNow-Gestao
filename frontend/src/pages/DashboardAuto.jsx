@@ -155,6 +155,7 @@ export default function DashboardAuto() {
   const [dataFim, setDataFim] = useState("");
   const [empresaFiltro, setEmpresaFiltro] = useState("TODAS");
 const [financeiro, setFinanceiro] = useState([]);
+const [historicoEstoque, setHistoricoEstoque] = useState([]);
   
 
   const slides = useMemo(
@@ -243,6 +244,61 @@ useEffect(() => {
   function prevSlide() {
     setSlide((s) => (s - 1 + slides.length) % slides.length);
   }
+
+useEffect(() => {
+  async function carregarHistoricoEstoque() {
+    try {
+      const datas = [
+        ...new Set(
+          (financeiro || []).map((f) => f.data)
+        ),
+      ];
+
+      const resultado = await Promise.all(
+        datas.map(async (data) => {
+          const res = await api.get(
+            "/estoque-motos-por-data",
+            {
+              params: { data },
+            }
+          );
+
+          return {
+            dataISO: data,
+            data: formatDateBRFromISO(data),
+
+            quantidade: toNumber(
+              res.data.quantidade
+            ),
+
+            totalCompra: toNumber(
+              res.data.totalCompra
+            ),
+
+            totalVenda: toNumber(
+              res.data.totalVenda
+            ),
+          };
+        })
+      );
+
+      setHistoricoEstoque(
+        resultado.sort(
+          (a, b) =>
+            new Date(a.dataISO) -
+            new Date(b.dataISO)
+        )
+      );
+    } catch (err) {
+      console.log(err);
+      setHistoricoEstoque([]);
+    }
+  }
+
+  if (financeiro.length > 0) {
+    carregarHistoricoEstoque();
+  }
+}, [financeiro]);
 
   useEffect(() => {
     if (!autoPlay) return;
