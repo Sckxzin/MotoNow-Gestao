@@ -246,59 +246,15 @@ useEffect(() => {
   }
 
 useEffect(() => {
-  async function carregarHistoricoEstoque() {
-    try {
-      const datas = [
-        ...new Set(
-          (financeiro || []).map((f) => f.data)
-        ),
-      ];
-
-      const resultado = await Promise.all(
-        datas.map(async (data) => {
-          const res = await api.get(
-            "/estoque-motos-por-data",
-            {
-              params: { data },
-            }
-          );
-
-          return {
-            dataISO: data,
-            data: formatDateBRFromISO(data),
-
-            quantidade: toNumber(
-              res.data.quantidade
-            ),
-
-            totalCompra: toNumber(
-              res.data.totalCompra
-            ),
-
-            totalVenda: toNumber(
-              res.data.totalVenda
-            ),
-          };
-        })
-      );
-
-      setHistoricoEstoque(
-        resultado.sort(
-          (a, b) =>
-            new Date(a.dataISO) -
-            new Date(b.dataISO)
-        )
-      );
-    } catch (err) {
-      console.log(err);
+  api
+    .get("/historico-estoque")
+    .then((res) => {
+      setHistoricoEstoque(res.data || []);
+    })
+    .catch(() => {
       setHistoricoEstoque([]);
-    }
-  }
-
-  if (financeiro.length > 0) {
-    carregarHistoricoEstoque();
-  }
-}, [financeiro]);
+    });
+}, []);
 
   useEffect(() => {
     if (!autoPlay) return;
