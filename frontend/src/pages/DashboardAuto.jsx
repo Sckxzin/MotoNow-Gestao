@@ -579,14 +579,6 @@ const acumulado7Dias = useMemo(() => {
   }, [motosFiltradas]);
 
 
-const estoqueHistoricoGrafico = useMemo(() => {
-  return (financeiro || []).map((item) => ({
-    data: formatDateBRFromISO(item.data),
-    quantidade: toNumber(item.quantidade),
-    totalCompra: toNumber(item.estoque_compra),
-    totalVenda: toNumber(item.estoque_venda),
-  }));
-}, [financeiro]);
 
   /* ================= VENDAS POR CIDADE ================= */
   const vendasPorCidade = useMemo(() => {
@@ -858,7 +850,7 @@ const estoqueHistoricoGrafico = useMemo(() => {
     >
       <ResponsiveContainer width="100%" height={470}>
         <LineChart
-          data={estoqueHistoricoGrafico}
+          data={historicoEstoque}
           margin={{ top: 18, right: 16, bottom: 30, left: 8 }}
         >
           <CartesianGrid {...THEME.grid} />
@@ -926,7 +918,7 @@ const estoqueHistoricoGrafico = useMemo(() => {
           paddingRight: 6,
         }}
       >
-        {[...(financeiro || [])]
+        {[...(historicoEstoque || [])]
           .sort((a, b) => new Date(b.data) - new Date(a.data))
           .slice(0, 8)
           .map((item) => (
@@ -950,14 +942,14 @@ const estoqueHistoricoGrafico = useMemo(() => {
 
               <div style={{ marginTop: 8 }}>
                 Quantidade:
-                <strong> {item.qtd_estoque}</strong>
+                <strong> {item.quantidade}</strong>
               </div>
 
               <div>
                 Compra:
                 <strong>
                   {" "}
-                  {formatBRL(item.estoque_compra)}
+                  {formatBRL(item.totalCompra)}
                 </strong>
               </div>
 
@@ -965,7 +957,7 @@ const estoqueHistoricoGrafico = useMemo(() => {
                 Venda:
                 <strong>
                   {" "}
-                  {formatBRL(item.estoque_venda)}
+                  {formatBRL(item.totalVenda)}
                 </strong>
               </div>
             </div>
