@@ -685,7 +685,7 @@ app.get("/estoque-motos-por-data", async (req, res) => {
 
     const fimDoDia = `${data} 23:59:59`;
 
-    const motosRes = await pool.query(
+    const motosRes = await db.query(
       `
       SELECT
         valor_compra,
