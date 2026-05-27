@@ -30,6 +30,7 @@ const MODELOS_MOTOS = [
   { modelo: "PT3 TRICICLO", compra_motonow: 6900, compra_santander: 11590, santanderDefault: true},
   { modelo: "NEW ATV 200 EFI", compra_motonow: 21490, compra_santander: 23600, santanderDefault: true},
   { modelo: "NEW SHI 175 CARB", compra_motonow: 12990, compra_santander: 14100, santanderDefault: true},
+  { modelo: "NEW SHI 175 EFI", compra_motonow: 13990, compra_santander: 15300, santanderDefault: true},
 ];
 
 /* ================= REGRA: REPASSE OBRIGATÓRIO EM FILIAIS ================= */
