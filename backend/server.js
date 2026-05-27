@@ -258,7 +258,7 @@ const VALOR_VENDA_MODELOS = {
   ATV200: 22788,
   ATVEFI200: 25000,
   NEWATV200EFI: 23600,
-  NEWSHI175EFI:15300,
+
 };
 
 /* ================= NORMALIZAR FORTE ================= */
