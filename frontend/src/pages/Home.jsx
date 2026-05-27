@@ -31,6 +31,7 @@ const MODELOS_MOTOS = [
   { modelo: "NEW ATV 200 EFI", compra_motonow: 21490, compra_santander: 23600, santanderDefault: true},
   { modelo: "NEW SHI 175 CARB", compra_motonow: 12990, compra_santander: 14100, santanderDefault: true},
   { modelo: "NEW SHI 175 EFI", compra_motonow: 13990, compra_santander: 15300, santanderDefault: true},
+  { modelo: "RIO 125", compra_motonow: 83000, compra_santander: 89000, santanderDefault: true},
 ];
 
 /* ================= REGRA: REPASSE OBRIGATÓRIO EM FILIAIS ================= */
@@ -69,6 +70,7 @@ const REPASSE_SANTANDER_POR_MODELO = {
   [normModeloKey("NEW ATV 200 EFI")]:23600,
   [normModeloKey("NEW SHI 175 CARB")]:14100, 
   [normModeloKey("NEW SHI 175 EFI")]:15300,
+  [normModeloKey("RIO 125")]:8900,
 };
 
 function isRepasseObrigatorio(filial) {
