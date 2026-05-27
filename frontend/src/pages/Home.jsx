@@ -67,7 +67,8 @@ const REPASSE_SANTANDER_POR_MODELO = {
   [normModeloKey("ATV 200 EFI")]:23000,
   [normModeloKey("PT3 TRICICLO")]:11590,
   [normModeloKey("NEW ATV 200 EFI")]:23600,
-  [normModeloKey("NEW SHI 175 CARB")]:14100,
+  [normModeloKey("NEW SHI 175 CARB")]:14100, 
+  [normModeloKey("NEW SHI 175 EFI")]:15300,
 };
 
 function isRepasseObrigatorio(filial) {
