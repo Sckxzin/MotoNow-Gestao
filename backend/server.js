@@ -490,6 +490,7 @@ const REPASSE_SANTANDER_POR_MODELO = {
   [normModeloKey("PT4 PRO")]:8300,
   [normModeloKey("PT3 TRICICLO")]:11590,
   [normModeloKey("NEW SHI 175 CARB")]:14100,
+  [normModeloKey("RIO 125")]:8900,
 };
 
 function repasseSantanderPorModelo(modelo) {
