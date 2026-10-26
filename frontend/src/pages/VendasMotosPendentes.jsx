@@ -33,6 +33,31 @@ export default function VendasMotosPendentes() {
     carregarPendentes();
   }, []);
 
+  async function enviarTermo(id, file) {
+    if (!file) return;
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type) || file.size > 5 * 1024 * 1024) {
+      alert("Selecione uma imagem JPG, PNG ou WEBP de até 5 MB.");
+      return;
+    }
+    try {
+      const base64 = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result).split(",")[1]);
+        reader.onerror = () => reject(new Error("Não foi possível ler a imagem."));
+        reader.readAsDataURL(file);
+      });
+      await api.post(`/vendas-motos-pendentes/${id}/termo-garantia`, {
+        termo_garantia_base64: base64,
+        termo_garantia_mime: file.type,
+        termo_garantia_nome: file.name
+      });
+      alert("Termo de garantia anexado.");
+      await carregarPendentes();
+    } catch (e) {
+      alert(e?.response?.data?.message || "Erro ao anexar o termo.");
+    }
+  }
+
   async function aprovar(id) {
     const raw = localStorage.getItem("user");
     const user = raw ? JSON.parse(raw) : null;
@@ -109,6 +134,7 @@ export default function VendasMotosPendentes() {
               <th>Brinde</th>
               <th>Gasolina</th>
               <th>Data</th>
+              <th>Termo de garantia</th>
               <th>Ação</th>
             </tr>
           </thead>
@@ -116,7 +142,7 @@ export default function VendasMotosPendentes() {
           <tbody>
             {pendentes.length === 0 ? (
               <tr>
-                <td colSpan={12} style={{ textAlign: "center", padding: 20 }}>
+                <td colSpan={13} style={{ textAlign: "center", padding: 20 }}>
                   Nenhuma pendência no momento.
                 </td>
               </tr>
@@ -135,7 +161,26 @@ export default function VendasMotosPendentes() {
                   <td>{p.gasolina ? formatarValor(p.gasolina) : "-"}</td>
                   <td>{new Date(p.created_at).toLocaleString("pt-BR")}</td>
                   <td>
-                    <div style={{ display: "flex", gap: 8 }}>
+                    {p.termo_garantia_anexado ? (
+                      <span style={{ color: "#15803d", fontWeight: 700 }}>✅ Anexado</span>
+                    ) : (
+                      <div>
+                        <strong style={{ color: "#b91c1c", display: "block" }}>⚠️ Faltando</strong>
+                        <input
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp"
+                          aria-label="Anexar termo de garantia"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            e.target.value = "";
+                            enviarTermo(p.id, file);
+                          }}
+                        />
+                      </div>
+                    )}
+                  </td>
+                  <td>
+                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                       <button className="vm-btn vm-btn-primary" onClick={() => aprovar(p.id)}>
                         ✅ Aprovar
                       </button>
