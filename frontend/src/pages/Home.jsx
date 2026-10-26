@@ -127,6 +127,7 @@ export default function Home() {
   const [numeroCliente, setNumeroCliente] = useState("");
   const [localRetirada, setLocalRetirada] = useState("");
   const [filialRetirada, setFilialRetirada] = useState("");
+  const [termoGarantia, setTermoGarantia] = useState(null);
 
   /* ===== TRANSFERIR MOTO ===== */
   const [motoTransferir, setMotoTransferir] = useState(null);
@@ -261,6 +262,7 @@ function abrirEntradaEstoque(peca) {
     setNumeroCliente("");
     setLocalRetirada("");
     setFilialRetirada("");
+    setTermoGarantia(null);
   }
 
   // ✅ Solicitação (PENDENTE_APROVACAO)
@@ -271,7 +273,24 @@ function abrirEntradaEstoque(peca) {
     }
 
     try {
+      let termoGarantiaBase64 = null;
+      if (termoGarantia) {
+        if (termoGarantia.size > 5 * 1024 * 1024) {
+          alert("A imagem do termo deve ter no máximo 5 MB.");
+          return;
+        }
+        termoGarantiaBase64 = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(String(reader.result).split(",")[1]);
+          reader.onerror = () => reject(new Error("Não foi possível ler a imagem do termo."));
+          reader.readAsDataURL(termoGarantia);
+        });
+      }
+
       await api.post("/vender-moto", {
+        termo_garantia_base64: termoGarantiaBase64,
+        termo_garantia_mime: termoGarantia?.type || null,
+        termo_garantia_nome: termoGarantia?.name || null,
         moto_id: motoSelecionada.id,
         nome_cliente: clienteNome,
         valor: Number(valorMoto),
@@ -903,6 +922,18 @@ async function alterarStatusMoto(id, novoStatus) {
         <div className="modal-overlay">
           <div className="modal">
             <h3>Venda da Moto</h3>
+
+            <label style={{ display: "block", margin: "10px 0" }}>
+              Termo de garantia (opcional)
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                onChange={(e) => setTermoGarantia(e.target.files?.[0] || null)}
+              />
+            </label>
+            <small style={{ display: "block", marginBottom: 10, opacity: 0.8 }}>
+              Pode continuar sem anexar. A diretoria verá um aviso até o documento ser enviado. Imagem JPG, PNG ou WEBP, até 5 MB.
+            </small>
 
             <input placeholder="Cliente" value={clienteNome} onChange={(e) => setClienteNome(e.target.value)} />
 
