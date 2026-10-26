@@ -123,6 +123,33 @@ const [editarRr, setEditarRr] = useState(false);
 setEditarRr(!!v.rr);
   }
 
+  async function enviarTermoVenda(v, file) {
+    if (!file) return;
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type) || file.size > 5 * 1024 * 1024) {
+      alert("Selecione uma imagem JPG, PNG ou WEBP de até 5 MB.");
+      return;
+    }
+    try {
+      const base64 = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result).split(",")[1]);
+        reader.onerror = () => reject(new Error("Não foi possível ler a imagem."));
+        reader.readAsDataURL(file);
+      });
+      await api.post(`/vendas-motos/${v.id}/termo-garantia`, {
+        termo_garantia_base64: base64,
+        termo_garantia_mime: file.type,
+        termo_garantia_nome: file.name
+      });
+      setVendas((prev) => prev.map((item) => item.id === v.id
+        ? { ...item, termo_garantia_anexado: true, termo_garantia_pendente: false, termo_garantia_nome: file.name }
+        : item));
+      alert("Termo de garantia anexado.");
+    } catch (e) {
+      alert(e?.response?.data?.message || "Erro ao anexar o termo.");
+    }
+  }
+
   async function salvarEdicaoVenda() {
     if (!modalEditar) return;
 
@@ -350,6 +377,7 @@ rr: editarRr ? true : false,
       { key: "local_retirada", label: "Local retirada" },
       { key: "filial_retirada", label: "Filial retirada" },
       { key: "comissao", label: "Comissão" },
+      { key: "termo", label: "Termo de garantia" },
       { key: "acoes", label: "Ações" },
 { key: "rr", label: "RR" },
     ],
@@ -371,6 +399,7 @@ rr: editarRr ? true : false,
       "filial",
       "empresa",
       "data",
+      "termo",
       "acoes",
     ],
     []
@@ -483,15 +512,41 @@ case "rr":
         return formatarValor(calcLiquido(v));
       case "comissao":
         return formatarValor(v.comissao_valor);
+      case "termo":
+        return v.termo_garantia_anexado
+          ? "✅ Anexado"
+          : "⚠️ FALTANDO — enviar documento";
       case "local_retirada":
         return v.local_retirada || "-";
       case "filial_retirada":
         return v.filial_retirada || "-";
       case "acoes":
         return (
-          <button className="vm-btn vm-btn-soft" onClick={() => abrirEditarVenda(v)}>
-            Editar
-          </button>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+            {!v.termo_garantia_anexado && (
+              <label className="vm-btn vm-btn-soft" style={{ cursor: "pointer" }}>
+                📎 Enviar termo
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  style={{ display: "none" }}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    e.target.value = "";
+                    enviarTermoVenda(v, file);
+                  }}
+                />
+              </label>
+            )}
+            {v.termo_garantia_anexado && (
+              <button className="vm-btn vm-btn-soft" onClick={() => window.open(`${api.defaults.baseURL}/vendas-motos/${v.id}/termo-garantia`, "_blank", "noopener,noreferrer")}>
+                👁 Ver termo
+              </button>
+            )}
+            <button className="vm-btn vm-btn-soft" onClick={() => abrirEditarVenda(v)}>
+              Editar
+            </button>
+          </div>
         );
       default:
         return "";
@@ -542,6 +597,8 @@ case "rr":
         return Number(calcLiquido(v)).toFixed(2);
       case "comissao":
         return v.comissao_valor != null ? Number(v.comissao_valor).toFixed(2) : "";
+      case "termo":
+        return v.termo_garantia_anexado ? "ANEXADO" : "FALTANDO";
       case "local_retirada":
         return v.local_retirada || "";
       case "filial_retirada":
