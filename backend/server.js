@@ -18,7 +18,7 @@ app.use(
 );
 app.options("*", cors());
 
-app.use(express.json());
+app.use(express.json({ limit: "8mb" }));
 
 /* ================= DB ================= */
 const db = new Pool({
@@ -1775,6 +1775,9 @@ app.get("/vendas-motos", async (req, res) => {
         data_venda,
         comissao_valor,
         rp,
+        termo_garantia_pendente,
+        termo_garantia_nome,
+        (termo_garantia IS NOT NULL) AS termo_garantia_anexado,
         CASE
           WHEN santander = true THEN 'EMENEZES'
           ELSE 'MOTONOW'
@@ -1797,12 +1800,12 @@ app.get("/vendas-motos", async (req, res) => {
 app.get("/vendas-motos-pendentes", async (req, res) => {
   try {
     const r = await db.query(
-      `SELECT *
+      `SELECT *, (termo_garantia IS NOT NULL) AS termo_garantia_anexado
        FROM vendas_motos_pendentes
        WHERE status = 'PENDENTE'
        ORDER BY created_at DESC`
     );
-    res.json(r.rows);
+    res.json(r.rows.map(({ termo_garantia, ...row }) => row));
   } catch (err) {
     console.error("Erro listar pendentes:", err);
     res.status(500).json({ message: "Erro ao buscar pendentes" });
@@ -1826,7 +1829,17 @@ app.post("/vender-moto", async (req, res) => {
     local_retirada,
     filial_retirada,
     data_venda,
+    termo_garantia_base64,
+    termo_garantia_mime,
+    termo_garantia_nome,
   } = req.body;
+
+  if (termo_garantia_base64 && (
+    termo_garantia_base64.length > 7 * 1024 * 1024 ||
+    !["image/jpeg", "image/png", "image/webp"].includes(termo_garantia_mime)
+  )) {
+    return res.status(400).json({ message: "O termo deve ser JPG, PNG ou WEBP de até 5 MB." });
+  }
 
   // mantém tua validação mínima + evita crash
   if (!moto_id || !filial_venda || !nome_cliente || !valor) {
@@ -1891,14 +1904,18 @@ if (isFilialRepasseSantanderObrigatorio(filial_venda)) {
         filial_retirada,
         data_venda,
         comissao_valor,
-        status
+        status,
+        termo_garantia,
+        termo_garantia_mime,
+        termo_garantia_nome,
+        termo_garantia_pendente
       ) VALUES (
         $1,$2,$3,$4,
         $5,$6,
         $7,$8,$9,$10,
         $11,$12,$13,$14,$15,
         $16,$17,$18,$19,$20,$21,$22,$23,
-        'PENDENTE'
+        'PENDENTE',$24,$25,$26,$27
       )
       RETURNING id`,
       [
@@ -1923,8 +1940,12 @@ if (isFilialRepasseSantanderObrigatorio(filial_venda)) {
         repasseFinal,
         local_retirada || null,
         filial_retirada || null,
-        data_venda || new Date,
+        data_venda || new Date(),
         comissaoValor || 0,
+        termo_garantia_base64 ? Buffer.from(termo_garantia_base64, "base64") : null,
+        termo_garantia_base64 ? termo_garantia_mime : null,
+        termo_garantia_base64 ? String(termo_garantia_nome || "termo-garantia").slice(0, 180) : null,
+        !termo_garantia_base64,
       ]
     );
 
@@ -1947,6 +1968,79 @@ if (isFilialRepasseSantanderObrigatorio(filial_venda)) {
     res.status(500).json({ message: err.message });
   } finally {
     client.release();
+  }
+});
+
+/* ================= TERMO DE GARANTIA ================= */
+function validarImagemTermo(req, res) {
+  const { termo_garantia_base64, termo_garantia_mime } = req.body || {};
+  if (!termo_garantia_base64) {
+    res.status(400).json({ message: "Selecione uma imagem do termo." });
+    return false;
+  }
+  if (termo_garantia_base64.length > 7 * 1024 * 1024 ||
+      !["image/jpeg", "image/png", "image/webp"].includes(termo_garantia_mime)) {
+    res.status(400).json({ message: "Use JPG, PNG ou WEBP de até 5 MB." });
+    return false;
+  }
+  return true;
+}
+
+app.post("/vendas-motos-pendentes/:id/termo-garantia", async (req, res) => {
+  if (!validarImagemTermo(req, res)) return;
+  const { termo_garantia_base64, termo_garantia_mime, termo_garantia_nome } = req.body;
+  try {
+    const result = await db.query(
+      `UPDATE vendas_motos_pendentes
+       SET termo_garantia = $2, termo_garantia_mime = $3,
+           termo_garantia_nome = $4, termo_garantia_pendente = false
+       WHERE id = $1 RETURNING id`,
+      [req.params.id, Buffer.from(termo_garantia_base64, "base64"), termo_garantia_mime,
+       String(termo_garantia_nome || "termo-garantia").slice(0, 180)]
+    );
+    if (!result.rows.length) return res.status(404).json({ message: "Pendência não encontrada." });
+    res.json({ message: "Termo de garantia anexado." });
+  } catch (err) {
+    console.error("Erro ao anexar termo na pendência:", err);
+    res.status(500).json({ message: "Erro ao salvar o termo de garantia." });
+  }
+});
+
+app.post("/vendas-motos/:id/termo-garantia", async (req, res) => {
+  if (!validarImagemTermo(req, res)) return;
+  const { termo_garantia_base64, termo_garantia_mime, termo_garantia_nome } = req.body;
+  try {
+    const result = await db.query(
+      `UPDATE vendas_motos
+       SET termo_garantia = $2, termo_garantia_mime = $3,
+           termo_garantia_nome = $4, termo_garantia_pendente = false
+       WHERE id = $1 RETURNING id`,
+      [req.params.id, Buffer.from(termo_garantia_base64, "base64"), termo_garantia_mime,
+       String(termo_garantia_nome || "termo-garantia").slice(0, 180)]
+    );
+    if (!result.rows.length) return res.status(404).json({ message: "Venda não encontrada." });
+    res.json({ message: "Termo de garantia anexado à venda." });
+  } catch (err) {
+    console.error("Erro ao anexar termo na venda:", err);
+    res.status(500).json({ message: "Erro ao salvar o termo de garantia." });
+  }
+});
+
+app.get("/vendas-motos/:id/termo-garantia", async (req, res) => {
+  try {
+    const result = await db.query(
+      `SELECT termo_garantia, termo_garantia_mime, termo_garantia_nome
+       FROM vendas_motos WHERE id = $1`,
+      [req.params.id]
+    );
+    const file = result.rows[0];
+    if (!file || !file.termo_garantia) return res.status(404).json({ message: "Termo de garantia não encontrado." });
+    res.setHeader("Content-Type", file.termo_garantia_mime || "application/octet-stream");
+    res.setHeader("Content-Disposition", "inline; filename*=UTF-8''" + encodeURIComponent(file.termo_garantia_nome || "termo-garantia"));
+    res.send(file.termo_garantia);
+  } catch (err) {
+    console.error("Erro ao abrir termo de garantia:", err);
+    res.status(500).json({ message: "Erro ao abrir o termo de garantia." });
   }
 });
 
@@ -2014,9 +2108,13 @@ if (isFilialRepasseSantanderObrigatorio(p.filial_venda)) {
         local_retirada,
         filial_retirada,
         data_venda,
-        comissao_valor
+        comissao_valor,
+        termo_garantia,
+        termo_garantia_mime,
+        termo_garantia_nome,
+        termo_garantia_pendente
       ) VALUES (
-        $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23
+        $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27
       )`,
       [
         p.moto_id,
@@ -2042,6 +2140,10 @@ if (isFilialRepasseSantanderObrigatorio(p.filial_venda)) {
         p.filial_retirada || null,
         p.data_venda || p.created_at,
         p.comissao_valor || 0,
+        p.termo_garantia || null,
+        p.termo_garantia_mime || null,
+        p.termo_garantia_nome || null,
+        p.termo_garantia_pendente ?? true,
       ]
     );
 
@@ -2141,6 +2243,19 @@ app.post("/vendas-motos-pendentes/:id/recusar", async (req, res) => {
 
 /* ================= SERVER ================= */
 const PORT = process.env.PORT || 8080;
-app.listen(PORT, "0.0.0.0", () => {
-  console.log("🚀 API ON", PORT);
-});
+async function iniciarServidor() {
+  try {
+    for (const tabela of ["vendas_motos_pendentes", "vendas_motos"]) {
+      await db.query(`ALTER TABLE ${tabela}
+        ADD COLUMN IF NOT EXISTS termo_garantia BYTEA,
+        ADD COLUMN IF NOT EXISTS termo_garantia_mime TEXT,
+        ADD COLUMN IF NOT EXISTS termo_garantia_nome TEXT,
+        ADD COLUMN IF NOT EXISTS termo_garantia_pendente BOOLEAN NOT NULL DEFAULT TRUE`);
+    }
+    console.log("✅ Colunas do termo de garantia verificadas");
+  } catch (err) {
+    console.error("❌ Migração do termo de garantia falhou:", err.message);
+  }
+  app.listen(PORT, "0.0.0.0", () => console.log("🚀 API ON", PORT));
+}
+iniciarServidor();
