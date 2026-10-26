@@ -1800,11 +1800,13 @@ app.get("/vendas-motos", async (req, res) => {
 app.get("/vendas-motos-pendentes", async (req, res) => {
   try {
     const r = await db.query(
-      `SELECT *, (termo_garantia IS NOT NULL) AS termo_garantia_anexado
+      `SELECT *,
+              (termo_garantia IS NOT NULL) AS termo_garantia_anexado
        FROM vendas_motos_pendentes
        WHERE status = 'PENDENTE'
        ORDER BY created_at DESC`
     );
+    // Evita enviar o arquivo binário inteiro em cada recarga da lista.
     res.json(r.rows.map(({ termo_garantia, ...row }) => row));
   } catch (err) {
     console.error("Erro listar pendentes:", err);
