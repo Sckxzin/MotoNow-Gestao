@@ -524,6 +524,9 @@ case "rr":
         return (
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
             {!v.termo_garantia_anexado && (
+              <strong style={{ color: "#b91c1c" }}>⚠️ Termo faltando</strong>
+            )}
+            {!v.termo_garantia_anexado && (
               <label className="vm-btn vm-btn-soft" style={{ cursor: "pointer" }}>
                 📎 Enviar termo
                 <input
